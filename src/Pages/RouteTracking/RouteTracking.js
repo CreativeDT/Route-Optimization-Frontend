@@ -96,6 +96,9 @@ const RouteTracking = () => {
     }, []);
 
     const fetchConsignments = useCallback(async () => {
+
+        const token = localStorage.getItem('token');
+
         try {
             const response = await axios.post('http://127.0.0.1:8000/getConsignments', {
                 status: '',
@@ -103,6 +106,10 @@ const RouteTracking = () => {
                 destination: '',
                 vehicle_id: '',
                 routeID: ''
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}` // Include the token in the Authorization header
+                }
             });
             console.log('Consignments:', response.data);
             setConsignments(response.data.consignments);
@@ -113,9 +120,14 @@ const RouteTracking = () => {
 
     const fetchRouteData = useCallback(async (routeID) => {
         try {
+            const token = localStorage.getItem('token');
             const response = await axios.post('http://127.0.0.1:8000/getRouteData', {
                 routeID,
                 vehicle_id: ''
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}` // Include the token in the Authorization header
+                }
             });
             console.log('Route data:', response.data.route);
             const route = response.data.route[0];
