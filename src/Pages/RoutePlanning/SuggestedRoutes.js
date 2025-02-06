@@ -13,11 +13,13 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { MapContainer, TileLayer, Polyline, Marker, Tooltip, useMap } from "react-leaflet";
 import NavBar from "../../Components/NavBar";
-import redIconImage from '../../Assets/images/red.svg'; // Import the red icon image
-import greenIconImage from '../../Assets/images/placeholder.svg';
+import redIconImage from '../../Assets/images/red.png'; // Import the red icon image
+import greenIconImage from '../../Assets/images/green.png';
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
+import blueicon from '../../Assets/images/blue.png';
+
 
 
 const SuggestRoutes = () => {
@@ -112,22 +114,23 @@ const SuggestRoutes = () => {
 
     const redIcon = new L.Icon({
         iconUrl: redIconImage, // Or your red icon URL
-        iconSize: [38, 95],
-        iconAnchor: [22, 94],
-        popupAnchor: [-3, -76],
-        shadowUrl: 'https://leafletjs.com/examples/custom-icons/leaf-shadow.png',
-        shadowSize: [50, 64],
-        shadowAnchor: [4, 62]
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+        popupAnchor: [0, -10],
     });
 
     const greenIcon = new L.Icon({
         iconUrl: greenIconImage, // Or your green icon URL
-        iconSize: [38, 95],
-        iconAnchor: [22, 94],
-        popupAnchor: [-3, -76],
-        shadowUrl: 'https://leafletjs.com/examples/custom-icons/leaf-shadow.png',
-        shadowSize: [50, 64],
-        shadowAnchor: [4, 62]
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+        popupAnchor: [0, -10],
+    });
+
+    const waypointIcon = new L.Icon({
+        iconUrl: blueicon, // Blue dot icon URL
+        iconSize: [20, 20],
+        iconAnchor: [10, 10],
+        popupAnchor: [0, -10],
     });
 
     const origin = coordinates[0];
@@ -303,40 +306,59 @@ const SuggestRoutes = () => {
     };
 
     const drawRouteOnMap = (route) => {
-        if (!mapInstance || !route || !route.route_coordinates) return;
-
+        if (!mapInstance || !route || !route.route_coordinates || !route.route_waypoints) return;
+    
         const coordinates = route.route_coordinates.map((coord) => {
             const lat = Number(coord[1]);
             const lng = Number(coord[0]);
-
+    
             if (isNaN(lat) || isNaN(lng)) {
                 console.error("Invalid coordinates:", coord);
                 return null;
             }
             return [lat, lng];
         }).filter(coord => coord !== null);
-
-        if (coordinates.length === 0) {
-            console.error("No valid coordinates to draw route.");
-            return;
-        }
-
+    
+        // Remove existing route layers before adding a new one
         mapInstance.eachLayer((layer) => {
             if (layer instanceof L.Marker || layer instanceof L.Polyline) {
                 mapInstance.removeLayer(layer);
             }
         });
-
+    
+        // Draw the route as a polyline
         L.polyline(coordinates, { color: "blue", weight: 3 }).addTo(mapInstance);
-
+    
+        // Add markers for each waypoint
+        route.route_waypoints.forEach((waypoint) => {
+            const lat = waypoint.coordinates[1];
+            const lng = waypoint.coordinates[0];
+    
+            if (!isNaN(lat) && !isNaN(lng)) {
+                L.marker([lat, lng], { icon: waypointIcon })
+                    .addTo(mapInstance)
+                    .bindPopup(waypoint.name || "Waypoint");
+            } else {
+                console.error("Invalid waypoint coordinates:", waypoint.coordinates);
+            }
+        });
+    
+        // Add markers for the origin and destination
         if (coordinates.length > 0) {
-            L.marker([coordinates[0][0], coordinates[0][1]], { icon: redIcon }).addTo(mapInstance).bindPopup(route.origin || "Origin");
-            L.marker([coordinates[coordinates.length - 1][0], coordinates[coordinates.length - 1][1]], { icon: greenIcon }).addTo(mapInstance).bindPopup(route.destination || "Destination");
+            L.marker([coordinates[0][0], coordinates[0][1]], { icon: redIcon })
+                .addTo(mapInstance)
+                .bindPopup(route.origin || "Origin");
+    
+            L.marker([coordinates[coordinates.length - 1][0], coordinates[coordinates.length - 1][1]], { icon: greenIcon })
+                .addTo(mapInstance)
+                .bindPopup(route.destination || "Destination");
         }
-
+    
+        // Fit the map bounds to the route
         const bounds = L.latLngBounds(coordinates);
         mapInstance.fitBounds(bounds);
     };
+    
 
 
     const submitRouteSelection = () => {

@@ -7,22 +7,22 @@ import Navbar from '../../Components/NavBar';
 import axios from 'axios';
 import '../../markerCluster.css';
 import L from 'leaflet';
-import redIconImage from '../../Assets/images/red.svg';
-import greenIconImage from '../../Assets/images/placeholder.svg';
+import redIconImage from '../../Assets/images/red.png';
+import greenIconImage from '../../Assets/images/green.png';
 import blueicon from '../../Assets/images/blue.png';
 
 const redIcon = new L.Icon({
     iconUrl: redIconImage,
-    iconSize: [30, 75],
-    iconAnchor: [15, 37],
-    popupAnchor: [0, -35]
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+    popupAnchor: [0, -10],
 });
 
 const greenIcon = new L.Icon({
     iconUrl: greenIconImage,
-    iconSize: [30, 75],
-    iconAnchor: [15, 37],
-    popupAnchor: [0, -35]
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+    popupAnchor: [0, -10],
 });
 
 const waypointIcon = new L.Icon({
@@ -32,7 +32,7 @@ const waypointIcon = new L.Icon({
     popupAnchor: [0, -10],
 });
 
-const MapView = React.memo(({ coordinates, routeWaypoints }) => {
+const MapView = React.memo(({ coordinates, routeWaypoints = [], route }) => {
     const map = useMap();
 
     useEffect(() => {
@@ -41,34 +41,49 @@ const MapView = React.memo(({ coordinates, routeWaypoints }) => {
             map.fitBounds(latLngs);
         }
     }, [coordinates, map]);
+
     useEffect(() => {
         console.log('Route Waypoints in MapView:', routeWaypoints);
     }, [routeWaypoints]);
 
-    return (
-        <>
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            <MarkerClusterGroup>
-                {coordinates.filter((_, index) => index === 0 || index === coordinates.length - 1).map((coord, index) => (
-                    <Marker
-                        key={index}
-                        position={[coord[1], coord[0]]}
-                        icon={index === 0 ? redIcon : greenIcon}
-                    >
-                        <Popup>{index === 0 ? 'Start' : 'End'}</Popup>
-                    </Marker>
-                ))}
+    const filteredWaypoints = routeWaypoints.slice(1, routeWaypoints.length - 1);
 
-                {/* Check if routeWaypoints is available before mapping */}
-                {routeWaypoints && routeWaypoints.length > 0 && routeWaypoints.map((waypoint, index) => (
-                    <Marker key={index} position={[waypoint.coordinates[1], waypoint.coordinates[0]]} icon={waypointIcon}>
-                        <Popup>{waypoint.name}</Popup>
-                    </Marker>
-                ))}
-            </MarkerClusterGroup>
-            <Polyline positions={coordinates.map(coord => [coord[1], coord[0]])} color="#3b82f6" />
-        </>
-    );
+return (
+    <>
+        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+        <MarkerClusterGroup>
+            {/* Start Point */}
+            {coordinates.length > 0 && (
+                <Marker
+                    key="start"
+                    position={[coordinates[0][1], coordinates[0][0]]}
+                    icon={redIcon}
+                >
+                    <Popup>{route?.origin || "Origin"}</Popup>
+                </Marker>
+            )}
+
+            {/* End Point */}
+            {coordinates.length > 1 && (
+                <Marker
+                    key="end"
+                    position={[coordinates[coordinates.length - 1][1], coordinates[coordinates.length - 1][0]]}
+                    icon={greenIcon}
+                >
+                    <Popup>{route?.destination || "Destination"}</Popup>
+                </Marker>
+            )}
+
+            {/* Render Filtered Waypoints (excluding first and last) */}
+            {filteredWaypoints.length > 0 && filteredWaypoints.map((waypoint, index) => (
+                <Marker key={index} position={[waypoint.coordinates[1], waypoint.coordinates[0]]} icon={waypointIcon}>
+                    <Popup>{waypoint.name}</Popup>
+                </Marker>
+            ))}
+        </MarkerClusterGroup>
+        <Polyline positions={coordinates.map(coord => [coord[1], coord[0]])} color="#3b82f6" />
+    </>
+);
 });
 
 
@@ -103,7 +118,10 @@ const RouteTracking = () => {
                 vehicle_id: ''
             });
             console.log('Route data:', response.data.route);
-            setSelectedRoute(response.data.route[0]);
+            const route = response.data.route[0];
+            // Ensure route_waypoints is defined
+            route.route_waypoints = route.route_waypoints || [];
+            setSelectedRoute(route);
         } catch (error) {
             console.error('Error fetching route data:', error);
         }
@@ -190,7 +208,10 @@ const RouteTracking = () => {
                                 zoom={6}
                                 style={{ height: '100%', width: '100%' }}
                             >
-                                <MapView coordinates={selectedRoute.route_coordinates} />
+                                <MapView
+                                    coordinates={selectedRoute.route_coordinates}
+                                    routeWaypoints={selectedRoute.route_waypoints || []}
+                                />
                             </MapContainer>
                         </Box>
                     )}
