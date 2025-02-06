@@ -19,6 +19,7 @@ import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import blueicon from '../../Assets/images/blue.png';
+import { CircularProgress } from '@mui/material';
 
 
 
@@ -44,23 +45,76 @@ const SuggestRoutes = () => {
     const [mapInstance, setMapInstance] = useState(null); // Store the map instance
     const mapRef = useRef(null);
     const [mapInitialized, setMapInitialized] = useState(false); // Track map initialization
+    const [isLoading, setIsLoading] = useState(false); // Add this line
 
     const navigate = useNavigate();
+
+    const lightblue = '#318CE7'; // Define your lightblue color
 
     const StyledTextField = styled(TextField)(({ theme }) => ({
         '& .MuiOutlinedInput-root': {
             '& fieldset': {
-                borderColor: theme.palette.mode === 'dark' ? '#fff' : '#ced4da',
+                borderColor: lightblue,
+                borderWidth: '1px',
             },
             '&:hover fieldset': {
-                borderColor: theme.palette.mode === 'dark' ? '#fff' : '#80bdff',
+                borderColor: lightblue,
+                borderWidth: '1px',
             },
             '&.Mui-focused fieldset': {
-                borderColor: theme.palette.mode === 'dark' ? '#fff' : '#80bdff',
-                boxShadow: `${theme.palette.mode === 'dark' ? '0 0 0 0.2rem rgba(255,255,255,.25)' : '0 0 0 0.2rem rgba(0,123,255,.25)'}`,
+                borderColor: lightblue,
+                borderWidth: '1px',
             },
         },
+        '& > .MuiInputLabel-root': {  // > selects direct child
+            color: 'black', // Or your preferred black color
+        },
+        '& .MuiInputLabel-shrink': { // style for shrink label
+            color: 'black'
+        }
     }));
+
+
+    // Style the FormControl (including the InputLabel and Select)
+    const StyledFormControl = styled(FormControl)(({ theme }) => ({
+        '& .MuiOutlinedInput-root': {
+            '& fieldset': {
+                borderColor: lightblue,
+                borderWidth: '1px',
+            },
+            '&:hover fieldset': {
+                borderColor: lightblue,
+                borderWidth: '1px',
+            },
+            '&.Mui-focused fieldset': {
+                borderColor: lightblue,
+                borderWidth: '1px',
+            },
+        },
+        '& .MuiSelect-root': {
+            '& .MuiOutlinedInput-notchedOutline': {
+                borderColor: lightblue,
+                borderWidth: '1px',
+            },
+            '&:hover .MuiOutlinedInput-notchedOutline': {
+                borderColor: lightblue,
+                borderWidth: '1px',
+            },
+            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                borderColor: lightblue,
+                borderWidth: '1px',
+            },
+        },
+        // This is the key change: target the label directly inside the FormControl
+        '& > .MuiInputLabel-root': {  // > selects direct child
+            color: 'black', // Or your preferred black color
+        },
+        '& .MuiInputLabel-shrink': { // style for shrink label
+            color: 'black'
+        }
+    }));
+
+
 
     const handleMapRef = useCallback((node) => {
         if (mapRef.current) {
@@ -307,33 +361,33 @@ const SuggestRoutes = () => {
 
     const drawRouteOnMap = (route) => {
         if (!mapInstance || !route || !route.route_coordinates || !route.route_waypoints) return;
-    
+
         const coordinates = route.route_coordinates.map((coord) => {
             const lat = Number(coord[1]);
             const lng = Number(coord[0]);
-    
+
             if (isNaN(lat) || isNaN(lng)) {
                 console.error("Invalid coordinates:", coord);
                 return null;
             }
             return [lat, lng];
         }).filter(coord => coord !== null);
-    
+
         // Remove existing route layers before adding a new one
         mapInstance.eachLayer((layer) => {
             if (layer instanceof L.Marker || layer instanceof L.Polyline) {
                 mapInstance.removeLayer(layer);
             }
         });
-    
+
         // Draw the route as a polyline
         L.polyline(coordinates, { color: "blue", weight: 3 }).addTo(mapInstance);
-    
+
         // Add markers for each waypoint
         route.route_waypoints.forEach((waypoint) => {
             const lat = waypoint.coordinates[1];
             const lng = waypoint.coordinates[0];
-    
+
             if (!isNaN(lat) && !isNaN(lng)) {
                 L.marker([lat, lng], { icon: waypointIcon })
                     .addTo(mapInstance)
@@ -342,26 +396,27 @@ const SuggestRoutes = () => {
                 console.error("Invalid waypoint coordinates:", waypoint.coordinates);
             }
         });
-    
+
         // Add markers for the origin and destination
         if (coordinates.length > 0) {
             L.marker([coordinates[0][0], coordinates[0][1]], { icon: redIcon })
                 .addTo(mapInstance)
                 .bindPopup(route.origin || "Origin");
-    
+
             L.marker([coordinates[coordinates.length - 1][0], coordinates[coordinates.length - 1][1]], { icon: greenIcon })
                 .addTo(mapInstance)
                 .bindPopup(route.destination || "Destination");
         }
-    
+
         // Fit the map bounds to the route
         const bounds = L.latLngBounds(coordinates);
         mapInstance.fitBounds(bounds);
     };
-    
+
 
 
     const submitRouteSelection = () => {
+        setIsLoading(true);
         const token = localStorage.getItem("token");
         if (!token) {
             alert("You must be logged in to submit the route selection.");
@@ -415,6 +470,8 @@ const SuggestRoutes = () => {
             .catch(error => {
                 console.error("Error fetching suggested routes:", error);
                 alert("Error suggesting routes. Please check the console for details.");
+            }).finally(() => {
+                setIsLoading(false); // Hide overlay when the API call is complete
             });
     };
 
@@ -474,58 +531,79 @@ const SuggestRoutes = () => {
 
     return (
         <div>
+
+            <Box
+                sx={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100%',
+                    height: '100%',
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: isLoading ? 'flex' : 'none',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 9999,
+                }}
+            >
+                <CircularProgress sx={{ color: 'white' }} /> {/* Spinner */}
+                <Typography variant="h6" sx={{ color: 'white', ml: 2 }}>
+                    Loading...
+                </Typography>
+            </Box>
             <NavBar />
             {/* <Container fluid className="mt-5 px-5 " > */}
             <Box sx={{ bgcolor: '#f4f6f8', minHeight: '86vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}> {/* Added flex and overflow hidden */}
 
                 <Stack direction="row" spacing={3}>
-                    <Box sx={{ flex: 1 }}> {/* Increased flex */}
+                    <Box sx={{ flex: '0 0 35%', /* Takes 35% of the width */ height: '100%', overflowY: 'auto' }}> {/* Increased flex, added height, overflow for scrolling */}
                         <Card
                             className="p-4 shadow-lg rounded-xl bg-gradient-to-r from-blue-50 via-blue-100 to-white"
                             style={{
-                                height: "85vh",
-                                overflowY: "auto",
+                                height: "calc(86vh - 48px)", // Adjust height to account for app bar/header if any
                                 borderRadius: "16px",
                                 boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
+                                padding: '24px',// Added padding for better spacing
+                                overflowY: 'auto',
                             }}
                         >
                             <Grid2 container spacing={2} sx={{ paddingTop: '1rem', marginBottom: '1rem', display: 'flex', flexWrap: 'nowrap' }}>
                                 <Grid2 item xs={4} sx={{ minWidth: '30%' }}>
-                                    <FormControl fullWidth margin="dense">
+                                    <StyledFormControl fullWidth margin="dense">
                                         <InputLabel>Country</InputLabel>
                                         <Select value={selectedCountry} onChange={(e) => setSelectedCountry(e.target.value)} label="Country">
                                             {countries.map((country, index) => (
                                                 <MenuItem key={index} value={country}>{country}</MenuItem>
                                             ))}
                                         </Select>
-                                    </FormControl>
+                                    </StyledFormControl>
                                 </Grid2>
                                 <Grid2 item xs={4} sx={{ minWidth: '30%' }}>
-                                    <FormControl fullWidth margin="dense">
+                                    <StyledFormControl fullWidth margin="dense">
                                         <InputLabel>Origin</InputLabel>
                                         <Select value={selectedOrigin} onChange={(e) => setSelectedOrigin(e.target.value)} label="Origin">
                                             {origins.map((origin, index) => (
                                                 <MenuItem key={index} value={origin}>{origin}</MenuItem>
                                             ))}
                                         </Select>
-                                    </FormControl>
+                                    </StyledFormControl>
                                 </Grid2>
                                 <Grid2 item xs={4} sx={{ minWidth: '30%' }}>
-                                    <FormControl fullWidth margin="dense">
+                                    <StyledFormControl fullWidth margin="dense">
                                         <InputLabel>Destination</InputLabel>
                                         <Select value={selectedDestination} onChange={(e) => setSelectedDestination(e.target.value)} label="Destination">
                                             {destinations.map((destination, index) => (
                                                 <MenuItem key={index} value={destination}>{destination}</MenuItem>
                                             ))}
                                         </Select>
-                                    </FormControl>
+                                    </StyledFormControl>
                                 </Grid2>
                             </Grid2>
 
 
                             {/* Stops Selection */}
-                            <FormControl fullWidth className="mb-3 mt-4" sx={{ padding: '0 1rem', marginBottom: '1rem' }}>
-                                <Typography className="text-md font-semibold mb-1">Select Stops</Typography>
+                            <StyledFormControl fullWidth className="mb-3 mt-4" sx={{ padding: '0 1rem', marginBottom: '1rem' }}>
+                                <Typography className="text-md font-semibold mb-1" style={{ color: 'black' }}>Select Stops</Typography>
                                 <Select1
                                     options={stops.map((stop) => ({
                                         value: stop,
@@ -542,7 +620,7 @@ const SuggestRoutes = () => {
                                     styles={{
                                         control: (base) => ({
                                             ...base,
-                                            width: '90%',
+                                            width: '80%',
                                         }),
                                         menu: (base) => ({
                                             ...base,
@@ -556,12 +634,12 @@ const SuggestRoutes = () => {
                                     }}
                                     menuPortalTarget={document.body} // Render the dropdown outside the parent container
                                 />
-                            </FormControl>
+                            </StyledFormControl>
 
 
                             {selectedStops.map((stop, index) => (
                                 <Box key={stop.id} sx={{ mb: 2, width: '70%', padding: '0 1rem', marginBottom: '1rem' }}>
-                                    <Typography>{stop.label}</Typography>
+                                    <Typography style={{ color: 'black' }}>{stop.label}</Typography>
                                     <StyledTextField
                                         inputRef={(el) => (inputRefs.current[`${index}-drop_demand`] = el)}
                                         label="Drop Demand"
@@ -598,9 +676,6 @@ const SuggestRoutes = () => {
                                 </Box>
                             ))}
 
-                            {/* Estimated Duration */}
-                            <Typography className="mb-2" sx={{ padding: '0 1rem', marginBottom: '1rem' }}>Estimated Duration: {duration} Hours</Typography>
-
                             <StyledTextField
                                 inputRef={preloadedDemandRef}
                                 label="Preloaded Demand"
@@ -611,18 +686,18 @@ const SuggestRoutes = () => {
                                 size="small"
                                 margin="dense"
                                 className="mb-3"
-                                sx={{ width: '90%', marginTop: '16px', padding: '0 1rem', marginBottom: '1rem' }}
+                                sx={{ width: '80%', marginTop: '16px', padding: '0 1rem', marginBottom: '1rem' }}
                             />
 
 
-                            <div style={{ width: "90%", display: "flex", gap: "2.5rem", marginBottom: '1rem' }}> {/* Added gap between date pickers */}
+                            <div style={{ width: "80%", display: "flex", gap: "2.5rem", marginBottom: '1rem' }}> {/* Added gap between date pickers */}
                                 <DatePicker
                                     selected={startDate}
                                     onChange={(date) => setStartDate(date)}
                                     dateFormat="yyyy-MM-dd"
                                     placeholderText="Start Date"
                                     customInput={
-                                        <TextField
+                                        <StyledTextField
                                             label="Start Date"
                                             variant="outlined"
                                             size="small"
@@ -631,7 +706,7 @@ const SuggestRoutes = () => {
                                                 endAdornment: (
                                                     <InputAdornment position="end">
                                                         <IconButton>
-                                                            <CalendarTodayIcon />
+                                                            <CalendarTodayIcon fontSize="small" />
                                                         </IconButton>
                                                     </InputAdornment>
                                                 ),
@@ -652,7 +727,7 @@ const SuggestRoutes = () => {
                                     dateFormat="yyyy-MM-dd"
                                     placeholderText="End Date"
                                     customInput={
-                                        <TextField
+                                        <StyledTextField
                                             label="End Date"
                                             variant="outlined"
                                             size="small"
@@ -661,7 +736,7 @@ const SuggestRoutes = () => {
                                                 endAdornment: (
                                                     <InputAdornment position="end">
                                                         <IconButton>
-                                                            <CalendarTodayIcon />
+                                                            <CalendarTodayIcon fontSize="small" />
                                                         </IconButton>
                                                     </InputAdornment>
                                                 ),
@@ -677,10 +752,11 @@ const SuggestRoutes = () => {
                                 />
                             </div>
 
-
+                            {/* Estimated Duration */}
+                            <Typography className="mb-2" style={{ color: 'black' }} sx={{ padding: '0 1rem', marginBottom: '1rem' }}>Estimated Duration: {duration} Hours</Typography>
 
                             {/* Vehicle Selection */}
-                            <FormControl fullWidth margin="dense" className="mb-3" sx={{ width: '90%', padding: '0 1rem', marginBottom: '1rem' }}>
+                            <StyledFormControl fullWidth margin="dense" className="mb-3" sx={{ width: '80%', padding: '0 1rem', marginBottom: '1rem' }}>
                                 <InputLabel sx={{ padding: '0 1.2rem' }}>Available Vehicles</InputLabel>
                                 <Select
                                     value={selectedVehicle}
@@ -692,10 +768,10 @@ const SuggestRoutes = () => {
                                     }}
                                 >
                                     {vehicles.map((vehicle, index) => (
-                                        <MenuItem key={index} value={vehicle}>{vehicle.VehicleType}</MenuItem>
+                                        <MenuItem key={index} value={vehicle}>{vehicle.VehicleType} → <strong>{vehicle.FuelType}</strong>  →  {vehicle.Quantity}</MenuItem>
                                     ))}
                                 </Select>
-                            </FormControl>
+                            </StyledFormControl>
 
 
                             {/* Submit Button */}
@@ -708,10 +784,10 @@ const SuggestRoutes = () => {
                                     width: '50%',
                                     mx: 'auto',
                                     display: 'block',
-                                    backgroundColor: (theme) => theme.palette.mode === 'light' ? '#e0e0e0' : '#303030',
-                                    color: (theme) => theme.palette.mode === 'light' ? 'black' : 'white',
+                                    backgroundColor: 'primary.light', // Use theme's light primary color
+                                    color: 'white', // Text color (adjust as needed)
                                     '&:hover': {
-                                        backgroundColor: (theme) => theme.palette.mode === 'light' ? '#d0d0d0' : '#404040',
+                                        backgroundColor: 'primary.main', // Use theme's main primary color on hover
                                     },
                                 }}
                             >
@@ -723,14 +799,15 @@ const SuggestRoutes = () => {
 
 
                     {/* Map and Routes Side Panel */}
-                    <Box sx={{ flex: 2 }}>
+                    <Box sx={{ flex: '0 0 65%', height: '100%' }}> {/* Takes 65% of the width, added height */}
                         <Card
                             className="p-4 shadow-lg rounded-xl"
                             style={{
-                                height: "82vh",
-                                paddingTop: "10px",
+                                height: "calc(86vh - 48px)", // Adjust height to account for app bar/header if any
+                                paddingTop: "25px",
                                 borderRadius: "16px",
                                 boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
+                                paddingRight: "24px"
                             }}
                         >
                             {/* Side Panel for Routes */}
@@ -742,58 +819,80 @@ const SuggestRoutes = () => {
                                     {!mapInitialized && <Typography variant="body1">Loading Map...</Typography>}
                                 </Box>
 
-                                <Box sx={{ width: '167px', overflowY: 'auto', borderRight: '1px solid #e0e0e0', padding: '10px' }}>
-                                    <Typography variant="h6" sx={{ mb: 2 }}>Suggested Routes</Typography>
-                                    {suggestedRoutes.map((route, index) => (
-                                        <Card
-                                            key={index}
-                                            sx={{
-                                                mb: 2,
-                                                p: 2,
-                                                cursor: 'pointer',
-                                                backgroundColor: selectedRouteIndex === index ? '#e0e0e0' : 'white',
-                                                '&:hover': {
-                                                    backgroundColor: '#f0f0f0',
-                                                },
-                                            }}
-                                        >
-                                            <Box> {/* Outer Box (no flexbox) */}
-                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}> {/* Flexbox for route info */}
-                                                    <Box onClick={() => {
-                                                        setSelectedRouteIndex(index);
-                                                        drawRouteOnMap(route);
-                                                    }}>
-                                                        <Typography variant="body1">Route {index + 1}</Typography>
-                                                        <Typography variant="body2" color="textSecondary">
-                                                            {route.origin} to {route.destination}
-                                                        </Typography>
+                                {suggestedRoutes?.length > 0 && (
+                                    <Box sx={{ width: '167px', overflowY: 'auto', borderRight: '1px solid #e0e0e0', padding: '10px' }}>
+                                        <Typography variant="h6" sx={{ mb: 2 }} style={{ color: 'black' }}>
+                                            Suggested Routes
+                                        </Typography>
+
+                                        {/* Dropdown for selecting a route */}
+                                        <FormControl fullWidth sx={{ mb: 2 }}>
+                                            <InputLabel id="route-select-label">Select Route</InputLabel>
+                                            <Select
+                                                labelId="route-select-label"
+                                                value={selectedRouteIndex}
+                                                onChange={(e) => {
+                                                    setSelectedRouteIndex(e.target.value);
+                                                    drawRouteOnMap(suggestedRoutes[e.target.value]);
+                                                }}
+                                                label="Select Route"
+                                            >
+                                                {suggestedRoutes.map((route, index) => (
+                                                    <MenuItem key={index} value={index}>
+                                                        {/* {route.origin} to {route.destination} */}
+                                                        Route {index + 1}
+                                                    </MenuItem>
+                                                ))}
+                                            </Select>
+                                        </FormControl>
+
+                                        {/* Display the selected route card below the dropdown */}
+                                        {selectedRouteIndex !== null && selectedRouteIndex >= 0 && selectedRouteIndex < suggestedRoutes.length && (
+                                            <Card
+                                                sx={{
+                                                    mb: 2,
+                                                    p: 2,
+                                                    cursor: 'pointer',
+                                                    backgroundColor: '#f8f9fa', // Highlight the selected route card
+                                                }}
+                                            >
+                                                <Box>
+                                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                                        <Box>
+                                                            <Typography variant="body1" color="black">Route {selectedRouteIndex + 1}</Typography>
+                                                            <Typography variant="body2" color="black">
+                                                                {suggestedRoutes[selectedRouteIndex].origin} to {suggestedRoutes[selectedRouteIndex].destination}
+                                                            </Typography>
+                                                        </Box>
+                                                    </Box>
+                                                    <Box sx={{ display: 'block', margin: '10px auto 0' }}>
+                                                        <Button
+                                                            variant="contained"
+                                                            size="small"
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                saveRoute(suggestedRoutes[selectedRouteIndex].routeID);
+                                                            }}
+                                                            sx={{
+                                                                backgroundColor: '#318CE7',
+                                                                color: 'white',
+                                                                '&:hover': {
+                                                                    // backgroundColor: '#e0e0e0',
+                                                                },
+                                                                width: '50%',
+                                                                mx: 'auto',
+
+                                                            }}
+                                                        >
+                                                            Save
+                                                        </Button>
                                                     </Box>
                                                 </Box>
-                                                <Box sx={{ display: 'block', margin: '10px auto 0' }}> {/* Box for the button */}
-                                                    <Button  // Button outside the flexbox
-                                                        variant="contained"
-                                                        size="small"
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            saveRoute(route.routeID);
-                                                        }}
-                                                        sx={{
-                                                            backgroundColor: '#f0f0f0',
-                                                            color: '#333',
-                                                            '&:hover': {
-                                                                backgroundColor: '#e0e0e0',
-                                                            },
-                                                            width: '50%', // Or whatever width you want
-                                                            mx: 'auto'       // Centers horizontally
-                                                        }}
-                                                    >
-                                                        Save
-                                                    </Button>
-                                                </Box>
-                                            </Box>
-                                        </Card>
-                                    ))}
-                                </Box>
+                                            </Card>
+                                        )}
+                                    </Box>
+                                )}
+
                             </Box>
                         </Card>
                     </Box>
