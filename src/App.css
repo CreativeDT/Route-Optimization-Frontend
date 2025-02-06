@@ -1,0 +1,24 @@
+/* App.css */
+@keyframes gradient-animation {
+  0% {
+    background: linear-gradient(45deg, #f3ec78, #af4261);
+  }
+  25% {
+    background: linear-gradient(45deg, #f3ec78, #e0c3fc);
+  }
+  50% {
+    background: linear-gradient(45deg, #e0c3fc, #ffafbd);
+  }
+  75% {
+    background: linear-gradient(45deg, #ffafbd, #ffc3a0);
+  }
+  100% {
+    background: linear-gradient(45deg, #f3ec78, #af4261);
+  }
+}
+
+.gradient-background {
+  background-size: 400% 400%;
+  animation: gradient-animation 15s ease infinite;
+  height: 100vh;  /* Ensure it takes the full screen height */
+}

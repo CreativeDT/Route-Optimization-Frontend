@@ -1,0 +1,97 @@
+.menu-container {
+  position: relative;
+}
+
+.menu-button {
+  cursor: pointer;
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  left: -35%;
+  width: 35%;
+  height: 100%;
+  background-color: #f9f9f9;
+  padding-top: 20px;
+  z-index: 1000;
+  transition: left 0.3s ease;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar.open {
+  left: 0;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: #ecf0f1;
+}
+
+.search-icon {
+  margin-right: 10px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 5px;
+  border: 2px solid #ccc;
+  border-radius: 5px;
+  height: 15px;
+}
+
+.tile-container1 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);  
+  gap: 10px;  
+  padding: 20px;
+  background-color: #ecf0f1;
+  height: -webkit-fill-available;
+  padding-top: 85px;
+  padding-left: 31px;
+}
+
+.tile1 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;  
+  background-color: #ffffff;  /* White background */
+  color: #34495e;  
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  text-align: center;
+  height: 90px;  /* Smaller fixed height */
+  width: 90px;   /* Smaller fixed width */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);  /* Subtle shadow */
+}
+
+.tile1:hover {
+  background-color: #f1f1f1;  /* Light gray on hover */
+  transform: scale(1.05);    /* Slight scaling effect on hover */
+}
+
+.icon-image {
+  width: 30px;  /* Adjusted icon size */
+  height: 30px;
+  margin-bottom: 5px;
+}
+
+.tile1 span {
+  font-size: 12px;  /* Smaller text size */
+  font-weight: bold;
+}
+
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.3);
+  z-index: 999;
+}

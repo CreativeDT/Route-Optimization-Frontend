@@ -1,0 +1,106 @@
+/* Navbar.css */
+.navbar {
+  display: flex;
+  justify-content: space-between; /* Distribute space between left and right */
+  align-items: center;
+  padding: 10px 20px; /* Add some padding */
+  background-color: #f0f0f0; /* Example background color */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
+  position: relative; /* Important for positioning the dropdown */
+}
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  height: 35px; /* Adjust logo height as needed */
+  cursor: pointer; /* Make logo clickable */
+  margin-right: 49rem;
+}
+
+.navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 20px;  /* Space out the icons and profile */
+}
+
+.icon {
+  font-size: 1.2rem;
+  cursor: pointer;
+}
+
+.profile {
+  position: relative; /* Keep this for the overall profile positioning */
+  cursor: pointer;
+}
+
+.profile-wrapper { /* New wrapper styles */
+  position: relative; /* Important for dropdown positioning */
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: 100%; 
+  /* right: 0; */
+  left: 0;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* More prominent shadow */
+  z-index: 1000;
+  width: 100px;
+  padding: 10px 0;
+  opacity: 0;
+  transform: translateY(-10px); /* Start slightly above */
+  transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out; /* Smooth transition */
+  pointer-events: none; /* Prevent interaction before animation */
+}
+
+.profile-dropdown.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto; /* Enable interaction after animation */
+}
+
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  color: #333;
+  cursor: pointer;
+  transition: background-color 0.2s ease; /* Slightly faster hover */
+}
+
+.dropdown-item:hover {
+  background-color: #f1f1f1;
+}
+
+.dropdown-icon {
+  margin-right: 10px;
+  color: #2c3e50;
+}
+
+.logout-btn { /* If you still want a separate logout button style */
+  background-color: #e74c3c;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.logout-btn:hover {
+  background-color: #c0392b;
+}
+
+.home-button {
+    cursor: pointer;
+}

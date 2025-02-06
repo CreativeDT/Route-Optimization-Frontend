@@ -1,0 +1,22 @@
+.leaflet-marker-icon {
+    background-color: #3b82f6 !important;
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    font-weight: bold;
+    padding: 5px;
+    border: 2px solid white;
+  }
+  
+  .marker-cluster-small {
+    background-color: rgba(91, 192, 222, 0.6);
+  }
+  
+  .marker-cluster-medium {
+    background-color: rgba(253, 180, 92, 0.6);
+  }
+  
+  .marker-cluster-large {
+    background-color: rgba(241, 96, 96, 0.6);
+  }
+  

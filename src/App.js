@@ -1,0 +1,28 @@
+// src/App.js
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Login from './Pages/Login';
+import Signup from './Pages/SignUp'; 
+import Dashboard from './Pages/Dashboard'; 
+import RouteTracking from './Pages/RouteTracking/RouteTracking'; 
+import Analytics1  from './Pages/Analytics/Analytics';
+import RoutePlanning from './Pages/RoutePlanning/SuggestedRoutes';
+
+
+const App = () => {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Login />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/route-tracking" element={<RouteTracking />} />
+        <Route path="/analytics" element={<Analytics1 />} />
+        <Route path="/route-planning" element={<RoutePlanning />} />
+      </Routes>
+    </Router>
+  );
+};
+
+export default App;
