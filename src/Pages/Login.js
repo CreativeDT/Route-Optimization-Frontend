@@ -7,6 +7,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { motion } from 'framer-motion';
 import { AuthContext } from '../Context/AuthContext';
 import './Login.css'; // Import the CSS for background animation
+import logo from '../Assets/images/CSG Logo_PNG.png'; 
 
 const theme = createTheme();
 
@@ -55,6 +56,14 @@ const Login = () => {
                     sx={{ position: 'relative' }}
                 >
                     <Paper elevation={3} className="login-box"> {/* Login box */}
+                    <motion.div 
+                            initial={{ scale: 0.8, opacity: 0 }} 
+                            animate={{ scale: 1, opacity: 1 }} 
+                            transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
+                            style={{ marginBottom: '10px' }} // Add some spacing below logo
+                        >
+                            <img src={logo} alt="CSG Logo" className="login-logo" />
+                        </motion.div>
                         <motion.div initial={{ y: -50 }} animate={{ y: 0 }} transition={{ type: 'spring', stiffness: 100 }}>
                             <LockOutlinedIcon sx={{ fontSize: 40, color: 'primary.main' }} />
                         </motion.div>

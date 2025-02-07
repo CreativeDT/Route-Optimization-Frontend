@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Box, Card, CardContent, Typography, Grid, List, ListItem, ListItemText, Paper } from '@mui/material';
-import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap } from 'react-leaflet';
+import { Box, Card, CardContent, Typography, Grid, List, ListItem, ListItemText, Paper, Checkbox } from '@mui/material';
+import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap, Tooltip } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import 'leaflet/dist/leaflet.css';
 import Navbar from '../../Components/NavBar';
@@ -32,7 +32,7 @@ const waypointIcon = new L.Icon({
     popupAnchor: [0, -10],
 });
 
-const MapView = React.memo(({ coordinates, routeWaypoints = [], route }) => {
+const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleRoutes }) => {
     const map = useMap();
 
     useEffect(() => {
@@ -48,55 +48,86 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route }) => {
 
     const filteredWaypoints = routeWaypoints.slice(1, routeWaypoints.length - 1);
 
-return (
-    <>
-        <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <MarkerClusterGroup>
-            {/* Start Point */}
-            {coordinates.length > 0 && (
-                <Marker
-                    key="start"
-                    position={[coordinates[0][1], coordinates[0][0]]}
-                    icon={redIcon}
-                >
-                    <Popup>{route?.origin || "Origin"}</Popup>
-                </Marker>
-            )}
+    return (
+        <>
+            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+            <MarkerClusterGroup>
+                {/* Start Point */}
+                {coordinates.length > 0 && (
+                    <Marker
+                        key="start"
+                        position={[coordinates[0][1], coordinates[0][0]]}
+                        icon={redIcon}
+                    >
+                        <Popup>{route?.origin || "Origin"}</Popup>
+                    </Marker>
+                )}
 
-            {/* End Point */}
-            {coordinates.length > 1 && (
-                <Marker
-                    key="end"
-                    position={[coordinates[coordinates.length - 1][1], coordinates[coordinates.length - 1][0]]}
-                    icon={greenIcon}
-                >
-                    <Popup>{route?.destination || "Destination"}</Popup>
-                </Marker>
-            )}
+                {/* End Point */}
+                {coordinates.length > 1 && (
+                    <Marker
+                        key="end"
+                        position={[coordinates[coordinates.length - 1][1], coordinates[coordinates.length - 1][0]]}
+                        icon={greenIcon}
+                    >
+                        <Popup>{route?.destination || "Destination"}</Popup>
+                    </Marker>
+                )}
 
-            {/* Render Filtered Waypoints (excluding first and last) */}
-            {filteredWaypoints.length > 0 && filteredWaypoints.map((waypoint, index) => (
-                <Marker key={index} position={[waypoint.coordinates[1], waypoint.coordinates[0]]} icon={waypointIcon}>
-                    <Popup>{waypoint.name}</Popup>
-                </Marker>
-            ))}
-        </MarkerClusterGroup>
-        <Polyline positions={coordinates.map(coord => [coord[1], coord[0]])} color="#3b82f6" />
-    </>
-);
+                {/* Render Filtered Waypoints (excluding first and last) */}
+                {filteredWaypoints.length > 0 && filteredWaypoints.map((waypoint, index) => (
+                    <Marker key={index} position={[waypoint.coordinates[1], waypoint.coordinates[0]]} icon={waypointIcon}>
+                        <Popup>{waypoint.name}</Popup>
+                    </Marker>
+                ))}
+            </MarkerClusterGroup>
+
+            {/* Polyline with Hover Popup */}
+            <Polyline
+    positions={coordinates.map(coord => [coord[1], coord[0]])}
+    color="#3b82f6"
+    weight={5} // Increase weight to make hover easier
+    eventHandlers={{
+        mouseover: (e) => {
+            e.target.setStyle({ weight: 8, color: "#1e3a8a" }); // Change style on hover
+        },
+        mouseout: (e) => {
+            e.target.setStyle({ weight: 5, color: "#3b82f6" }); // Revert style on mouse out
+        },
+    }}
+>
+    <Tooltip direction="top" offset={[0, -10]} opacity={1}>
+        <Typography variant="body2">
+            <strong>Route Details:</strong><br />
+            Origin: {route?.origin}<br />
+            Destination: {route?.destination}<br />
+            Distance: {route?.distance} km<br />
+            Duration: {route?.duration} hrs<br />
+            {/* <br /> */}
+            <strong>Vehicle Information:</strong><br />
+            Fuel Type: {route?.fuel_type || "N/A"}<br />
+            Vehicle Type: {route?.vehicle_type || "N/A"}<br />
+            CO₂ Emission: {route?.carbon_emission ? `${route.carbon_emission} kg` : "N/A"}
+
+            
+        </Typography>
+    </Tooltip>
+</Polyline>
+
+        </>
+    );
 });
-
 
 const RouteTracking = () => {
     const [consignments, setConsignments] = useState([]);
-    const [selectedRoute, setSelectedRoute] = useState(null);
+    const [selectedRoutes, setSelectedRoutes] = useState([]);
+    const [selectedConsignments, setSelectedConsignments] = useState([]);
 
     useEffect(() => {
         fetchConsignments();
     }, []);
 
     const fetchConsignments = useCallback(async () => {
-
         const token = localStorage.getItem('token');
 
         try {
@@ -133,11 +164,33 @@ const RouteTracking = () => {
             const route = response.data.route[0];
             // Ensure route_waypoints is defined
             route.route_waypoints = route.route_waypoints || [];
-            setSelectedRoute(route);
+            return route;
         } catch (error) {
             console.error('Error fetching route data:', error);
         }
     }, []);
+
+    const handleConsignmentSelection = async (consignment) => {
+        const isSelected = selectedConsignments.includes(consignment.routeID);
+        let updatedSelectedConsignments;
+        if (isSelected) {
+            updatedSelectedConsignments = selectedConsignments.filter(id => id !== consignment.routeID);
+        } else {
+            if (selectedConsignments.length >= 3) {
+                alert('You can select up to 3 consignments.');
+                return;
+            }
+            updatedSelectedConsignments = [...selectedConsignments, consignment.routeID];
+        }
+        setSelectedConsignments(updatedSelectedConsignments);
+
+        const routes = [];
+        for (const routeID of updatedSelectedConsignments) {
+            const route = await fetchRouteData(routeID);
+            routes.push(route);
+        }
+        setSelectedRoutes(routes);
+    };
 
     return (
         <Box sx={{ bgcolor: '#f4f6f8', minHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -150,16 +203,20 @@ const RouteTracking = () => {
                     <Paper elevation={3} sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
 
                         {/* Consignments List */}
-                        <Box sx={{ flex: '0 0 auto' }}>
+                        <Box sx={{ flex: '0 0 auto',height: '440px' }}>
                             <Typography variant="h6" gutterBottom>Consignments</Typography>
-                            <List sx={{ maxHeight: '146px', overflowY: 'auto' }}>
+                            <List sx={{ maxHeight: '400px', overflowY: 'auto' }}>
                                 {consignments.map((consignment) => (
                                     <ListItem
                                         key={consignment.routeID}
                                         button
-                                        onClick={() => fetchRouteData(consignment.routeID)}
+                                        onClick={() => handleConsignmentSelection(consignment)}
                                         sx={{ border: '1px solid #ddd', mb: 1, borderRadius: 1 }}
                                     >
+                                        <Checkbox
+                                            checked={selectedConsignments.includes(consignment.routeID)}
+                                            onChange={() => handleConsignmentSelection(consignment)}
+                                        />
                                         <ListItemText
                                             primary={
                                                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -181,49 +238,28 @@ const RouteTracking = () => {
                                     </ListItem>
                                 ))}
                             </List>
-
                         </Box>
-
-                        {/* Route Details Card */}
-                        {selectedRoute && (
-                            <Box sx={{ flex: '0 0 auto' }}>
-                                <Card elevation={3}>
-                                    <CardContent>
-                                        <Typography variant="h6" gutterBottom>Route Details</Typography>
-                                        <Grid container spacing={2}>
-                                            <Grid item xs={6}>
-                                                <Typography><strong>Origin:</strong> {selectedRoute.origin}</Typography>
-                                                <Typography><strong>Destination:</strong> {selectedRoute.destination}</Typography>
-                                                <Typography><strong>Distance:</strong> {selectedRoute.distance} km</Typography>
-                                                <Typography><strong>Duration:</strong> {selectedRoute.duration} hrs</Typography>
-                                            </Grid>
-                                            <Grid item xs={6}>
-                                                <Typography><strong>Fuel Type:</strong> {selectedRoute.fuel_type}</Typography>
-                                                <Typography><strong>Vehicle Type:</strong> {selectedRoute.vehicle_type}</Typography>
-                                                <Typography><strong>CO₂ Emission:</strong> {selectedRoute.carbon_emission} kg</Typography>
-                                            </Grid>
-                                        </Grid>
-                                    </CardContent>
-                                </Card>
-                            </Box>
-                        )}
-
                     </Paper>
                 </Grid>
 
                 {/* Right Column: Map */}
                 <Grid item xs={12} md={8} sx={{ height: 'calc(100vh - 100px)', overflow: 'hidden' }}>
-                    {selectedRoute && (
+                    {selectedRoutes.length > 0 && (
                         <Box sx={{ height: '100%', borderRadius: 2 }}>
                             <MapContainer
-                                center={selectedRoute.route_coordinates.length > 0 ? [selectedRoute.route_coordinates[0][1], selectedRoute.route_coordinates[0][0]] : [41.8781, -87.6298]}
+                                center={selectedRoutes[0].route_coordinates.length > 0 ? [selectedRoutes[0].route_coordinates[0][1], selectedRoutes[0].route_coordinates[0][0]] : [41.8781, -87.6298]}
                                 zoom={6}
                                 style={{ height: '100%', width: '100%' }}
                             >
-                                <MapView
-                                    coordinates={selectedRoute.route_coordinates}
-                                    routeWaypoints={selectedRoute.route_waypoints || []}
-                                />
+                                {selectedRoutes.map((route, index) => (
+                                    <MapView
+                                        key={index}
+                                        coordinates={route.route_coordinates}
+                                        routeWaypoints={route.route_waypoints || []}
+                                        route={route}
+                                        multipleRoutes={selectedRoutes.length > 1}
+                                    />
+                                ))}
                             </MapContainer>
                         </Box>
                     )}

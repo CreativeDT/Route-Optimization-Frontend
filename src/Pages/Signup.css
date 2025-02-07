@@ -1,0 +1,201 @@
+/* src/components/Signup.css (Create this file) */
+
+.signup-page {
+    height: 97vh;
+    overflow: hidden;
+    background: #121212;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    padding: 0;
+}
+
+.signup-page {
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 20%, transparent 20%) center center/10px 10px,
+        linear-gradient(45deg, #9c27b0, #03a9f4, #8bc34a, #ffeb3b);
+    background-size: 400% 400%, 400% 400%;
+    animation: gradientAnimation 10s ease infinite;
+    display: flex; /* Ensure flexbox is used */
+    align-items: center; /* Vertically center the box */
+    justify-content: center; /* Horizontally center the box */
+    min-height: 90vh;
+}
+
+@keyframes gradientAnimation {
+    0% {
+        background-position: 0% 50%, 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%, 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%, 0% 50%;
+    }
+}
+
+.signup-page::before,
+.signup-page::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    z-index: -1;
+    animation: circleAnimation 6s linear infinite;
+    filter: blur(5px);
+    opacity: 0.2;
+    transform: translate(-50%, -50%);
+}
+
+.signup-page::after {
+    width: 400px;
+    height: 400px;
+    opacity: 0.4;
+}
+
+@keyframes circleAnimation {
+    0% {
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0.1;
+    }
+    50% {
+        transform: translate(-50%, -50%) scale(1.2);
+        opacity: 0.5;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(0.8);
+        opacity: 0.1;
+    }
+}
+
+
+.signup-box {
+    width: 300px; /* Or a slightly smaller width if needed */
+    padding: 15px; /* Reduced padding */
+    backdrop-filter: blur(15px);
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 14px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px; /* Reduced gap between elements */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-sizing: border-box;
+    max-height: 80vh; /* Slightly reduced max-height */
+    overflow-y: auto; /* Keep the scrollbar if content overflows */
+    font-size: 0.9rem; /* Slightly smaller font size */
+}
+
+.signup-box:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
+
+
+/* Button styles */
+.signup-box button[type="submit"] {
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.signup-box button[type="submit"]:hover {
+    transform: scale(1.02);
+    background-color: #7e57c2; /* Example */
+}
+
+.signup-box .MuiPaper-root {
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px; /* Add some padding to the paper */
+}
+
+.signup-box .MuiBox-root {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Styles for form elements (reduced spacing and size) */
+.signup-box .MuiTextField-root,
+.signup-box .MuiButton-root,
+.signup-box .MuiGrid-root,
+.signup-box .MuiFormControl-root {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 8px; /* Reduced margin between form elements */
+}
+
+.signup-box .MuiInputLabel-root { /* Smaller labels */
+    font-size: 0.9rem;
+}
+
+.signup-box .MuiInputBase-root { /* Smaller input text */
+    font-size: 0.9rem;
+    padding: 6px 8px; /* Reduced padding */
+}
+
+.signup-box .MuiButton-root {
+    /* padding: 8px 12px; Reduced button padding */
+    font-size: 0.9rem; /* Smaller button font */
+    height: 36px; /* Example, adjust as needed */
+    padding: 6px 12px;
+}
+
+.signup-box .MuiTypography-root { /* Smaller typography */
+    font-size: 0.9rem;
+    margin-bottom: 4px; /* Reduced margin for error messages, etc. */
+}
+
+.signup-logo {
+    width: 120px; /* Slightly smaller logo */
+    height: auto;
+    display: block;
+    margin: 0 auto 8px; /* Reduced margin below logo */
+}
+
+.signup-box .MuiTextField-root,
+.signup-box .MuiFormControl-root { /* Include FormControl for Select */
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 8px;
+}
+
+/* Reduce the height of the input area */
+.signup-box .MuiInputBase-root {
+    font-size: 0.9rem;
+    padding: 4px 8px; /* Reduce vertical padding */
+    height: 32px; /* Set a specific height */
+}
+
+/* Adjust label positioning if needed */
+.signup-box .MuiInputLabel-root {
+    font-size: 0.9rem;
+    top: -8px; /* Example adjustment */
+}
+
+/* If using OutlinedInput, adjust the legend as well */
+.signup-box .MuiOutlinedInput-legend {
+    top: -10px; /* Example adjustment */
+}
+
+
+.signup-box .MuiSelect-select { /* Target the select element */
+    height: 32px; /* Set a specific height */
+    display: flex;
+    align-items: center; /* Vertically center the text */
+    padding: 4px 8px; /* Reduce vertical padding */
+    font-size: 0.9rem;
+}
+
+/* Adjust the Menu (dropdown) if needed */
+.signup-box .MuiMenu-paper {
+    /* Example: smaller font size in the dropdown */
+    font-size: 0.9rem;
+}
