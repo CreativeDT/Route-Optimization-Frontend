@@ -1,10 +1,12 @@
 import React from 'react';
 import Navbar from '../../Components/NavBar';
+import Breadcrumbs from '../Breadcrumbs/Breadcrumbs';
 
 const Analytics = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '95vh', overflow: 'hidden' }}>
       <Navbar />
+      <Breadcrumbs />
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Sidebar (optional) */}
         {/* <div style={{ width: '200px', backgroundColor: '#f4f4f4', padding: '20px', overflowY: 'auto' }}>

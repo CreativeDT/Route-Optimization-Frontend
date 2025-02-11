@@ -1,0 +1,61 @@
+/* Breadcrumbs.css */
+
+.breadcrumbs-container { /* Applied to the outer Box */
+    padding: 6px;
+    background-color: #0080b1;
+    border-bottom: 1px solid #dee2e6; /* Subtle border */
+  
+}
+
+.breadcrumbs { /* Applied to the MuiBreadcrumbs component */
+    display: flex;
+    align-items: center;
+}
+
+.breadcrumbs .MuiBreadcrumbs-separator {
+    margin: 0 8px; /* Spacing around the separator */
+    color: #fff ;
+}
+
+.breadcrumbs .MuiLink-root {
+    font-size: 1rem; /* Base font size */
+    color: #007bff; /* Blue link color */
+    text-decoration: none;
+    transition: color 0.15s ease-in-out; /* Smooth transition */
+}
+
+.breadcrumbs .MuiLink-root:hover {
+    color: #0056b3; /* Darker blue on hover */
+    text-decoration: underline; /* Add underline on hover */
+}
+
+.breadcrumbs .MuiTypography-root {
+    font-size: 1rem; /* Same as link font size */
+    color: #212529; /* Dark gray for current page */
+    font-weight: 500; /* Slightly bolder for current page */
+}
+
+/* Responsive adjustments (optional) */
+@media (max-width: 768px) {
+    .breadcrumbs .MuiLink-root,
+    .breadcrumbs .MuiTypography-root {
+        font-size: 0.9rem;
+    }
+
+    .breadcrumbs .MuiBreadcrumbs-separator {
+        margin: 0 4px;
+    }
+}
+
+/* Optional: Add a class to the Breadcrumbs component for more specific styling */
+
+/* Example of more specific styling */
+.breadcrumbs-custom .MuiLink-root {
+    color: #fff; /* Red links */
+}
+
+.breadcrumbs-custom .MuiLink-root:hover {
+    color: #fff; /* Darker red on hover */;
+    font-weight:600;
+    text-decoration: none!important;
+}

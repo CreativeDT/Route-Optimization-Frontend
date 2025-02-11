@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { Box, Card, CardContent, Typography, Grid, List, ListItem, ListItemText, Paper, Checkbox } from '@mui/material';
+import React, { useEffect, useState, useCallback,useRef } from 'react';
+import { Box, Typography, Card, CardContent, Grid, List, ListItem, ListItemText, Paper, Checkbox } from '@mui/material';
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap, Tooltip } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import 'leaflet/dist/leaflet.css';
@@ -10,20 +10,62 @@ import L from 'leaflet';
 import redIconImage from '../../Assets/images/red.png';
 import greenIconImage from '../../Assets/images/green.png';
 import blueicon from '../../Assets/images/blue.png';
-
+import vehicleicon from  '../../Assets/images/truck.png';
+import arrowicon from  '../../Assets/images/arrow.png';
+import vehicleicon1 from  '../../Assets/images/vehicle1.png';
+import ambericon from  '../../Assets/images/Amber.png';
+import REDicon from  '../../Assets/images/redicon.png';
+import UseWebSocket from '../../WebSockets/UseWebSockets';  // Import WebSocket Hook
+import Breadcrumbs from '../Breadcrumbs/Breadcrumbs'; // Import your Breadcrumbs component
 const redIcon = new L.Icon({
     iconUrl: redIconImage,
     iconSize: [20, 20],
     iconAnchor: [10, 10],
     popupAnchor: [0, -10],
 });
-
+const REDIcon = new L.Icon({
+    iconUrl: REDicon,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+    popupAnchor: [0, -10],
+});
 const greenIcon = new L.Icon({
     iconUrl: greenIconImage,
     iconSize: [20, 20],
     iconAnchor: [10, 10],
     popupAnchor: [0, -10],
 });
+const amberIcon = new L.Icon({
+    iconUrl: ambericon,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+    popupAnchor: [0, -10],
+});
+const vehicleIcon = new L.Icon({
+    iconUrl: vehicleicon1,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+    popupAnchor: [0, -10],
+});
+const ArrowIcon = new L.Icon({
+    iconUrl: arrowicon,
+    iconSize: [25, 25],
+    iconAnchor: [10, 10],
+    popupAnchor: [0, -10],
+});
+const getVehicleIcon = (status) => {
+    switch (status) {
+        case "moving":
+            return vehicleIcon;
+        case "stopped_short":
+            return amberIcon;
+        case "stopped_long":
+            return REDIcon;
+        default:
+            return vehicleIcon; // Default icon if status is unknown
+    }
+};
+
 
 const waypointIcon = new L.Icon({
     iconUrl: blueicon, // Blue dot icon URL
@@ -32,16 +74,35 @@ const waypointIcon = new L.Icon({
     popupAnchor: [0, -10],
 });
 
-const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleRoutes }) => {
+const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleRoutes,vehiclePosition }) => {
     const map = useMap();
-
+    const vehicleMarkerRef = useRef(null); // Ref for the vehicle marker
+    const isFirstRender = useRef(true); // Ref to track the first render
     useEffect(() => {
         if (coordinates.length > 0) {
             const latLngs = coordinates.map(coord => [coord[1], coord[0]]);
             map.fitBounds(latLngs);
         }
     }, [coordinates, map]);
+    useEffect(() => {
+        if (vehiclePosition && map && vehiclePosition.status === "started") {
+            console.log("Updating vehicle position on map:", vehiclePosition);
+            console.log("map:", map)
 
+             // Update marker position directly using the ref
+             if (vehicleMarkerRef.current) {
+                vehicleMarkerRef.current.setLatLng([vehiclePosition.lat, vehiclePosition.lng]);
+                vehicleMarkerRef.current.setIcon(getVehicleIcon(vehiclePosition.status)); // Update icon
+            } else {
+                const newMarker = L.marker(
+                    [vehiclePosition.lat, vehiclePosition.lng],
+                    { icon: getVehicleIcon(vehiclePosition.status) }
+                ).addTo(map);
+               // VehicleMarkerRef(newMarker);
+            }
+            map.flyTo([vehiclePosition.lat, vehiclePosition.lng], map.getZoom(), { animate: true, duration: 1.5 });
+        }
+    }, [vehiclePosition, map]);
     useEffect(() => {
         console.log('Route Waypoints in MapView:', routeWaypoints);
     }, [routeWaypoints]);
@@ -80,7 +141,31 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
                         <Popup>{waypoint.name}</Popup>
                     </Marker>
                 ))}
-            </MarkerClusterGroup>
+          {routeWaypoints.slice(1, -1).map((waypoint, index) => (
+                    <Marker
+                        key={index}
+                        position={[waypoint.coordinates[1], waypoint.coordinates[0]]}
+                        icon={waypointIcon}
+                    >
+                        <Popup>{waypoint.name}</Popup>
+                    </Marker>
+                ))}
+
+                {vehiclePosition && (
+                    <Marker
+                         ref={vehicleMarkerRef} // Assign the ref to the Marker
+                        position={[vehiclePosition.lat, vehiclePosition.lng]}
+                        icon={getVehicleIcon(vehiclePosition.status)}
+                        
+                        
+                    >
+                        <Popup>
+                            <Typography>Vehicle Status: {vehiclePosition.status}</Typography>
+                            <Typography>Location: {vehiclePosition.placeName}</Typography>
+                        </Popup>
+                    </Marker>
+                )}  
+    </MarkerClusterGroup>
 
             {/* Polyline with Hover Popup */}
             <Polyline
@@ -122,11 +207,18 @@ const RouteTracking = () => {
     const [consignments, setConsignments] = useState([]);
     const [selectedRoutes, setSelectedRoutes] = useState([]);
     const [selectedConsignments, setSelectedConsignments] = useState([]);
-
+    const { vehiclePosition } = UseWebSocket("ws://localhost:8000/ws"); // Get WebSocket Data
     useEffect(() => {
         fetchConsignments();
     }, []);
+    useEffect(() => {
+        if (vehiclePosition) {
+            console.log("Updated vehicle position:", vehiclePosition);
+            // Update the map with the new vehicle position
+        }
 
+    }, [vehiclePosition]);
+    
     const fetchConsignments = useCallback(async () => {
         const token = localStorage.getItem('token');
 
@@ -160,11 +252,12 @@ const RouteTracking = () => {
                     'Authorization': `Bearer ${token}` // Include the token in the Authorization header
                 }
             });
+            console.log('Route Data API Response:', response.data);
             console.log('Route data:', response.data.route);
             const route = response.data.route[0];
             // Ensure route_waypoints is defined
             route.route_waypoints = route.route_waypoints || [];
-            return route;
+             return route;
         } catch (error) {
             console.error('Error fetching route data:', error);
         }
@@ -193,10 +286,11 @@ const RouteTracking = () => {
     };
 
     return (
-        <Box sx={{ bgcolor: '#f4f6f8', minHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Box sx={{ bgcolor: '#f4f6f8', minHeight: '90vh',padding:'3px!important', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <Navbar />
+            <Breadcrumbs />
 
-            <Grid container spacing={2} sx={{ p: 2, flexGrow: 1, overflow: 'hidden' }}>
+            <Grid container spacing={2} sx={{ p: 2, flexGrow: 1, overflow: 'hidden' ,padding:'1px!important'}}>
 
                 {/* Left Column: Consignments and Route Details */}
                 <Grid item xs={12} md={4} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -209,7 +303,7 @@ const RouteTracking = () => {
                                 {consignments.map((consignment) => (
                                     <ListItem
                                         key={consignment.routeID}
-                                        button
+                                        button="true"
                                         onClick={() => handleConsignmentSelection(consignment)}
                                         sx={{ border: '1px solid #ddd', mb: 1, borderRadius: 1 }}
                                     >
@@ -257,6 +351,7 @@ const RouteTracking = () => {
                                         coordinates={route.route_coordinates}
                                         routeWaypoints={route.route_waypoints || []}
                                         route={route}
+                                        vehiclePosition={vehiclePosition}
                                         multipleRoutes={selectedRoutes.length > 1}
                                     />
                                 ))}

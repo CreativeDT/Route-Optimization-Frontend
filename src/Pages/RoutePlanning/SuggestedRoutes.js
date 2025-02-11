@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo, useCallback } from "react"
 import {
     Box, Stack, Card, FormControl, InputLabel, Select, MenuItem,
     Button, Typography, TextField, Grid, Container, styled,
-    Grid2
+    Grid2, Snackbar, Alert
 } from '@mui/material';
 import Select1 from 'react-select';
 import { useNavigate } from 'react-router-dom';
@@ -20,6 +20,7 @@ import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import blueicon from '../../Assets/images/blue.png';
 import { CircularProgress } from '@mui/material';
+import Breadcrumbs from "../Breadcrumbs/Breadcrumbs";
 
 
 
@@ -46,6 +47,10 @@ const SuggestRoutes = () => {
     const mapRef = useRef(null);
     const [mapInitialized, setMapInitialized] = useState(false); // Track map initialization
     const [isLoading, setIsLoading] = useState(false); // Add this line
+    const [errorFields, setErrorFields] = useState({});
+    const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "info", autoHideDuration: null });
+    const [isButtonDisabled, setIsButtonDisabled] = useState(true);
+    const [errors, setErrors] = useState({});
 
     const navigate = useNavigate();
 
@@ -118,27 +123,33 @@ const SuggestRoutes = () => {
 
     const handleMapRef = useCallback((node) => {
         if (mapRef.current) {
-            // Map already exists, just update the ref. Do not create a new map.
-            mapRef.current = node;
-            return; // Important: Exit early to prevent creating a new map
+            mapRef.current = node; // Update ref
+            return; // Prevent re-initialization
         }
 
         mapRef.current = node; // Set the ref
 
-        if (node && !mapInstance && selectedOrigin && selectedDestination) {
-            const originCoords = selectedOrigin.split(",").map(Number);
-            const destinationCoords = selectedDestination.split(",").map(Number);
+        if (node && !mapInstance) {
+            let initialCenter = [51.505, -0.09]; // Default to London if no coordinates provided
 
-            let initialCenter = [51.505, -0.09];
+            if (selectedOrigin && selectedDestination) {
+                const originCoords = selectedOrigin.split(",").map(Number);
+                const destinationCoords = selectedDestination.split(",").map(Number);
 
-            if (originCoords.length === 2 && !isNaN(originCoords[0]) && !isNaN(originCoords[1]) &&
-                destinationCoords.length === 2 && !isNaN(destinationCoords[0]) && !isNaN(destinationCoords[1])) {
-                initialCenter = [(originCoords[0] + destinationCoords[0]) / 2, (originCoords[1] + destinationCoords[1]) / 2];
-            } else {
-                console.warn("Invalid origin or destination coordinates. Using default center.");
+                if (
+                    originCoords.length === 2 && !isNaN(originCoords[0]) && !isNaN(originCoords[1]) &&
+                    destinationCoords.length === 2 && !isNaN(destinationCoords[0]) && !isNaN(destinationCoords[1])
+                ) {
+                    initialCenter = [
+                        (originCoords[0] + destinationCoords[0]) / 2,
+                        (originCoords[1] + destinationCoords[1]) / 2
+                    ];
+                } else {
+                    console.warn("Invalid coordinates. Using default center.");
+                }
             }
 
-            const map = L.map(node, { // Now 'node' is guaranteed to be the correct map div
+            const map = L.map(node, {
                 center: initialCenter,
                 zoom: 7,
             });
@@ -149,19 +160,21 @@ const SuggestRoutes = () => {
 
             setMapInstance(map);
             setMapInitialized(true);
-
-        } else if (!node && mapInstance) { // Handle unmounting
-            mapInstance.remove(); // Remove the map instance
-            setMapInstance(null);  // Clear the map instance
+        } else if (!node && mapInstance) {
+            mapInstance.remove();
+            setMapInstance(null);
             setMapInitialized(false);
-            mapRef.current = null; // Clear the ref
+            mapRef.current = null;
         }
-    }, [selectedOrigin, selectedDestination, mapInstance]); // Correct dependencies
+    }, [selectedOrigin, selectedDestination, mapInstance]);
+
+    // Memoized coordinates to prevent unnecessary re-renders
     const coordinates = useMemo(() => {
-        return routeIDS?.routes?.[0]?.route_coordinates?.length > 0 // Access route_coordinates
+        return routeIDS?.routes?.[0]?.route_coordinates?.length > 0
             ? routeIDS.routes[0].route_coordinates.map((coord) => [coord[1], coord[0]]) // Correct order
             : [];
     }, [routeIDS]);
+
 
     // const redSVG = `<svg data-name="Layer 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128"><ellipse cx="64" cy="94.379" rx="54.5" ry="13.333" style="fill:#feded6"/><ellipse cx="64" cy="94.379" rx="33.613" ry="7.176" style="fill:#f6c6bb"/><path d="M64 20.288a29.333 29.333 0 0 0-29.333 29.333C34.667 71.288 64 95.871 64 95.871s29.333-23.917 29.333-46.25A29.333 29.333 0 0 0 64 20.288zm0 42.289a12.956 12.956 0 1 1 12.956-12.956A12.956 12.956 0 0 1 64 62.577z" style="fill:#ec4d85"/><path d="M59.75 20.6a29.337 29.337 0 0 0-25.083 29.021c0 16.51 17.023 34.7 25.13 42.432 8.144-7.624 25.037-25.479 25.037-42.432A29.337 29.337 0 0 0 59.75 20.6zM64 62.577h-8.5a12.956 12.956 0 1 1 0-25.912H64a12.956 12.956 0 1 1 0 25.912z" style="fill:#fd748c"/></svg>`; // Your red SVG code
 
@@ -413,25 +426,48 @@ const SuggestRoutes = () => {
         mapInstance.fitBounds(bounds);
     };
 
+    useEffect(() => {
+        // Enable button only if all required fields are filled
+        setIsButtonDisabled(!selectedVehicle || !selectedOrigin || !selectedDestination || !selectedStops.length || !preloadedDemand);
+    }, [selectedVehicle, selectedOrigin, selectedDestination, selectedStops, preloadedDemand]);
 
+
+
+    const validateFields = () => {
+        const newErrors = {};
+        if (!selectedVehicle) newErrors.selectedVehicle = true;
+        if (!selectedCountry) newErrors.selectedCountry = true;
+        if (!selectedOrigin) newErrors.selectedOrigin = true;
+        if (!selectedDestination) newErrors.selectedDestination = true;
+        if (!startDate) newErrors.startDate = true;
+        if (!endDate) newErrors.endDate = true;
+        if (!preloadedDemand) newErrors.preloadedDemand = true;
+        if (selectedStops.length === 0) newErrors.selectedStops = true;
+
+        setErrors(newErrors);
+        return Object.keys(newErrors).length === 0; // Returns true if no errors
+    };
 
     const submitRouteSelection = () => {
-        setIsLoading(true);
-        const token = localStorage.getItem("token");
-        if (!token) {
-            alert("You must be logged in to submit the route selection.");
+        if (!validateFields()) {
+            setSnackbar({ open: true, message: "Please fill all required fields.", severity: "error" });
             return;
         }
 
-        if (!selectedVehicle) {
-            alert("Please select a vehicle.");
+        setIsLoading(true);
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            setSnackbar({ open: true, message: "You must be logged in to submit the route selection.", severity: "error" });
+            setIsLoading(false);
             return;
         }
+
+        setSnackbar({ open: true, message: "Submitting route selection...", severity: "warning" });
 
         const formattedStartDate = startDate.toISOString().split("T")[0];
         const formattedEndDate = endDate.toISOString().split("T")[0];
 
-        // Passing risk factors without displaying in UI
         axios.post("http://localhost:8000/suggestRoutes", {
             accident: riskFactors.accident,
             delay: riskFactors.delay,
@@ -439,41 +475,48 @@ const SuggestRoutes = () => {
             srm: riskFactors.srm,
             stop_demands: selectedStops.map(stop => ({
                 name: stop.value,
-                drop_demand: Number(stop.drop_demand), // Ensure it's a number
-                pickup_demand: Number(stop.pickup_demand), // Ensure it's a number
-                priority: Number(stop.priority) // Ensure it's a number
+                drop_demand: Number(stop.drop_demand),
+                pickup_demand: Number(stop.pickup_demand),
+                priority: Number(stop.priority)
             })),
             country: selectedCountry,
             origin: selectedOrigin,
             destination: selectedDestination,
-            preloaded_demand: Number(preloadedDemand), // Ensure it's a number
+            preloaded_demand: Number(preloadedDemand),
             vehicle_type: selectedVehicle.VehicleType,
             vehicle_id: selectedVehicle.VehicleID,
             fuel_type: selectedVehicle.FuelType,
             start_date: formattedStartDate,
             end_date: formattedEndDate,
-            vehicle_capacity: Number(selectedVehicle.Quantity) // Ensure it's a number
+            vehicle_capacity: Number(selectedVehicle.Quantity)
         }, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
+            headers: { Authorization: `Bearer ${token}` }
         })
             .then(response => {
                 console.log("Response from suggestRoutes API:", response.data);
-                setSuggestedRoutes(response.data.routes); // Store all routes
-                setSelectedRouteIndex(0); // Set the first route as default
+                setSuggestedRoutes(response.data.routes);
+                setSelectedRouteIndex(0);
 
-                if (mapInstance && response.data.routes && response.data.routes.length > 0) {
-                    drawRouteOnMap(response.data.routes[0]); // Draw the first route
+                if (mapInstance && response.data.routes.length > 0) {
+                    drawRouteOnMap(response.data.routes[0]);
                 }
+
+                setSnackbar({ open: true, message: "Route selection submitted successfully!", severity: "success" });
             })
             .catch(error => {
                 console.error("Error fetching suggested routes:", error);
-                alert("Error suggesting routes. Please check the console for details.");
-            }).finally(() => {
-                setIsLoading(false); // Hide overlay when the API call is complete
+                setSnackbar({ open: true, message: "Error submitting route selection. Try again.", severity: "error" });
+            })
+            .finally(() => {
+                setIsLoading(false);
             });
     };
+
+    // Disable submit button until all fields are filled
+    const isSubmitDisabled = !selectedVehicle || !selectedCountry || !selectedOrigin || !selectedDestination || !startDate || !endDate || !preloadedDemand || selectedStops.length === 0;
+
+
+
 
     const saveRoute = async (routeID) => {
         const token = localStorage.getItem("token");
@@ -543,17 +586,34 @@ const SuggestRoutes = () => {
                     display: isLoading ? 'flex' : 'none',
                     justifyContent: 'center',
                     alignItems: 'center',
-                    zIndex: 9999,
+                    zIndex: 9999,padding:'3px!important',
                 }}
             >
-                <CircularProgress sx={{ color: 'white' }} /> {/* Spinner */}
-                <Typography variant="h6" sx={{ color: 'white', ml: 2 }}>
-                    Loading...
-                </Typography>
+                <Box
+                    sx={{
+                        position: 'fixed',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        display: isLoading ? 'flex' : 'none',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        zIndex: 9999,
+                    }}
+                >
+                    {/* <CircularProgress sx={{ color: 'white' }} />
+                    <Typography variant="h6" sx={{ color: 'white', ml: 2 }}>
+                        Loading...
+                    </Typography> */}
+                </Box>
             </Box>
             <NavBar />
+            <Breadcrumbs />
+
             {/* <Container fluid className="mt-5 px-5 " > */}
-            <Box sx={{ bgcolor: '#f4f6f8', minHeight: '86vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}> {/* Added flex and overflow hidden */}
+            <Box sx={{ bgcolor: '#f4f6f8', minHeight: '80vh', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}> {/* Added flex and overflow hidden */}
 
                 <Stack direction="row" spacing={3}>
                     <Box sx={{ flex: '0 0 35%', /* Takes 35% of the width */ height: '100%', overflowY: 'auto' }}> {/* Increased flex, added height, overflow for scrolling */}
@@ -563,15 +623,15 @@ const SuggestRoutes = () => {
                                 height: "calc(86vh - 48px)", // Adjust height to account for app bar/header if any
                                 borderRadius: "16px",
                                 boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
-                                padding: '24px',// Added padding for better spacing
+                                padding: '10px',// Added padding for better spacing
                                 overflowY: 'auto',
                             }}
                         >
                             <Grid2 container spacing={2} sx={{ paddingTop: '1rem', marginBottom: '1rem', display: 'flex', flexWrap: 'nowrap' }}>
                                 <Grid2 item xs={4} sx={{ minWidth: '30%' }}>
                                     <StyledFormControl fullWidth margin="dense">
-                                        <InputLabel>Country</InputLabel>
-                                        <Select value={selectedCountry} onChange={(e) => setSelectedCountry(e.target.value)} label="Country">
+                                        <InputLabel sx={{ fontSize: '0.9rem' }}>Country</InputLabel>
+                                        <Select value={selectedCountry} onChange={(e) => setSelectedCountry(e.target.value)} label="Country"sx={{ fontSize: '0.9rem' }}>
                                             {countries.map((country, index) => (
                                                 <MenuItem key={index} value={country}>{country}</MenuItem>
                                             ))}
@@ -580,8 +640,8 @@ const SuggestRoutes = () => {
                                 </Grid2>
                                 <Grid2 item xs={4} sx={{ minWidth: '30%' }}>
                                     <StyledFormControl fullWidth margin="dense">
-                                        <InputLabel>Origin</InputLabel>
-                                        <Select value={selectedOrigin} onChange={(e) => setSelectedOrigin(e.target.value)} label="Origin">
+                                        <InputLabel sx={{ fontSize: '0.9rem' }}>Origin</InputLabel>
+                                        <Select value={selectedOrigin} onChange={(e) => setSelectedOrigin(e.target.value)} label="Origin"sx={{ fontSize: '0.9rem' }}>
                                             {origins.map((origin, index) => (
                                                 <MenuItem key={index} value={origin}>{origin}</MenuItem>
                                             ))}
@@ -590,8 +650,8 @@ const SuggestRoutes = () => {
                                 </Grid2>
                                 <Grid2 item xs={4} sx={{ minWidth: '30%' }}>
                                     <StyledFormControl fullWidth margin="dense">
-                                        <InputLabel>Destination</InputLabel>
-                                        <Select value={selectedDestination} onChange={(e) => setSelectedDestination(e.target.value)} label="Destination">
+                                        <InputLabel sx={{ fontSize: '0.9rem' }}>Destination</InputLabel>
+                                        <Select value={selectedDestination} onChange={(e) => setSelectedDestination(e.target.value)} label="Destination"sx={{ fontSize: '0.9rem' }}>
                                             {destinations.map((destination, index) => (
                                                 <MenuItem key={index} value={destination}>{destination}</MenuItem>
                                             ))}
@@ -715,7 +775,8 @@ const SuggestRoutes = () => {
                                                 borderRadius: '8px',
                                                 '& .MuiInputLabel-root': { // Target the label
                                                     paddingLeft: '1rem', // Add left padding
-                                                }, padding: '0 1rem'
+                                                },'& .MuiInputBase-input': { fontSize: '0.65rem' },
+                                                 padding: '0 1rem'
                                             }}
                                         />
                                     }
@@ -745,7 +806,8 @@ const SuggestRoutes = () => {
                                                 borderRadius: '8px',
                                                 '& .MuiInputLabel-root': { // Target the label
                                                     paddingLeft: '1rem', // Add left padding
-                                                }, padding: '0 1rem'
+                                                },'& .MuiInputBase-input': { fontSize: '0.65rem' },
+                                                 padding: '0 1rem'
                                             }}
                                         />
                                     }
@@ -768,43 +830,55 @@ const SuggestRoutes = () => {
                                     }}
                                 >
                                     {vehicles.map((vehicle, index) => (
-                                        <MenuItem key={index} value={vehicle}>{vehicle.VehicleType} → <strong>{vehicle.FuelType}</strong>  →  {vehicle.Quantity}</MenuItem>
+                                        <MenuItem key={index} value={vehicle}>{vehicle.VehicleType} → <strong>{vehicle.FuelType}</strong>  →   {vehicle.Quantity}  → Vehicle.Id:{vehicle.VehicleID.slice(-5)}</MenuItem>
                                     ))}
                                 </Select>
                             </StyledFormControl>
 
+                            {/* Snackbar Notification */}
+                            <Snackbar
+                                open={snackbar.open}
+                                autoHideDuration={3000}
+                                onClose={() => setSnackbar({ ...snackbar, open: false })}
+                                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                                sx={{ boxShadow: 3, borderRadius: 2 }}
+                            >
+                                <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ fontSize: "1rem", fontWeight: "bold" }}>
+                                    {snackbar.message}
+                                </Alert>
+                            </Snackbar>
 
                             {/* Submit Button */}
                             <Button
                                 variant="contained"
                                 fullWidth
                                 onClick={submitRouteSelection}
+                                disabled={isSubmitDisabled || isLoading} // Disable when fields are empty or API is loading
                                 sx={{
                                     mt: 2,
                                     width: '50%',
                                     mx: 'auto',
                                     display: 'block',
-                                    backgroundColor: 'primary.light', // Use theme's light primary color
-                                    color: 'white', // Text color (adjust as needed)
+                                    backgroundColor: isSubmitDisabled ? 'gray' : 'primary.light',
+                                    color: 'white',
                                     '&:hover': {
-                                        backgroundColor: 'primary.main', // Use theme's main primary color on hover
+                                        backgroundColor: isSubmitDisabled ? 'gray' : 'primary.main',
                                     },
                                 }}
                             >
-                                Submit
+                                {isLoading ? "Submitting..." : "Submit"}
                             </Button>
                         </Card>
                     </Box>
 
 
-
                     {/* Map and Routes Side Panel */}
-                    <Box sx={{ flex: '0 0 65%', height: '100%' }}> {/* Takes 65% of the width, added height */}
+                    <Box sx={{ flex: '0 0 65%', height: '100%',marginTop:'10px' }}> {/* Takes 65% of the width, added height */}
                         <Card
                             className="p-4 shadow-lg rounded-xl"
                             style={{
                                 height: "calc(86vh - 48px)", // Adjust height to account for app bar/header if any
-                                paddingTop: "25px",
+                                //paddingTop: "25px",
                                 borderRadius: "16px",
                                 boxShadow: "0 4px 15px rgba(0, 0, 0, 0.1)",
                                 paddingRight: "24px"
