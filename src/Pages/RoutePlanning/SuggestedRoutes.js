@@ -603,10 +603,10 @@ const SuggestRoutes = () => {
                         zIndex: 9999,
                     }}
                 >
-                    {/* <CircularProgress sx={{ color: 'white' }} />
+                    <CircularProgress sx={{ color: 'white' }} />
                     <Typography variant="h6" sx={{ color: 'white', ml: 2 }}>
                         Loading...
-                    </Typography> */}
+                    </Typography>
                 </Box>
             </Box>
             <NavBar />
@@ -838,9 +838,9 @@ const SuggestRoutes = () => {
                             {/* Snackbar Notification */}
                             <Snackbar
                                 open={snackbar.open}
-                                autoHideDuration={3000}
+                                autoHideDuration={10000}
                                 onClose={() => setSnackbar({ ...snackbar, open: false })}
-                                anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+                                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
                                 sx={{ boxShadow: 3, borderRadius: 2 }}
                             >
                                 <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ fontSize: "1rem", fontWeight: "bold" }}>

@@ -7,6 +7,7 @@ import './Dashboard.css';
 import RouteIcon from '../Assets/images/road-map.png';
 import TrackingIcon from '../Assets/images/tracking.png';
 import AnalyticsIcon from '../Assets/images/analysis.png';
+import Breadcrumbs from './Breadcrumbs/Breadcrumbs';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -14,6 +15,7 @@ const Dashboard = () => {
   return (
     <div className="dashboard-container">
       <Navbar />
+      <Breadcrumbs />
 
       <div className="icon-grid">
         <div className="icon-box" onClick={() => navigate('/route-planning')}>
