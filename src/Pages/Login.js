@@ -7,7 +7,8 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { motion } from 'framer-motion';
 import { AuthContext } from '../Context/AuthContext';
 import './Login.css'; // Import the CSS for background animation
-import logo from '../Assets/images/CSG Logo_PNG.png'; 
+import logo from '../Assets/images/CSG Logo_PNG.png';
+import config from '../config'; 
 
 const theme = createTheme();
 
@@ -22,7 +23,7 @@ const Login = () => {
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            const response = await axios.post('http://127.0.0.1:8000/login', {
+            const response = await axios.post(`${config.API_BASE_URL}/login`, {
                 username,
                 password,
                 user_role: userRole

@@ -8,6 +8,7 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 import logo from '../Assets/images/CSG Logo_PNG.png';
 import { motion } from 'framer-motion';
 import './Signup.css';
+import config from '../config';
 
 const theme = createTheme();
 
@@ -21,7 +22,7 @@ const Signup = () => {
   const handleSignup = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://127.0.0.1:8000/signup', {
+      const response = await axios.post(`${config.API_BASE_URL}/signup`, {
         username,
         password,
         user_role: userRole

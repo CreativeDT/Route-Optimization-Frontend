@@ -1,54 +1,102 @@
-/* Dashboard.css */
 .dashboard-container {
   display: flex;
   flex-direction: column;
   height: 97vh;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Video Background */
+.video-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+  overflow: hidden;
+}
+
+.video-background video {
+  min-width: 100%;
+  min-height: 100%;
+  object-fit: cover;
+  opacity: 1; /* Increased opacity for better visibility */
 }
 
 .icon-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 80px;
+  gap: 40px;
   justify-items: center;
   padding: 40px;
-  background-color: #ecf0f1;
-  height: -webkit-fill-available;
+  background-color: rgba(255, 255, 255, 0.4); /* Lighter and more transparent background */
+  height: 100%;
+  z-index: 1;
+  backdrop-filter: blur(1px); /* Optional: Adds a blur effect to the background */
 }
 
 .icon-box {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  width: 150px;
-  height: 150px;
+  justify-content: flex-start; /* Align content to the top */
+  width: 220px;
+  height: 350px;
   background-color: white;
   border: 2px solid #34495e;
-  border-radius: 12px;
-  padding: 10px;
+  border-radius: 20px;
+  padding: 20px;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   text-decoration: none;
   color: #2c3e50;
+  cursor: pointer;
+  overflow: hidden; /* Ensure content stays within the box */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; 
 }
 
 .icon-box:hover {
-  transform: scale(1.1);
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+}                         
+
+.icon-content { /* Style the content wrapper */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%; /* Occupy full width of the box */
+  height: 100%;
 }
 
 .icon-image {
-  width: 60px;
-  height: 60px;
-  margin-bottom: 10px;
+  width: 80px;
+  height: 80px;
+  margin-top: 20px; /* Space from the top */
+  margin-bottom: 15px;
 }
 
 .icon-label {
-  font-size: 14px;
+  font-size: 20px;
   font-weight: bold;
   text-align: center;
   color: #34495e;
+  margin-bottom: 10px;
 }
 
+.icon-description {
+  font-size: 14px;
+  text-align: left; /* Align text to the left */
+  color: #7f8c8d;
+  margin-top: 10px;
+  flex-grow: 1;
+  overflow: hidden; /* Hide overflowing text */
+  padding: 0 10px; /* Add some padding to the sides */
+}
+
+.icon-description p { /* Style paragraphs within the description */
+  margin-bottom: 5px; /* Add spacing between paragraphs */
+  font-size: 19px;
+}
 .navbar {
   display: flex;
   justify-content: space-between;
@@ -80,47 +128,17 @@
   border-radius: 5px;
 }
 
-.tile-container {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);  /* 3 equal-width columns */
-  gap: 200px;  /* Reduced gap for a more compact layout */
-  padding: 50px;
-  background-color: #ecf0f1;
-  height: -webkit-fill-available;
-}
-
-.tile {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;  /* Reduced padding */
-  background-color: #34495e;
-  color: white;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  text-align: center;
-  height: 120px;  /* Fixed height for consistent tile size */
-}
-
-.tile:hover {
-  background-color: #1abc9c;
-}
-
-.tile.active {
-  background-color: #1abc9c;
-}
-
-.tile-icon {
-  font-size: 30px;  /* Reduced icon size */
-  margin-bottom: 10px;
-}
-
-h2 {
-  color: #2c3e50;
-}
-
-p {
-  color: #7f8c8d;
+@keyframes pulse {
+  0% {
+      transform: scale(1);
+      opacity: 0.8;
+  }
+  50% {
+      transform: scale(1.05); /* Slightly enlarge */
+      opacity: 1;
+  }
+  100% {
+      transform: scale(1);
+      opacity: 0.8;
+  }
 }

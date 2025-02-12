@@ -17,6 +17,7 @@ import ambericon from  '../../Assets/images/Amber.png';
 import REDicon from  '../../Assets/images/redicon.png';
 import UseWebSocket from '../../WebSockets/UseWebSockets';  // Import WebSocket Hook
 import Breadcrumbs from '../Breadcrumbs/Breadcrumbs'; // Import your Breadcrumbs component
+import config from '../../config'; // Import your config file
 const redIcon = new L.Icon({
     iconUrl: redIconImage,
     iconSize: [20, 20],
@@ -207,44 +208,16 @@ const RouteTracking = () => {
     const [consignments, setConsignments] = useState([]);
     const [selectedRoutes, setSelectedRoutes] = useState([]);
     const [selectedConsignments, setSelectedConsignments] = useState([]);
-    const { vehiclePosition } = UseWebSocket("ws://localhost:8000/ws"); // Get WebSocket Data
-    useEffect(() => {
-        fetchConsignments();
-    }, []);
-    useEffect(() => {
-        if (vehiclePosition) {
-            console.log("Updated vehicle position:", vehiclePosition);
-            // Update the map with the new vehicle position
-        }
+    // const { vehiclePosition } = UseWebSocket("ws://localhost:8000/ws"); // Get WebSocket Data
+    const { vehiclePosition } = UseWebSocket(config.WEBSOCKET_URL); // Use the configured URL
 
-    }, [vehiclePosition]);
     
-    const fetchConsignments = useCallback(async () => {
-        const token = localStorage.getItem('token');
 
-        try {
-            const response = await axios.post('http://127.0.0.1:8000/getConsignments', {
-                status: '',
-                origin: '',
-                destination: '',
-                vehicle_id: '',
-                routeID: ''
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${token}` // Include the token in the Authorization header
-                }
-            });
-            console.log('Consignments:', response.data);
-            setConsignments(response.data.consignments);
-        } catch (error) {
-            console.error('Error fetching consignments:', error);
-        }
-    }, []);
-
+    
     const fetchRouteData = useCallback(async (routeID) => {
         try {
             const token = localStorage.getItem('token');
-            const response = await axios.post('http://127.0.0.1:8000/getRouteData', {
+            const response = await axios.post(`${config.API_BASE_URL}/getRouteData`, {
                 routeID,
                 vehicle_id: ''
             }, {
@@ -257,11 +230,58 @@ const RouteTracking = () => {
             const route = response.data.route[0];
             // Ensure route_waypoints is defined
             route.route_waypoints = route.route_waypoints || [];
-             return route;
+            return {
+                ...route,
+                co2Emission: route.carbon_emission || "N/A" // Add CO₂ emission to the returned object
+            };
         } catch (error) {
             console.error('Error fetching route data:', error);
         }
     }, []);
+
+
+
+    const fetchConsignments = useCallback(async () => {
+        const token = localStorage.getItem('token');
+
+        try {
+            const response = await axios.post(`${config.API_BASE_URL}/getConsignments`, {
+                status: '',
+                origin: '',
+                destination: '',
+                vehicle_id: '',
+                routeID: ''
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}` // Include the token in the Authorization header
+                }
+            });
+            console.log('Consignments:', response.data);
+            const consignmentsWithCO2 = await Promise.all(response.data.consignments.map(async (consignment) => {
+                const routeData = await fetchRouteData(consignment.routeID);
+                return {
+                    ...consignment,
+                    co2Emission: routeData.co2Emission || "N/A" // Add CO₂ emission to each consignment
+                };
+            }));
+            setConsignments(consignmentsWithCO2);
+        } catch (error) {
+            console.error('Error fetching consignments:', error);
+        }
+    }, [fetchRouteData]);
+
+    useEffect(() => {
+        fetchConsignments();
+    }, [fetchConsignments]);
+
+    
+
+    useEffect(() => {
+        if (vehiclePosition) {
+            console.log("Updated vehicle position:", vehiclePosition);
+            // Update the map with the new vehicle position
+        }
+    }, [vehiclePosition]);
 
     const handleConsignmentSelection = async (consignment) => {
         const isSelected = selectedConsignments.includes(consignment.routeID);
@@ -286,18 +306,18 @@ const RouteTracking = () => {
     };
 
     return (
-        <Box sx={{ bgcolor: '#f4f6f8', minHeight: '90vh',padding:'3px!important', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+        <Box sx={{ bgcolor: '#f4f6f8', minHeight: '90vh', padding: '3px!important', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
             <Navbar />
             <Breadcrumbs />
 
-            <Grid container spacing={2} sx={{ p: 2, flexGrow: 1, overflow: 'hidden' ,padding:'1px!important'}}>
+            <Grid container spacing={2} sx={{ p: 2, flexGrow: 1, overflow: 'hidden', padding: '1px!important' }}>
 
                 {/* Left Column: Consignments and Route Details */}
                 <Grid item xs={12} md={4} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                     <Paper elevation={3} sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
 
                         {/* Consignments List */}
-                        <Box sx={{ flex: '0 0 auto',height: '440px' }}>
+                        <Box sx={{ flex: '0 0 auto', height: '440px' }}>
                             <Typography variant="h6" gutterBottom>Consignments</Typography>
                             <List sx={{ maxHeight: '400px', overflowY: 'auto' }}>
                                 {consignments.map((consignment) => (
@@ -327,7 +347,7 @@ const RouteTracking = () => {
                                                     {`${consignment.origin} ➜ ${consignment.destination}`}
                                                 </Box>
                                             }
-                                            secondary={`Vehicle ID: ${consignment.vehicle_id}`}
+                                            secondary={`CO₂ Emission: ${consignment.co2Emission || "N/A"} Kg`} // Display CO₂ emission
                                         />
                                     </ListItem>
                                 ))}

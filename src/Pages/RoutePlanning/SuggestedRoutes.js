@@ -21,7 +21,7 @@ import IconButton from '@mui/material/IconButton';
 import blueicon from '../../Assets/images/blue.png';
 import { CircularProgress } from '@mui/material';
 import Breadcrumbs from "../Breadcrumbs/Breadcrumbs";
-
+import config from "../../config"; 
 
 
 const SuggestRoutes = () => {
@@ -217,7 +217,7 @@ const SuggestRoutes = () => {
     };
 
     useEffect(() => {
-        axios.get("http://localhost:8000/countries")
+        axios.get(`${config.API_BASE_URL}/countries`)
             .then((response) => setCountries(response.data.countries || []))
             .catch((error) => {
                 console.error("Error fetching countries:", error);
@@ -227,7 +227,7 @@ const SuggestRoutes = () => {
 
     useEffect(() => {
         if (selectedCountry) {
-            axios.post("http://localhost:8000/origins", { country: selectedCountry })
+            axios.post(`${config.API_BASE_URL}/origins`, { country: selectedCountry })
                 .then((response) => setOrigins(response.data.origin || []))
                 .catch((error) => {
                     console.error("Error fetching origins:", error);
@@ -240,7 +240,7 @@ const SuggestRoutes = () => {
 
     useEffect(() => {
         if (selectedCountry && selectedOrigin) {
-            axios.post("http://localhost:8000/destinations", { country: selectedCountry, origin: selectedOrigin })
+            axios.post(`${config.API_BASE_URL}/destinations`, { country: selectedCountry, origin: selectedOrigin })
                 .then((response) => setDestinations(response.data.destination || []))
                 .catch((error) => {
                     console.error("Error fetching destinations:", error);
@@ -265,7 +265,7 @@ const SuggestRoutes = () => {
     }, [selectedOrigin, selectedDestination]);
 
     const fetchStops = () => {
-        axios.post("http://localhost:8000/stops", { origin: selectedOrigin, destination: selectedDestination })
+        axios.post(`${config.API_BASE_URL}/stops`, { origin: selectedOrigin, destination: selectedDestination })
             .then((response) => {
                 setStops(response.data.stops || []);
             })
@@ -276,7 +276,7 @@ const SuggestRoutes = () => {
     };
 
     const getDuration = () => {
-        axios.post("http://localhost:8000/getDuration", {
+        axios.post(`${config.API_BASE_URL}/getDuration`, {
             country: selectedCountry,
             origin: selectedOrigin,
             destination: selectedDestination,
@@ -290,7 +290,7 @@ const SuggestRoutes = () => {
     };
 
     const getAvailableVehicles = () => {
-        axios.post("http://localhost:8000/getAvailableVehicles", {
+        axios.post(`${config.API_BASE_URL}/getAvailableVehicles`, {
             start_date: startDate.toISOString().split("T")[0],
             end_date: endDate.toISOString().split("T")[0],
         })
@@ -306,7 +306,7 @@ const SuggestRoutes = () => {
 
 
     const getRiskFactors = () => {
-        axios.post("http://localhost:8000/riskFactors", {
+        axios.post(`${config.API_BASE_URL}/riskFactors`, {
             origin: selectedOrigin,
             destination: selectedDestination
         })
@@ -468,7 +468,7 @@ const SuggestRoutes = () => {
         const formattedStartDate = startDate.toISOString().split("T")[0];
         const formattedEndDate = endDate.toISOString().split("T")[0];
 
-        axios.post("http://localhost:8000/suggestRoutes", {
+        axios.post(`${config.API_BASE_URL}/suggestRoutes`, {
             accident: riskFactors.accident,
             delay: riskFactors.delay,
             reroute: riskFactors.reroute,
@@ -776,7 +776,7 @@ const SuggestRoutes = () => {
                                                 '& .MuiInputLabel-root': { // Target the label
                                                     paddingLeft: '1rem', // Add left padding
                                                 },'& .MuiInputBase-input': { fontSize: '0.65rem' },
-                                                 padding: '0 1rem'
+                                                padding: '0 1rem'
                                             }}
                                         />
                                     }
@@ -807,7 +807,7 @@ const SuggestRoutes = () => {
                                                 '& .MuiInputLabel-root': { // Target the label
                                                     paddingLeft: '1rem', // Add left padding
                                                 },'& .MuiInputBase-input': { fontSize: '0.65rem' },
-                                                 padding: '0 1rem'
+                                                padding: '0 1rem'
                                             }}
                                         />
                                     }
@@ -829,8 +829,10 @@ const SuggestRoutes = () => {
                                         padding: '0.5rem', // Adjust padding if needed
                                     }}
                                 >
-                                    {vehicles.map((vehicle, index) => (
-                                        <MenuItem key={index} value={vehicle}>{vehicle.VehicleType} → <strong>{vehicle.FuelType}</strong>  →   {vehicle.Quantity}  → Vehicle.Id:{vehicle.VehicleID.slice(-5)}</MenuItem>
+                                    {[...new Map(vehicles.map(v => [v.VehicleID, v])).values()].map((vehicle, index) => (
+                                        <MenuItem key={index} value={vehicle}>
+                                            {vehicle.VehicleType} → <strong>{vehicle.FuelType}</strong> → {vehicle.Quantity} → Vehicle.Id:{vehicle.VehicleID.slice(-5)}
+                                        </MenuItem>
                                     ))}
                                 </Select>
                             </StyledFormControl>
