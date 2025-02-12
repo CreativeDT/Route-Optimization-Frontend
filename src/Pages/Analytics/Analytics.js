@@ -1,6 +1,7 @@
 import React from 'react';
 import Navbar from '../../Components/NavBar';
 import Breadcrumbs from '../Breadcrumbs/Breadcrumbs';
+import config from '../../config';
 
 const Analytics = () => {
   return (
@@ -33,7 +34,7 @@ const Analytics = () => {
               title="FleetDashboard" 
               width="100%" 
               height="100%" 
-              src="https://app.powerbi.com/reportEmbed?reportId=859cf7be-971b-41a5-a2b3-af1991e4be54&autoAuth=true&ctid=a9c50c6c-2ecc-4653-99b2-58024af91866&navContentPaneEnabled=false&filterPaneEnabled=false"
+              src={config.POWER_BI_URL}
               style={{ border: 'none', borderRadius: '8px' }}
             ></iframe>
           </div>
