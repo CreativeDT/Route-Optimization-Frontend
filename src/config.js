@@ -13,7 +13,7 @@ const configurations = {
 };
 
 
-const env = process.env.NODE_ENV || 'development';
+const env = 'production';
 const config = configurations[env];
 
 // Fallback logic

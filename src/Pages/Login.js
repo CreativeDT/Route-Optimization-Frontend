@@ -19,7 +19,7 @@ const Login = () => {
     const [error, setError] = useState('');
     const navigate = useNavigate();
     const { login } = useContext(AuthContext);
-
+    console.log('config ::',config);
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
