@@ -3,17 +3,17 @@ const configurations = {
     development: {
         API_BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:8000',
         WEBSOCKET_URL: process.env.REACT_APP_WEBSOCKET_URL || 'ws://localhost:8000/ws',
-        POWER_BI_URL: process.env.REACT_APP_POWER_BI_URL // Add Power BI URL
+        POWER_BI_URL: process.env.REACT_APP_POWER_BI_URL || 'https://app.powerbi.com/reportEmbed?reportId=859cf7be-971b-41a5-a2b3-af1991e4be54&autoAuth=true&ctid=a9c50c6c-2ecc-4653-99b2-58024af91866&navContentPaneEnabled=false&filterPaneEnabled=false'
     },
     production: {
         API_BASE_URL: process.env.REACT_APP_API_URL || 'http://172.16.117.87:8000',
         WEBSOCKET_URL: process.env.REACT_APP_WEBSOCKET_URL || 'ws://172.16.117.87:8000/ws',
-        POWER_BI_URL: process.env.REACT_APP_POWER_BI_URL // Add Power BI URL
+        POWER_BI_URL: process.env.REACT_APP_POWER_BI_URL || 'https://app.powerbi.com/reportEmbed?reportId=859cf7be-971b-41a5-a2b3-af1991e4be54&autoAuth=true&ctid=a9c50c6c-2ecc-4653-99b2-58024af91866&navContentPaneEnabled=false&filterPaneEnabled=false'
     }
 };
 
 
-const env = process.env.NODE_ENV || 'production';
+const env = process.env.NODE_ENV || 'development';
 const config = configurations[env];
 
 // Fallback logic
