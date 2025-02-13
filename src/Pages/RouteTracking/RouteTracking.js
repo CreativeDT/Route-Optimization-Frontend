@@ -264,8 +264,11 @@ const RouteTracking = () => {
                     co2Emission: routeData.co2Emission || "N/A" // Add CO₂ emission to each consignment
                 };
             }));
-            setConsignments(consignmentsWithCO2);
-        } catch (error) {
+            const consignmentsWithStatusText = consignmentsWithCO2.map(consignment => ({
+                ...consignment,
+                statusText: consignment.status === 'started' ? 'Started' : 'Not Started'
+            }));
+            setConsignments(consignmentsWithStatusText);        } catch (error) {
             console.error('Error fetching consignments:', error);
         }
     }, [fetchRouteData]);
@@ -347,8 +350,12 @@ const RouteTracking = () => {
                                                     {`${consignment.origin} ➜ ${consignment.destination}`}
                                                 </Box>
                                             }
-                                            secondary={`Predicted CO₂ Emission: ${consignment.co2Emission || "N/A"} Kg`} // Display CO₂ emission
-                                        />
+                                            secondary={
+                                                <React.Fragment>
+                                                    <div>{consignment.statusText}</div> {/* Display status text */}
+                                                    <div>Predicted CO₂ Emission: {consignment.co2Emission || "N/A"} Kg</div>
+                                                </React.Fragment>
+                                            }                                        />
                                     </ListItem>
                                 ))}
                             </List>
