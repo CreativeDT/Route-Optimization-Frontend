@@ -347,7 +347,7 @@ const RouteTracking = () => {
                                                     {`${consignment.origin} ➜ ${consignment.destination}`}
                                                 </Box>
                                             }
-                                            secondary={`CO₂ Emission: ${consignment.co2Emission || "N/A"} Kg`} // Display CO₂ emission
+                                            secondary={`Predicted CO₂ Emission: ${consignment.co2Emission || "N/A"} Kg`} // Display CO₂ emission
                                         />
                                     </ListItem>
                                 ))}

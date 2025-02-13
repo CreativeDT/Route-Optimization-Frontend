@@ -527,7 +527,7 @@ const SuggestRoutes = () => {
 
         try {
             const response = await axios.post(
-                "http://127.0.0.1:8000/selectRoute",
+                `${config.API_BASE_URL}/selectRoute`,
                 { routeID },
                 {
                     headers: {
