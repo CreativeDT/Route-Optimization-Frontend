@@ -22,6 +22,7 @@ import blueicon from '../../Assets/images/blue.png';
 import { CircularProgress } from '@mui/material';
 import Breadcrumbs from "../Breadcrumbs/Breadcrumbs";
 import config from "../../config"; 
+import '../../App.css';
 
 
 const SuggestRoutes = () => {
@@ -39,7 +40,7 @@ const SuggestRoutes = () => {
     const [vehicles, setVehicles] = useState([]);
     const [riskFactors, setRiskFactors] = useState({});
     const [selectedVehicle, setSelectedVehicle] = useState(null);
-    const [preloadedDemand, setPreloadedDemand] = useState(0);
+    const [preloadedDemand, setPreloadedDemand] = useState(5000);
     const [suggestedRoutes, setSuggestedRoutes] = useState([]);
     const [selectedRouteIndex, setSelectedRouteIndex] = useState(0); // Track the selected route    
     const [routeIDS, setRouteIDS] = useState(null); // Store route details from API
@@ -130,7 +131,7 @@ const SuggestRoutes = () => {
         mapRef.current = node; // Set the ref
 
         if (node && !mapInstance) {
-            let initialCenter = [51.505, -0.09]; // Default to London if no coordinates provided
+            let initialCenter = [39.8, -98.5]; // Default to London if no coordinates provided
 
             if (selectedOrigin && selectedDestination) {
                 const originCoords = selectedOrigin.split(",").map(Number);
@@ -151,12 +152,14 @@ const SuggestRoutes = () => {
 
             const map = L.map(node, {
                 center: initialCenter,
-                zoom: 7,
+                zoom: 5,
             });
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', 
+            //  {
+            //     attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            // }
+        ).addTo(map);
 
             setMapInstance(map);
             setMapInitialized(true);
@@ -204,7 +207,7 @@ const SuggestRoutes = () => {
     const destination = coordinates[coordinates.length - 1];
 
     const bounds = coordinates.length > 0 ? L.latLngBounds(coordinates) : null;
-    const mapCenter = coordinates.length > 0 ? coordinates[Math.floor(coordinates.length / 2)] : [51.505, -0.09];
+    const mapCenter = coordinates.length > 0 ? coordinates[Math.floor(coordinates.length / 2)] :  [39.8, -98.5];
 
     const CenterMap = ({ center }) => {
         const map = useMap();
@@ -351,17 +354,21 @@ const SuggestRoutes = () => {
 
     const preloadedDemandRef = useRef(null);
 
-    const handlePreloadedDemandChange = (e) => {
-        setPreloadedDemand(e.target.value);
+    // const handlePreloadedDemandChange = (e) => {
+    //     setPreloadedDemand(e.target.value);
 
-        // Preserve focus after state update
-        setTimeout(() => {
-            if (preloadedDemandRef.current) {
-                preloadedDemandRef.current.focus();
-            }
-        }, 0);
+    //     // Preserve focus after state update
+    //     setTimeout(() => {
+    //         if (preloadedDemandRef.current) {
+    //             preloadedDemandRef.current.focus();
+    //         }
+    //     }, 0);
+    // };
+    const handlePreloadedDemandChange = (event) => {
+        const newValue = event.target.value === "" ? "" : Number(event.target.value); //Allow empty value
+        setPreloadedDemand(newValue);
     };
-
+    
 
 
 
@@ -557,7 +564,7 @@ const SuggestRoutes = () => {
                             mapInstance.removeLayer(layer);
                         }
                     });
-                    const initialCenter = [51.505, -0.09];
+                    const initialCenter =  [39.8, -98.5];
                     mapInstance.setView(initialCenter, 7);
                 }
                 // Redirect to Route Tracking page:
@@ -700,54 +707,103 @@ const SuggestRoutes = () => {
                             {selectedStops.map((stop, index) => (
                                 <Box key={stop.id} sx={{ mb: 2, width: '70%', padding: '0 1rem', marginBottom: '1rem' }}>
                                     <Typography style={{ color: 'black' }}>{stop.label}</Typography>
+                                                    <Grid2
+                                    container
+                                    spacing={2}
+                                    sx={{
+                                    paddingTop: "1rem",
+                                    marginBottom: "1rem",
+                                    display: "flex",
+                                    flexWrap: "nowrap",
+                                    }}>
+                    <Grid2 item xs={4} sx={{ minWidth: "40%" }}>
+                                   
                                     <StyledTextField
                                         inputRef={(el) => (inputRefs.current[`${index}-drop_demand`] = el)}
                                         label="Drop Demand"
                                         type="number"
                                         value={stop.drop_demand}
-                                        onChange={(e) => handleStopDemandChange(index, 'drop_demand', e.target.value)}
+                                        onChange={(e) => {
+                                            const value = Math.max(0, Number(e.target.value)); // Ensure value is not negative
+                                            handleStopDemandChange(index, "drop_demand", value);
+                                        }}
                                         size="small"
                                         fullWidth
                                         margin="dense"
                                         sx={{ height: '40px' }} // Fixed height for consistent input box sizes
                                     />
+                                         </Grid2>
+                                         <Grid2 item xs={4} sx={{ minWidth: "40%" }}>
                                     <StyledTextField
                                         inputRef={(el) => (inputRefs.current[`${index}-pickup_demand`] = el)}
                                         label="Pickup Demand"
                                         type="number"
                                         value={stop.pickup_demand}
-                                        onChange={(e) => handleStopDemandChange(index, 'pickup_demand', e.target.value)}
+                                        onChange={(e) => {
+                                            const value = Math.max(0, Number(e.target.value)); // Ensure value is not negative
+                                            handleStopDemandChange(index, "pickup_demand", value);
+                                        }}
                                         size="small"
                                         fullWidth
                                         margin="dense"
                                         sx={{ height: '40px' }}
                                     />
+                                       </Grid2>
+                                       <Grid2 item xs={4} sx={{ minWidth: "40%" }}>
                                     <StyledTextField
                                         inputRef={(el) => (inputRefs.current[`${index}-priority`] = el)}
                                         label="Priority"
                                         type="number"
                                         value={stop.priority}
-                                        onChange={(e) => handleStopDemandChange(index, 'priority', e.target.value)}
+                                        onChange={(e) => {
+                                            const value = Math.max(0, Math.min(Number(e.target.value), 3)); 
+                                            handleStopDemandChange(index, "priority", value);
+                                          }}
                                         size="small"
                                         fullWidth
                                         margin="dense"
                                         sx={{ height: '40px' }}
                                     />
+                                    </Grid2>  </Grid2>
                                 </Box>
                             ))}
 
-                            <StyledTextField
-                                inputRef={preloadedDemandRef}
-                                label="Preloaded Demand"
-                                type="number"
-                                value={preloadedDemand}
-                                onChange={handlePreloadedDemandChange}
-                                fullWidth
-                                size="small"
-                                margin="dense"
-                                className="mb-3"
-                                sx={{ width: '80%', marginTop: '16px', padding: '0 1rem', marginBottom: '1rem' }}
-                            />
+<StyledTextField
+            inputRef={preloadedDemandRef}
+            label="Preloaded Demand"
+            type="number"
+            value={preloadedDemand}
+            onChange={handlePreloadedDemandChange}
+            fullWidth
+            size="small"
+            margin="dense"
+            className="mb-3"
+            helperText="Enter the desired demand." // Updated helper text
+            sx={{
+                width: "80%",
+                marginTop: "16px",
+                padding: "0 1rem",
+                marginBottom: "1rem",
+            }}
+        />
+    {/* <StyledTextField
+        inputRef={preloadedDemandRef}
+        label="Preloaded Demand"
+        type="number"
+        value={preloadedDemand}
+        onChange={handlePreloadedDemandChange}
+        fullWidth
+        size="small"
+        margin="dense"
+        className="mb-3"
+        helperText="Enter the desired demand." // Updated helper text
+        sx={{
+            width: "80%",
+            marginTop: "16px",
+            padding: "0 1rem",
+            marginBottom: "1rem",
+        }}
+    /> */}
 
 
                             <div style={{ width: "80%", display: "flex", gap: "2.5rem", marginBottom: '1rem' }}> {/* Added gap between date pickers */}
@@ -831,7 +887,7 @@ const SuggestRoutes = () => {
                                 >
                                     {[...new Map(vehicles.map(v => [v.VehicleID, v])).values()].map((vehicle, index) => (
                                         <MenuItem key={index} value={vehicle}>
-                                            {vehicle.VehicleType} → <strong>{vehicle.FuelType}</strong> → {vehicle.Quantity} → Vehicle.Id:{vehicle.VehicleID.slice(-5)}
+                                            {vehicle.VehicleType} → <strong>{vehicle.FuelType}</strong> → {vehicle.Quantity} 
                                         </MenuItem>
                                     ))}
                                 </Select>
@@ -950,17 +1006,17 @@ const SuggestRoutes = () => {
                                                                 saveRoute(suggestedRoutes[selectedRouteIndex].routeID);
                                                             }}
                                                             sx={{
-                                                                backgroundColor: '#318CE7',
+                                                                backgroundColor: '#318CE7',fontSize:"10px",
                                                                 color: 'white',
                                                                 '&:hover': {
                                                                     // backgroundColor: '#e0e0e0',
                                                                 },
-                                                                width: '50%',
+                                                                width: '100%',
                                                                 mx: 'auto',
 
                                                             }}
                                                         >
-                                                            Save
+                                                            Save & Track
                                                         </Button>
                                                     </Box>
                                                 </Box>

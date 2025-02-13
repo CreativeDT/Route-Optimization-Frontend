@@ -22,3 +22,6 @@
   animation: gradient-animation 15s ease infinite;
   height: 100vh;  /* Ensure it takes the full screen height */
 }
+.leaflet-bottom  {
+  visibility: hidden!important;
+}
