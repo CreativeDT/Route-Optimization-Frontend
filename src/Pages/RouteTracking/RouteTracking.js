@@ -75,10 +75,10 @@ const waypointIcon = new L.Icon({
     popupAnchor: [0, -10],
 });
 
-const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleRoutes,vehiclePosition }) => {
+const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleRoutes, vehiclePosition }) => {
     const map = useMap();
     const vehicleMarkerRef = useRef(null); // Ref for the vehicle marker
-    const isFirstRender = useRef(true); // Ref to track the first render
+
     useEffect(() => {
         if (coordinates.length > 0) {
             const latLngs = coordinates.map(coord => [coord[1], coord[0]]);
@@ -86,12 +86,11 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
         }
     }, [coordinates, map]);
     useEffect(() => {
-        if (vehiclePosition && map && vehiclePosition.status === "started") {
+        if (vehiclePosition && map && route.status === 'started') {
             console.log("Updating vehicle position on map:", vehiclePosition);
-            console.log("map:", map)
 
-             // Update marker position directly using the ref
-             if (vehicleMarkerRef.current) {
+            // Update marker position directly using the ref
+            if (vehicleMarkerRef.current) {
                 vehicleMarkerRef.current.setLatLng([vehiclePosition.lat, vehiclePosition.lng]);
                 vehicleMarkerRef.current.setIcon(getVehicleIcon(vehiclePosition.status)); // Update icon
             } else {
@@ -99,11 +98,12 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
                     [vehiclePosition.lat, vehiclePosition.lng],
                     { icon: getVehicleIcon(vehiclePosition.status) }
                 ).addTo(map);
-               // VehicleMarkerRef(newMarker);
+                vehicleMarkerRef.current = newMarker;
             }
             map.flyTo([vehiclePosition.lat, vehiclePosition.lng], map.getZoom(), { animate: true, duration: 1.5 });
         }
-    }, [vehiclePosition, map]);
+    }, [vehiclePosition, map, route.status]);
+
     useEffect(() => {
         console.log('Route Waypoints in MapView:', routeWaypoints);
     }, [routeWaypoints]);
@@ -152,20 +152,18 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
                     </Marker>
                 ))}
 
-                {vehiclePosition && (
+                {vehiclePosition && route.status === 'started' && (
                     <Marker
-                         ref={vehicleMarkerRef} // Assign the ref to the Marker
+                        ref={vehicleMarkerRef}
                         position={[vehiclePosition.lat, vehiclePosition.lng]}
                         icon={getVehicleIcon(vehiclePosition.status)}
-                        
-                        
                     >
                         <Popup>
                             <Typography>Vehicle Status: {vehiclePosition.status}</Typography>
                             <Typography>Location: {vehiclePosition.placeName}</Typography>
                         </Popup>
                     </Marker>
-                )}  
+                )}
     </MarkerClusterGroup>
 
             {/* Polyline with Hover Popup */}
@@ -208,8 +206,10 @@ const RouteTracking = () => {
     const [consignments, setConsignments] = useState([]);
     const [selectedRoutes, setSelectedRoutes] = useState([]);
     const [selectedConsignments, setSelectedConsignments] = useState([]);
+    const [shouldConnectWebSocket, setShouldConnectWebSocket] = useState(false);
     // const { vehiclePosition } = UseWebSocket("ws://localhost:8000/ws"); // Get WebSocket Data
-    const { vehiclePosition } = UseWebSocket(config.WEBSOCKET_URL); // Use the configured URL
+    const { vehiclePosition } = UseWebSocket(config.WEBSOCKET_URL, shouldConnectWebSocket);
+    
 
     
 
@@ -253,25 +253,22 @@ const RouteTracking = () => {
                 routeID: ''
             }, {
                 headers: {
-                    'Authorization': `Bearer ${token}` // Include the token in the Authorization header
+                    'Authorization': `Bearer ${token}`
                 }
             });
+
             console.log('Consignments:', response.data);
-            const consignmentsWithCO2 = await Promise.all(response.data.consignments.map(async (consignment) => {
-                const routeData = await fetchRouteData(consignment.routeID);
-                return {
-                    ...consignment,
-                    co2Emission: routeData.co2Emission || "N/A" // Add CO₂ emission to each consignment
-                };
-            }));
-            const consignmentsWithStatusText = consignmentsWithCO2.map(consignment => ({
+
+            const consignmentsWithStatusText = response.data.consignments.map(consignment => ({
                 ...consignment,
                 statusText: consignment.status === 'started' ? 'Started' : 'Not Started'
             }));
-            setConsignments(consignmentsWithStatusText);        } catch (error) {
+
+            setConsignments(consignmentsWithStatusText);
+        } catch (error) {
             console.error('Error fetching consignments:', error);
         }
-    }, [fetchRouteData]);
+    }, []);
 
     useEffect(() => {
         fetchConsignments();
@@ -299,13 +296,20 @@ const RouteTracking = () => {
             updatedSelectedConsignments = [...selectedConsignments, consignment.routeID];
         }
         setSelectedConsignments(updatedSelectedConsignments);
-
+    
         const routes = [];
         for (const routeID of updatedSelectedConsignments) {
             const route = await fetchRouteData(routeID);
             routes.push(route);
         }
         setSelectedRoutes(routes);
+    
+        // Check if any selected consignment is started
+        const shouldConnect = updatedSelectedConsignments.some(id => {
+            const selectedConsignment = consignments.find(c => c.routeID === id);
+            return selectedConsignment && selectedConsignment.status === 'started';
+        });
+        setShouldConnectWebSocket(shouldConnect);
     };
 
     return (
@@ -353,7 +357,7 @@ const RouteTracking = () => {
                                             secondary={
                                                 <React.Fragment>
                                                     <div>{consignment.statusText}</div> {/* Display status text */}
-                                                    <div>Predicted CO₂ Emission: {consignment.co2Emission || "N/A"} Kg</div>
+                                                    <div>Predicted CO₂ Emission: {consignment.carbon_emission || "N/A"} Kg</div>
                                                 </React.Fragment>
                                             }                                        />
                                     </ListItem>
@@ -378,7 +382,7 @@ const RouteTracking = () => {
                                         coordinates={route.route_coordinates}
                                         routeWaypoints={route.route_waypoints || []}
                                         route={route}
-                                        vehiclePosition={vehiclePosition}
+                                        vehiclePosition={route.status === 'started' ? vehiclePosition : null}
                                         multipleRoutes={selectedRoutes.length > 1}
                                     />
                                 ))}

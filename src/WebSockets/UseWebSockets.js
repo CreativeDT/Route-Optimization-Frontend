@@ -1,15 +1,21 @@
 import { useState, useEffect, useRef } from "react";
 
-const UseWebSocket = (url) => {
+const UseWebSocket = (url, shouldConnect) => {
     const [vehiclePosition, setVehiclePosition] = useState(null);
     const socketRef = useRef(null);
-    const intervalRef = useRef(null);  // ✅ Use ref to store interval
+    const intervalRef = useRef(null);
+    const shouldConnectRef = useRef(shouldConnect); // Ref to track shouldConnect
+
+    // Update the ref whenever shouldConnect changes
+    useEffect(() => {
+        shouldConnectRef.current = shouldConnect;
+    }, [shouldConnect]);
 
     console.log("WebSocket URL:", url);
     
     useEffect(() => {
-        if (!("WebSocket" in window)) {
-            console.error("WebSocket is not supported by your browser.");
+        if (!shouldConnect || !("WebSocket" in window)) {
+            console.error("WebSocket is not supported by your browser or should not connect.");
             return;
         }
     
@@ -63,7 +69,6 @@ const UseWebSocket = (url) => {
                 }
             };
 
-            //  Store interval in useRef
             intervalRef.current = setInterval(() => {
                 if (socketRef.current && socketRef.current.readyState === WebSocket.OPEN) {
                     socketRef.current.send("Fetch data");
@@ -76,7 +81,10 @@ const UseWebSocket = (url) => {
 
             socketRef.current.onclose = () => {
                 console.warn("WebSocket Disconnected! 🔄 Reconnecting in 5 seconds...");
-                setTimeout(connectWebSocket, 5000);
+                // Only reconnect if shouldConnectRef.current is true
+                if (shouldConnectRef.current) {
+                    setTimeout(connectWebSocket, 5000);
+                }
             };
         };
 
@@ -84,13 +92,13 @@ const UseWebSocket = (url) => {
         
         return () =>  {
             if (intervalRef.current) {
-                clearInterval(intervalRef.current);  // ✅ Properly clear interval
+                clearInterval(intervalRef.current);
             }
             if (socketRef.current) {
                 socketRef.current.close();
             }
         };
-    }, [url]);
+    }, [url, shouldConnect]); // Re-run effect if shouldConnect changes
 
     const fetchPlaceName = async (lat, lng) => {
         try {

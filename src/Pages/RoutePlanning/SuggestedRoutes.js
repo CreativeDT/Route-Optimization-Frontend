@@ -39,7 +39,7 @@ const SuggestRoutes = () => {
     const [vehicles, setVehicles] = useState([]);
     const [riskFactors, setRiskFactors] = useState({});
     const [selectedVehicle, setSelectedVehicle] = useState(null);
-    const [preloadedDemand, setPreloadedDemand] = useState(0);
+    const [preloadedDemand, setPreloadedDemand] = useState(2000);
     const [suggestedRoutes, setSuggestedRoutes] = useState([]);
     const [selectedRouteIndex, setSelectedRouteIndex] = useState(0); // Track the selected route    
     const [routeIDS, setRouteIDS] = useState(null); // Store route details from API
@@ -130,7 +130,7 @@ const SuggestRoutes = () => {
         mapRef.current = node; // Set the ref
 
         if (node && !mapInstance) {
-            let initialCenter = [51.505, -0.09]; // Default to London if no coordinates provided
+            let initialCenter = [39.8, -98.5]; // Default to London if no coordinates provided
 
             if (selectedOrigin && selectedDestination) {
                 const originCoords = selectedOrigin.split(",").map(Number);
@@ -151,12 +151,15 @@ const SuggestRoutes = () => {
 
             const map = L.map(node, {
                 center: initialCenter,
-                zoom: 7,
+                zoom: 4,
             });
 
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            }).addTo(map);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                //   {
+                //     attribution: '&copy; 
+                // <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                // }
+            ).addTo(map);
 
             setMapInstance(map);
             setMapInitialized(true);
@@ -204,7 +207,7 @@ const SuggestRoutes = () => {
     const destination = coordinates[coordinates.length - 1];
 
     const bounds = coordinates.length > 0 ? L.latLngBounds(coordinates) : null;
-    const mapCenter = coordinates.length > 0 ? coordinates[Math.floor(coordinates.length / 2)] : [51.505, -0.09];
+    const mapCenter = coordinates.length > 0 ? coordinates[Math.floor(coordinates.length / 2)] : [39.8, -98.5];
 
     const CenterMap = ({ center }) => {
         const map = useMap();
@@ -557,7 +560,7 @@ const SuggestRoutes = () => {
                             mapInstance.removeLayer(layer);
                         }
                     });
-                    const initialCenter = [51.505, -0.09];
+                    const initialCenter = [39.8, -98.5];
                     mapInstance.setView(initialCenter, 7);
                 }
                 // Redirect to Route Tracking page:
@@ -696,44 +699,85 @@ const SuggestRoutes = () => {
                                 />
                             </StyledFormControl>
 
-
+ 
                             {selectedStops.map((stop, index) => (
-                                <Box key={stop.id} sx={{ mb: 2, width: '70%', padding: '0 1rem', marginBottom: '1rem' }}>
-                                    <Typography style={{ color: 'black' }}>{stop.label}</Typography>
-                                    <StyledTextField
-                                        inputRef={(el) => (inputRefs.current[`${index}-drop_demand`] = el)}
-                                        label="Drop Demand"
-                                        type="number"
-                                        value={stop.drop_demand}
-                                        onChange={(e) => handleStopDemandChange(index, 'drop_demand', e.target.value)}
-                                        size="small"
-                                        fullWidth
-                                        margin="dense"
-                                        sx={{ height: '40px' }} // Fixed height for consistent input box sizes
-                                    />
-                                    <StyledTextField
-                                        inputRef={(el) => (inputRefs.current[`${index}-pickup_demand`] = el)}
-                                        label="Pickup Demand"
-                                        type="number"
-                                        value={stop.pickup_demand}
-                                        onChange={(e) => handleStopDemandChange(index, 'pickup_demand', e.target.value)}
-                                        size="small"
-                                        fullWidth
-                                        margin="dense"
-                                        sx={{ height: '40px' }}
-                                    />
-                                    <StyledTextField
-                                        inputRef={(el) => (inputRefs.current[`${index}-priority`] = el)}
-                                        label="Priority"
-                                        type="number"
-                                        value={stop.priority}
-                                        onChange={(e) => handleStopDemandChange(index, 'priority', e.target.value)}
-                                        size="small"
-                                        fullWidth
-                                        margin="dense"
-                                        sx={{ height: '40px' }}
-                                    />
-                                </Box>
+                  <Box
+                    key={stop.id}
+                    sx={{
+                      mb: 2,
+                      width: "70%",
+                      padding: "0 1rem",
+                      marginBottom: "1rem",
+                    }}
+                  >
+                    <Typography style={{ color: "black" }}>
+                      {stop.label}
+                    </Typography>
+                    <Grid2
+                      container
+                      spacing={2}
+                      sx={{
+                        paddingTop: "1rem",
+                        marginBottom: "1rem",
+                        display: "flex",
+                        flexWrap: "nowrap",
+                      }}
+                    >
+                        <Grid2 item xs={4} sx={{ minWidth: "40%" }}>
+                    <StyledTextField
+                      inputRef={(el) =>
+                        (inputRefs.current[`${index}-drop_demand`] = el)
+                      }
+                      label="Drop Demand"
+                      type="number"
+                      value={stop.drop_demand}
+                      onChange={(e) => {
+                        const value = Math.max(0, Number(e.target.value)); // Ensure value is not negative
+                        handleStopDemandChange(index, "drop_demand", value);
+                    }}
+                      size="small"
+                      fullWidth
+                      margin="dense"
+                      sx={{ height: "40px" }} // Fixed height for consistent input box sizes
+                    /></Grid2>
+                   
+                        <Grid2 item xs={4} sx={{ minWidth: "40%" }}>
+                    <StyledTextField
+                      inputRef={(el) =>
+                        (inputRefs.current[`${index}-pickup_demand`] = el)
+                      }
+                      label="Pickup Demand"
+                      type="number"
+                      value={stop.pickup_demand}
+                      onChange={(e) => {
+                        const value = Math.max(0, Number(e.target.value)); // Ensure value is not negative
+                        handleStopDemandChange(index, "pickup_demand", value);
+                    }}
+                      size="small"
+                      fullWidth
+                      margin="dense"
+                      sx={{ height: "40px" }}
+                    />
+                    </Grid2>
+                    <Grid2 item xs={4} sx={{ minWidth: "40%" }}>
+                    <StyledTextField
+                      inputRef={(el) =>
+                        (inputRefs.current[`${index}-priority`] = el)
+                      }
+                      label="Priority"
+                      type="number"
+                      value={stop.priority}
+                      onChange={(e) => {
+                        const value = Math.max(0, Math.min(Number(e.target.value), 3));
+                        handleStopDemandChange(index, "priority", value);
+                      }}
+                      size="small"
+                      fullWidth
+                      margin="dense"
+                      sx={{ height: "40px" }}
+                    />
+                      </Grid2></Grid2>
+                    </Box>
                             ))}
 
                             <StyledTextField
@@ -831,7 +875,7 @@ const SuggestRoutes = () => {
                                 >
                                     {[...new Map(vehicles.map(v => [v.VehicleID, v])).values()].map((vehicle, index) => (
                                         <MenuItem key={index} value={vehicle}>
-                                            {vehicle.VehicleType} → <strong>{vehicle.FuelType}</strong> → {vehicle.Quantity} → Vehicle.Id:{vehicle.VehicleID.slice(-5)}
+                                            {vehicle.VehicleType} → <strong>{vehicle.FuelType}</strong> → {vehicle.Quantity}
                                         </MenuItem>
                                     ))}
                                 </Select>
@@ -955,12 +999,13 @@ const SuggestRoutes = () => {
                                                                 '&:hover': {
                                                                     // backgroundColor: '#e0e0e0',
                                                                 },
-                                                                width: '50%',
+                                                                width: '100%',
                                                                 mx: 'auto',
+                                                                fontSize: '10px',
 
                                                             }}
                                                         >
-                                                            Save
+                                                            Save & Track
                                                         </Button>
                                                     </Box>
                                                 </Box>
