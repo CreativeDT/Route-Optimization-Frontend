@@ -11,6 +11,7 @@ import Breadcrumbs from './Breadcrumbs/Breadcrumbs';
 
 // Import video
 import GlobeVideo from '../Assets/videos/globe.mp4';
+import backgroundImage from '../Assets/images/61758.jpg';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -57,11 +58,15 @@ const Dashboard = () => {
       <Navbar />
       <Breadcrumbs />
 
-      <div className="video-background">
+      {/* <div className="video-background">
         <video autoPlay loop muted playsInline>
           <source src={GlobeVideo} type="video/mp4" />
           Your browser does not support the video tag.
         </video>
+      </div> */}
+
+<div className="image-background"> {/* Use image-background class */}
+        <img src={backgroundImage} alt="Background" />
       </div>
 
       <div className="icon-grid">

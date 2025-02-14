@@ -142,3 +142,20 @@
       opacity: 0.8;
   }
 }
+
+.image-background {  /* Styles for the background image */
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2; /* Behind other content */
+  overflow: hidden; /* Hide any overflow */
+}
+
+.image-background img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Or contain, depending on your preference */
+  /* opacity: 1; Adjust opacity as needed */
+}
