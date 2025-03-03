@@ -8,6 +8,9 @@ import RouteTracking from './Pages/RouteTracking/RouteTracking';
 import Analytics1  from './Pages/Analytics/Analytics';
 import RoutePlanning from './Pages/RoutePlanning/SuggestedRoutes';
 
+import UserList from './Pages/AdminPersona/UsersList';
+import VehiclesList from './Pages/AdminPersona/VehiclesList';
+
 
 const App = () => {
   return (
@@ -20,6 +23,8 @@ const App = () => {
         <Route path="/route-tracking" element={<RouteTracking />} />
         <Route path="/analytics" element={<Analytics1 />} />
         <Route path="/route-planning" element={<RoutePlanning />} />
+        <Route path="/userlist" element={<UserList/>}/>
+        <Route path="/vehiclelist" element={<VehiclesList/>}/>
       </Routes>
     </Router>
   );

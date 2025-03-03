@@ -6,6 +6,8 @@ import './Menu.css';
 import routeIcon from '../Assets/images/road-map.png';
 import trackingIcon from '../Assets/images/tracking.png';
 import analyticsIcon from '../Assets/images/analysis.png';
+import userIcon from '../Assets/images/user_details.png';
+import vehicleIcon from '../Assets/images/vehicle_detail.png';
 // import fleetIcon from '../Assets/images/fleet-icon.png';
 
 const Menu = () => {
@@ -59,6 +61,17 @@ const Menu = () => {
             <img src={analyticsIcon} alt="Analytics" className="icon-image" />
             <span>Analytics</span>
           </Link>
+
+          <Link to="/userlist" className="tile1">
+            <img src={userIcon} alt="Userslist" className="icon-image" />
+            <span>Users Details</span>
+          </Link>
+
+          <Link to="/vehiclelist" className="tile1">
+            <img src={vehicleIcon} alt="Vehicleslist" className="icon-image" />
+            <span>Vehicle Details</span>
+          </Link>
+          
 
           {/* <Link to="/fleet-management" className="tile1">
             <img src={fleetIcon} alt="Fleet Management" className="icon-image" />

@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useCallback,useRef } from 'react';
-import { Box, Typography, Card, CardContent, Grid, List, ListItem, ListItemText, Paper, Checkbox } from '@mui/material';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
+import { Box, Typography, Card, CardContent, Grid, List, ListItem, ListItemText, Paper, Checkbox,TextField } from '@mui/material';
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap, Tooltip } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import 'leaflet/dist/leaflet.css';
@@ -10,14 +10,15 @@ import L from 'leaflet';
 import redIconImage from '../../Assets/images/red.png';
 import greenIconImage from '../../Assets/images/green.png';
 import blueicon from '../../Assets/images/blue.png';
-import vehicleicon from  '../../Assets/images/truck.png';
-import arrowicon from  '../../Assets/images/arrow.png';
-import vehicleicon1 from  '../../Assets/images/vehicle1.png';
-import ambericon from  '../../Assets/images/Amber.png';
-import REDicon from  '../../Assets/images/redicon.png';
+import vehicleicon from '../../Assets/images/truck.png';
+import arrowicon from '../../Assets/images/arrow.png';
+import vehicleicon1 from '../../Assets/images/vehicle1.png';
+import ambericon from '../../Assets/images/Amber.png';
+import REDicon from '../../Assets/images/redicon.png';
 import UseWebSocket from '../../WebSockets/UseWebSockets';  // Import WebSocket Hook
 import Breadcrumbs from '../Breadcrumbs/Breadcrumbs'; // Import your Breadcrumbs component
 import config from '../../config'; // Import your config file
+import debounce from "lodash.debounce";
 const redIcon = new L.Icon({
     iconUrl: redIconImage,
     iconSize: [20, 20],
@@ -142,7 +143,7 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
                         <Popup>{waypoint.name}</Popup>
                     </Marker>
                 ))}
-          {routeWaypoints.slice(1, -1).map((waypoint, index) => (
+                {routeWaypoints.slice(1, -1).map((waypoint, index) => (
                     <Marker
                         key={index}
                         position={[waypoint.coordinates[1], waypoint.coordinates[0]]}
@@ -164,39 +165,39 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
                         </Popup>
                     </Marker>
                 )}
-    </MarkerClusterGroup>
+            </MarkerClusterGroup>
 
             {/* Polyline with Hover Popup */}
             <Polyline
-    positions={coordinates.map(coord => [coord[1], coord[0]])}
-    color="#3b82f6"
-    weight={5} // Increase weight to make hover easier
-    eventHandlers={{
-        mouseover: (e) => {
-            e.target.setStyle({ weight: 8, color: "#1e3a8a" }); // Change style on hover
-        },
-        mouseout: (e) => {
-            e.target.setStyle({ weight: 5, color: "#3b82f6" }); // Revert style on mouse out
-        },
-    }}
->
-    <Tooltip direction="top" offset={[0, -10]} opacity={1}>
-        <Typography variant="body2">
-            <strong>Route Details:</strong><br />
-            Origin: {route?.origin}<br />
-            Destination: {route?.destination}<br />
-            Distance: {route?.distance} km<br />
-            Duration: {route?.duration} hrs<br />
-            {/* <br /> */}
-            <strong>Vehicle Information:</strong><br />
-            Fuel Type: {route?.fuel_type || "N/A"}<br />
-            Vehicle Type: {route?.vehicle_type || "N/A"}<br />
-            CO₂ Emission: {route?.carbon_emission ? `${route.carbon_emission} kg` : "N/A"}
+                positions={coordinates.map(coord => [coord[1], coord[0]])}
+                color="#3b82f6"
+                weight={5} // Increase weight to make hover easier
+                eventHandlers={{
+                    mouseover: (e) => {
+                        e.target.setStyle({ weight: 8, color: "#1e3a8a" }); // Change style on hover
+                    },
+                    mouseout: (e) => {
+                        e.target.setStyle({ weight: 5, color: "#3b82f6" }); // Revert style on mouse out
+                    },
+                }}
+            >
+                <Tooltip direction="top" offset={[0, -10]} opacity={1}>
+                    <Typography variant="body2">
+                        <strong>Route Details:</strong><br />
+                        Origin: {route?.origin}<br />
+                        Destination: {route?.destination}<br />
+                        Distance: {route?.distance} km<br />
+                        Duration: {route?.duration} hrs<br />
+                        {/* <br /> */}
+                        <strong>Vehicle Information:</strong><br />
+                        Fuel Type: {route?.fuel_type || "N/A"}<br />
+                        Vehicle Type: {route?.vehicle_type || "N/A"}<br />
+                        CO₂ Emission: {route?.carbon_emission ? `${route.carbon_emission} kg` : "N/A"}
 
-            
-        </Typography>
-    </Tooltip>
-</Polyline>
+
+                    </Typography>
+                </Tooltip>
+            </Polyline>
 
         </>
     );
@@ -209,11 +210,11 @@ const RouteTracking = () => {
     const [shouldConnectWebSocket, setShouldConnectWebSocket] = useState(false);
     // const { vehiclePosition } = UseWebSocket("ws://localhost:8000/ws"); // Get WebSocket Data
     const { vehiclePosition } = UseWebSocket(config.WEBSOCKET_URL, shouldConnectWebSocket);
-    
 
-    
 
-    
+
+
+
     const fetchRouteData = useCallback(async (routeID) => {
         try {
             const token = localStorage.getItem('token');
@@ -274,7 +275,7 @@ const RouteTracking = () => {
         fetchConsignments();
     }, [fetchConsignments]);
 
-    
+
 
     useEffect(() => {
         if (vehiclePosition) {
@@ -296,14 +297,14 @@ const RouteTracking = () => {
             updatedSelectedConsignments = [...selectedConsignments, consignment.routeID];
         }
         setSelectedConsignments(updatedSelectedConsignments);
-    
+
         const routes = [];
         for (const routeID of updatedSelectedConsignments) {
             const route = await fetchRouteData(routeID);
             routes.push(route);
         }
         setSelectedRoutes(routes);
-    
+
         // Check if any selected consignment is started
         const shouldConnect = updatedSelectedConsignments.some(id => {
             const selectedConsignment = consignments.find(c => c.routeID === id);
@@ -311,6 +312,14 @@ const RouteTracking = () => {
         });
         setShouldConnectWebSocket(shouldConnect);
     };
+
+    const [searchQuery, setSearchQuery] = useState("");
+
+    const filteredConsignments = consignments.filter((consignment) =>
+        `${consignment.origin} ➜ ${consignment.destination}`
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())
+    );
 
     return (
         <Box sx={{ bgcolor: '#f4f6f8', minHeight: '90vh', padding: '3px!important', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
@@ -320,19 +329,28 @@ const RouteTracking = () => {
             <Grid container spacing={2} sx={{ p: 2, flexGrow: 1, overflow: 'hidden', padding: '1px!important' }}>
 
                 {/* Left Column: Consignments and Route Details */}
-                <Grid item xs={12} md={4} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <Paper elevation={3} sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+                <Grid item xs={12} md={4} sx={{ display: "flex", flexDirection: "column", gap: 2, height: "70%!important" }}>
+                    <Paper elevation={3} sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2, height: "70%" }}>
+                        {/* Search Field */}
+                        <TextField
+                            label="Search Consignments"
+                            variant="outlined"
+                            fullWidth
+                            size="small"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
 
                         {/* Consignments List */}
-                        <Box sx={{ flex: '0 0 auto', height: '440px' }}>
+                        <Box sx={{ flex: "0 0 auto", height: "440px" }}>
                             <Typography variant="h6" gutterBottom>Consignments</Typography>
-                            <List sx={{ maxHeight: '400px', overflowY: 'auto' }}>
-                                {consignments.map((consignment) => (
+                            <List sx={{ maxHeight: "400px", overflowY: "auto" }}>
+                                {filteredConsignments.map((consignment) => (
                                     <ListItem
                                         key={consignment.routeID}
                                         button="true"
                                         onClick={() => handleConsignmentSelection(consignment)}
-                                        sx={{ border: '1px solid #ddd', mb: 1, borderRadius: 1 }}
+                                        sx={{ border: "1px solid #ddd", mb: 1, borderRadius: 1 }}
                                     >
                                         <Checkbox
                                             checked={selectedConsignments.includes(consignment.routeID)}
@@ -340,14 +358,14 @@ const RouteTracking = () => {
                                         />
                                         <ListItemText
                                             primary={
-                                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                                <Box sx={{ display: "flex", alignItems: "center" }}>
                                                     {/* Dot based on status */}
                                                     <Box
                                                         sx={{
                                                             width: 10,
                                                             height: 10,
-                                                            borderRadius: '50%',
-                                                            backgroundColor: consignment.status === 'started' ? 'green' : 'red',
+                                                            borderRadius: "50%",
+                                                            backgroundColor: consignment.status === "started" ? "green" : "red",
                                                             marginRight: 2,
                                                         }}
                                                     />
@@ -356,10 +374,11 @@ const RouteTracking = () => {
                                             }
                                             secondary={
                                                 <React.Fragment>
-                                                    <div>{consignment.statusText}</div> {/* Display status text */}
+                                                    <div>{consignment.statusText}</div>
                                                     <div>Predicted CO₂ Emission: {consignment.carbon_emission || "N/A"} Kg</div>
                                                 </React.Fragment>
-                                            }                                        />
+                                            }
+                                        />
                                     </ListItem>
                                 ))}
                             </List>

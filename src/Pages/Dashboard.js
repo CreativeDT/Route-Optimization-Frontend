@@ -10,7 +10,7 @@ import AnalyticsIcon from '../Assets/images/analysis.png';
 import Breadcrumbs from './Breadcrumbs/Breadcrumbs';
 
 // Import video
-import GlobeVideo from '../Assets/videos/globe.mp4';
+//import GlobeVideo from '../Assets/videos/globe.mp4';
 import backgroundImage from '../Assets/images/61758.jpg';
 
 const Dashboard = () => {

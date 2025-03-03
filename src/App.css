@@ -1,3 +1,10 @@
+html, body {
+  overflow: hidden;
+  height: 100%;
+}
+
+
+
 /* App.css */
 @keyframes gradient-animation {
   0% {
@@ -25,4 +32,9 @@
 
 .leaflet-bottom  {
   visibility: hidden!important;
+}
+
+
+  .mbx07bacd97--SearchBox {
+    --unit: 14px;
 }

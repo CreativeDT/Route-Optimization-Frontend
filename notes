@@ -1,0 +1,3 @@
+npm install @popperjs/core
+npm install @mapbox/search-js-react
+npm install lodash

@@ -1,7 +1,7 @@
 /* Breadcrumbs.css */
 
 .breadcrumbs-container { /* Applied to the outer Box */
-    padding: 6px;
+    /* padding: 6px; */
     background-color: #0080b1;
     border-bottom: 1px solid #dee2e6; /* Subtle border */
   
@@ -30,7 +30,7 @@
 }
 
 .breadcrumbs .MuiTypography-root {
-    font-size: 1rem; /* Same as link font size */
+    font-size: 12px; /* Same as link font size */
     color: #212529; /* Dark gray for current page */
     font-weight: 500; /* Slightly bolder for current page */
 }
