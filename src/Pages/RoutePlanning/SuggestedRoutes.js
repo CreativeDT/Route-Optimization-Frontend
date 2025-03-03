@@ -551,13 +551,13 @@ const SuggestRoutes = () => {
   };
   const getpredictedEmission = () => {
     axios
-      .post(`${config.API_BASE_URL}/predictEmission`, {
+      .post(`http://127.0.0.1:8000/predictEmission`, {
         origin: selectedOrigin,
         destination: selectedDestination,
       })
       .then((response) => {
         setPredictEmission(response.data.predictEmission || {});
-        console.log("Risk Factors:", response.data.predictEmission); // Log the risk factors
+        console.log("predictEmission:", response.data.predictEmission); // Log the risk factors
       })
       .catch((error) => {
         console.error("Error fetching predictEmission:", error);
