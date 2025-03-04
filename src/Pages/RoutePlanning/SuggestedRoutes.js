@@ -1150,33 +1150,43 @@ const SuggestRoutes = () => {
                     onRetrieve={(res) => {
                       console.log("Full SearchBox Result (res):", res);
 
-                      if (res?.features?.length > 0) {
+                      if (res && res.features && res.features.length > 0) {
                         const feature = res.features[0];
                         const name =
-                          feature.properties?.context?.place?.name ||
-                          feature.properties?.place_formatted ||
+                          // feature.properties?.context?.place?.name ||
+                          // feature.properties?.place_formatted ||
+                          // feature.properties?.name ||
+                          feature.place_name ||
+                          feature.text ||
                           feature.properties?.name ||
                           "Unknown Location";
                         const coordinates = feature.geometry?.coordinates ?? [];
-                        // Ensure coordinates are valid numbers
-                        const [longitude, latitude] = coordinates;
-                        if (
-                          longitude &&
-                          latitude &&
-                          !isNaN(longitude) &&
-                          !isNaN(latitude)
-                        ) {
-                          const name =
-                            feature.properties?.context?.place?.name ||
-                            feature.properties?.place_formatted ||
-                            feature.properties?.name ||
-                            "Unknown Location";
-
+                        // // Ensure coordinates are valid numbers
+                        // const [longitude, latitude] = coordinates;
+                        // if (
+                        //   longitude &&
+                        //   latitude &&
+                        //   !isNaN(longitude) &&
+                        //   !isNaN(latitude)
+                        // ) {
+                          // const name =
+                          //   feature.properties?.context?.place?.name ||
+                          //   feature.properties?.place_formatted ||
+                          //   feature.properties?.name ||
+                          //   "Unknown Location";
+                          if (coordinates.length === 2) {
+                            setSelectedOrigin({ name, coordinates });
+                            console.log("Selected origin:", {
+                              name,
+                              coordinates,
+                            });
+                          } else {
+                            console.error("Invalid coordinates:", coordinates);
                           setSelectedOrigin({ name, coordinates });
                           console.log("Selected Origin:", {
                             name,
                             coordinates,
-                          });
+                          });}
                         } else {
                           console.error("Invalid coordinates:", coordinates);
                           setSelectedOrigin({
@@ -1184,17 +1194,8 @@ const SuggestRoutes = () => {
                             coordinates: [],
                           });
                         }
-                      } else {
-                        console.error(
-                          "Invalid or missing data in Mapbox response:",
-                          res
-                        );
-                        setSelectedOrigin({
-                          name: "Location Not Found",
-                          coordinates: [],
-                        });
-                      }
-                    }}
+                      } 
+                    }
                     options={{ language: "en", country: "us" }}
                     placeholder="Origin"
                   />
@@ -1249,11 +1250,15 @@ const SuggestRoutes = () => {
                     onRetrieve={(res) => {
                       console.log("Full SearchBox Result (res):", res);
 
-                      if (res?.features?.length > 0) {
+                      if (res && res.features && res.features.length > 0) {
                         const feature = res.features[0];
+                        console.log("First Feature:", JSON.stringify(feature, null, 2)); // Log detailed feature data
                         const name =
-                          feature.properties?.context?.place?.name ||
-                          feature.properties?.place_formatted ||
+                          // feature.properties?.context?.place?.name ||
+                          // feature.properties?.place_formatted ||
+                          // feature.properties?.name ||
+                          feature.place_name ||
+                          feature.text ||
                           feature.properties?.name ||
                           "Unknown Location";
                         const coordinates = feature.geometry?.coordinates ?? [];
