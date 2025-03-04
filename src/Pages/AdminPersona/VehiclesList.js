@@ -8,6 +8,7 @@ import {
 import {Edit, Add } from "@mui/icons-material";
 import NavBar from "../../Components/NavBar";
 import Breadcrumbs from "../Breadcrumbs/Breadcrumbs";
+import config from "../../config";
 
 const VehiclesList = () => {
     const [vehicles, setVehicles] = useState([]);
@@ -31,7 +32,7 @@ const VehiclesList = () => {
             return;
         }
 
-        axios.get("http://127.0.0.1:8000/getVehicles", {
+        axios.get(`${config.API_BASE_URL}/getVehicles`, {
             headers: { Authorization: `Bearer ${token}` },
         })
         .then(response => {
@@ -94,7 +95,7 @@ const VehiclesList = () => {
     
         if (editingVehicle) {
             // Update vehicle
-            axios.put(`http://127.0.0.1:8000/updateVehicle/${editingVehicle.VehicleID}`, vehiclePayload,{ headers })
+            axios.put(`${config.API_BASE_URL}/updateVehicle/${editingVehicle.VehicleID}`, vehiclePayload,{ headers })
                 .then(response => {
                     setVehicles(vehicles.map(v => v.VehicleID === editingVehicle.VehicleID ? response.data : v));
                     handleCloseDialog();
@@ -102,7 +103,7 @@ const VehiclesList = () => {
                 .catch(error => console.error("Error updating vehicle:", error));
         } else {
             // Create new vehicle
-            axios.post("http://127.0.0.1:8000/addNewVehicle", vehiclePayload ,{ headers })
+            axios.post(`${config.API_BASE_URL}/addNewVehicle`, vehiclePayload ,{ headers })
                 .then(response => {
                     console.log("Vehicle added:", response.data);
                     setVehicles([...vehicles, response.data]);

@@ -28,7 +28,7 @@ import {
   TableRow,
   TableCell,
   TableBody,
-  Checkbox,
+  Checkbox,Radio, RadioGroup, FormControlLabel
 } from "@mui/material";
 import { Chip } from "@mui/material"; // Material-UI for styling
 import { SearchBox } from "@mapbox/search-js-react";
@@ -452,7 +452,7 @@ const SuggestRoutes = () => {
 
     try {
       const response = await axios.post(
-        "http://127.0.0.1:8000/getExpectedDate",
+        `${config.API_BASE_URL}/getExpectedDate`,
         {
           start_date: startDate.toISOString().split("T")[0], // Convert to YYYY-MM-DD
           duration: duration,
@@ -551,7 +551,7 @@ const SuggestRoutes = () => {
   };
   const getpredictedEmission = () => {
     axios
-      .post(`http://127.0.0.1:8000/predictEmission`, {
+      .post(`${config.API_BASE_URL}/predictEmission`, {
         origin: selectedOrigin,
         destination: selectedDestination,
       })
@@ -666,7 +666,7 @@ const SuggestRoutes = () => {
   const handlePreloadedDemandChange = (e) => {
     const value = e.target.value ? Number(e.target.value) : 0; // Ensure number format
     setPreloadedDemand(e.target.value);
-
+    handleVehicleSelection(value); // Update vehicles based on demand change
     // Preserve focus after state update
 
     requestAnimationFrame(() => {
@@ -677,7 +677,7 @@ const SuggestRoutes = () => {
   };
 
   const handleVehicleSelection = (event) => {
-    const selectedVehicle = event.target.value;
+    const selectedVehicle =  vehicles.filter(vehicle => vehicle.capacity >= event);                    //event.target.value;
     console.log("Selected Vehicle:", selectedVehicle); // Log the selected vehicle
     setSelectedVehicle(selectedVehicle); // Set selected vehicle
     getRiskFactors();
@@ -883,7 +883,7 @@ const SuggestRoutes = () => {
     console.log("Formatted End Date: ", formattedEndDate);
     axios
       .post(
-        `http://127.0.0.1:8000/v2/suggestRoutes`,
+        `${config.API_BASE_URL}/v2/suggestRoutes`,
         {
           accident: riskFactors.accident,
           delay: riskFactors.delay,
@@ -1198,6 +1198,36 @@ const SuggestRoutes = () => {
                     options={{ language: "en", country: "us" }}
                     placeholder="Origin"
                   />
+
+                  {/* <SearchBox
+  accessToken="pk.eyJ1IjoicmVudWthZ2FkZGFtIiwiYSI6ImNtN3F4NGk4YTBkemUyaXBoaWV2aWVxdHMifQ.uk2lmxSHLMbQWi3giwDPHw"
+  value={selectedOrigin?.name || ""}
+  onRetrieve={(res) => {
+    console.log("Full SearchBox Result (res):", res);
+
+    if (res?.features?.length > 0) {
+      const feature = res.features[0];
+      const name =
+        feature.properties?.place_formatted ||
+        feature.properties?.name ||
+        "Unknown Location";
+      const coordinates = feature.geometry?.coordinates ?? [];
+
+      if (coordinates.length === 2) {
+        setSelectedOrigin({ name, coordinates });
+        console.log("Selected Origin:", { name, coordinates });
+      } else {
+        console.error("Invalid coordinates:", coordinates);
+        setSelectedOrigin({ name: "Location Not Found", coordinates: [] });
+      }
+    } else {
+      console.error("Invalid or missing data in Mapbox response:", res);
+      setSelectedOrigin({ name: "Location Not Found", coordinates: [] });
+    }
+  }}
+  options={{ language: "en", country: "us" }}
+  placeholder="Origin"
+/> */}
                 </Grid2>
                 {/* <Grid2 item xs={6} sx={{ minWidth: '30%' }}>
                                     <StyledFormControl fullWidth margin="dense">
@@ -1841,13 +1871,14 @@ const SuggestRoutes = () => {
                           color: "black",
                           fontSize: "10px",
                           overflow: "auto",
+                         
                         },
                       }}
                     >
                       {suggestedRoutes.map((route, index) => (
                         <TableRow key={route.routeID}>
                           <TableCell>
-                            <Checkbox
+                            {/* <Checkbox
                               checked={
                                 selectedRouteIndex &&
                                 selectedRouteIndex.routeID === route.routeID
@@ -1856,8 +1887,17 @@ const SuggestRoutes = () => {
                                 handleSelectRoute(route);
                                 drawRouteOnMap(route); // corrected drawRouteOnMap call
                               }}
+                            /> */}
+                            <Radio
+                              value={route.routeID}
+                              checked={selectedRouteIndex?.routeID === route.routeID}
+                              onChange={() => {
+                                handleSelectRoute(route);
+                                drawRouteOnMap(route);
+                              }}
                             />
                           </TableCell>
+
                           <TableCell>{`${index + 1}`}</TableCell>
                           <TableCell>
                             {route.route_waypoints

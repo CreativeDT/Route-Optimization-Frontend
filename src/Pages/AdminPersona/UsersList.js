@@ -27,6 +27,7 @@ import {
 import { Edit, Delete, Add } from "@mui/icons-material";
 import NavBar from "../../Components/NavBar";
 import Breadcrumbs from "../Breadcrumbs/Breadcrumbs";
+import config from "../../config";
 
 const UserList = () => {
   const [users, setUsers] = useState([]);
@@ -58,7 +59,7 @@ const UserList = () => {
     }
 
     axios
-      .get("http://127.0.0.1:8000/users/usersList", {
+      .get(`${config.API_BASE_URL}/users/usersList`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((response) => {
@@ -134,7 +135,7 @@ const UserList = () => {
     } else {
       // Create new user
       axios
-        .post("http://127.0.0.1:8000/createUser", userPayload, { headers })
+        .post(`${config.API_BASE_URL}/createUser`, userPayload, { headers })
         .then(() => {
           fetchUsers(); // Re-fetch users after creation
           handleCloseDialog();
@@ -160,7 +161,7 @@ const UserList = () => {
     if (!token) return;
 
     axios
-      .delete(`http://127.0.0.1:8000/users/removeUser?user_id=${id}`, {
+      .delete(`${config.API_BASE_URL}/users/removeUser?user_id=${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(() => {
@@ -184,7 +185,7 @@ const UserList = () => {
       // Backend expects query parameters, not a request body
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://127.0.0.1:8000/users/updateStatus?active=" + newStatus,
+        `${config.API_BASE_URL}/users/updateStatus?active=` + newStatus,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
