@@ -3,12 +3,14 @@ const configurations = {
     development: {
         API_BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:8000',
         WEBSOCKET_URL: process.env.REACT_APP_WEBSOCKET_URL || 'ws://localhost:8000/ws',
-        POWER_BI_URL: process.env.REACT_APP_POWER_BI_URL || 'https://app.powerbi.com/reportEmbed?reportId=3a844791-90c2-4130-bc48-5f7ed25e2214&autoAuth=true&ctid=a9c50c6c-2ecc-4653-99b2-58024af91866&navContentPaneEnabled=false&filterPaneEnabled=false'
+        POWER_BI_URL: process.env.REACT_APP_POWER_BI_URL || 'https://app.powerbi.com/reportEmbed?reportId=3a844791-90c2-4130-bc48-5f7ed25e2214&autoAuth=true&ctid=a9c50c6c-2ecc-4653-99b2-58024af91866&navContentPaneEnabled=false&filterPaneEnabled=false',
+        MAPBOX_ACCESS_TOKEN: process.env.REACT_APP_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoiYmhhbnVzdXIiLCJhIjoiY203dm8yNGF6MDFoczJrczc2anA0MTFzOCJ9.l1H2BBKGA2c8Kn1THYuvbA'
     },
     production: {
         API_BASE_URL: process.env.REACT_APP_API_URL || 'http://172.16.117.87:8000',
         WEBSOCKET_URL: process.env.REACT_APP_WEBSOCKET_URL || 'ws://172.16.117.87:8000/ws',
-        POWER_BI_URL: process.env.REACT_APP_POWER_BI_URL || 'https://app.powerbi.com/reportEmbed?reportId=3a844791-90c2-4130-bc48-5f7ed25e2214&autoAuth=true&ctid=a9c50c6c-2ecc-4653-99b2-58024af91866&navContentPaneEnabled=false&filterPaneEnabled=false'
+        POWER_BI_URL: process.env.REACT_APP_POWER_BI_URL || 'https://app.powerbi.com/reportEmbed?reportId=3a844791-90c2-4130-bc48-5f7ed25e2214&autoAuth=true&ctid=a9c50c6c-2ecc-4653-99b2-58024af91866&navContentPaneEnabled=false&filterPaneEnabled=false',
+        MAPBOX_ACCESS_TOKEN: process.env.REACT_APP_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoiYmhhbnVzdXIiLCJhIjoiY203dm8yNGF6MDFoczJrczc2anA0MTFzOCJ9.l1H2BBKGA2c8Kn1THYuvbA'
     }
 };
 

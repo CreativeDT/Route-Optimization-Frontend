@@ -68,7 +68,7 @@ const SuggestRoutes = () => {
   const [stops, setStops] = useState([]);
   const [selectedStops, setSelectedStops] = useState([]);
   const [selectedCountry, setSelectedCountry] = useState("");
-  const [selectedOrigin, setSelectedOrigin] = useState(""); //  store origin name
+  const [selectedOrigin, setSelectedOrigin] = useState(null); //  store origin name
   const [originCoords, setOriginCoords] = useState(null); // Store Origin coordinates
   const [selectedDestination, setSelectedDestination] = useState("");
   const [destinationCoords, setDestinationCoords] = useState(null); // Store Destination coordinates
@@ -350,11 +350,12 @@ const SuggestRoutes = () => {
   // }, [selectedOrigin, selectedDestination,selectedStops, startDate, endDate]); // Add startDate and endDate to the dependency array
 
   useEffect(() => {
-    if (selectedOrigin && selectedDestination && startDate && endDate) {
+    if (selectedOrigin && selectedDestination && selectedStops.length > 0&& startDate && endDate) {
       getDuration();
       getAvailableVehicles();
     }
-  }, [selectedOrigin, selectedDestination, startDate, endDate]); // Add startDate and endDate to the dependency array
+  }, [selectedOrigin, selectedDestination, startDate, endDate,selectedStops]); // Add startDate and endDate to the dependency array
+  
 
   // useEffect(() => {
   //     if (selectedOrigin && selectedDestination) {
@@ -1145,8 +1146,8 @@ const SuggestRoutes = () => {
                       fontSize: "12px",
                       "& input": { fontSize: "14px", height: "30px" },
                     }}
-                    accessToken="pk.eyJ1IjoicmVudWthZ2FkZGFtIiwiYSI6ImNtN3F4NGk4YTBkemUyaXBoaWV2aWVxdHMifQ.uk2lmxSHLMbQWi3giwDPHw"
-                    value={selectedOrigin?.name || ""} // Display name, not [object Object]
+                    accessToken={config.MAPBOX_ACCESS_TOKEN} // Use token from config
+                    value={selectedOrigin?.name || ""}// Display name, not [object Object]
                     onRetrieve={(res) => {
                       console.log("Full SearchBox Result (res):", res);
 
@@ -1160,8 +1161,10 @@ const SuggestRoutes = () => {
                           feature.text ||
                           feature.properties?.name ||
                           "Unknown Location";
-                        const coordinates = feature.geometry?.coordinates ?? [];
-                        // // Ensure coordinates are valid numbers
+                       
+                          const coordinates = feature.geometry?.coordinates ?? [];
+                          const [longitude, latitude] = coordinates;
+                          // // Ensure coordinates are valid numbers
                         // const [longitude, latitude] = coordinates;
                         // if (
                         //   longitude &&
@@ -1176,29 +1179,28 @@ const SuggestRoutes = () => {
                           //   "Unknown Location";
                           if (coordinates.length === 2) {
                             setSelectedOrigin({ name, coordinates });
-                            console.log("Selected origin:", {
+                            console.log("Selected Destination:", {
                               name,
                               coordinates,
                             });
                           } else {
                             console.error("Invalid coordinates:", coordinates);
-                          setSelectedOrigin({ name, coordinates });
-                          console.log("Selected Origin:", {
-                            name,
-                            coordinates,
-                          });}
+                            setSelectedOrigin({ name, coordinates: [] });
+                          }
                         } else {
-                          console.error("Invalid coordinates:", coordinates);
+                          console.error(
+                            "Invalid or missing data in Mapbox response:",
+                            res
+                          );
                           setSelectedOrigin({
                             name: "Location Not Found",
                             coordinates: [],
                           });
                         }
-                      } 
-                    }
-                    options={{ language: "en", country: "us" }}
-                    placeholder="Origin"
-                  />
+                      }}
+                      options={{ language: "en", country: "us" }}
+                      placeholder="Origin"
+                    />
 
                   {/* <SearchBox
   accessToken="pk.eyJ1IjoicmVudWthZ2FkZGFtIiwiYSI6ImNtN3F4NGk4YTBkemUyaXBoaWV2aWVxdHMifQ.uk2lmxSHLMbQWi3giwDPHw"
@@ -1243,7 +1245,7 @@ const SuggestRoutes = () => {
                 <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
                   {/* <Typography variant="subtitle1">Destination</Typography> */}
                   <SearchBox
-                    accessToken="pk.eyJ1IjoicmVudWthZ2FkZGFtIiwiYSI6ImNtN3F4NGk4YTBkemUyaXBoaWV2aWVxdHMifQ.uk2lmxSHLMbQWi3giwDPHw"
+                     accessToken={config.MAPBOX_ACCESS_TOKEN} // Use token from config
                     value={selectedDestination?.name || ""}
                     // onRetrieve={(res) => setSelectedDestination(res.features[0]?.place_name)}
 
@@ -1350,20 +1352,7 @@ const SuggestRoutes = () => {
     )}
                 </Box> */}
 
-              {/* Estimated Duration */}
-              <Typography
-                className="mb-2"
-                style={{
-                  color: "black",
-                  backgroundColor: "#ddd",
-                  borderRadius: "5px",
-                  padding: "8px",
-                  margin: "15px 0px",
-                }}
-                sx={{ padding: "0 1rem", marginBottom: "1rem" }}
-              >
-                Estimated Duration: {duration} Hours
-              </Typography>
+              
 
               {/* Stops */}
               <Grid2 item xs={6} sx={{ minWidth: "30%", marginBottom: "25px" }}>
@@ -1380,7 +1369,7 @@ const SuggestRoutes = () => {
                   />
                 ))}
                 <SearchBox
-                  accessToken="pk.eyJ1IjoicmVudWthZ2FkZGFtIiwiYSI6ImNtN3F4NGk4YTBkemUyaXBoaWV2aWVxdHMifQ.uk2lmxSHLMbQWi3giwDPHw"
+                    accessToken={config.MAPBOX_ACCESS_TOKEN} // Use token from config
                   onRetrieve={handleRetrieveStops} // Handle stops retrieval
                   options={{ language: "en", country: "us" }}
                   placeholder="Search stops"
@@ -1471,7 +1460,20 @@ const SuggestRoutes = () => {
                   </Grid2>
                 </Box>
               ))}
-
+{/* Estimated Duration */}
+<Typography
+                className="mb-2"
+                style={{
+                  color: "black",
+                  backgroundColor: "#ddd",
+                  borderRadius: "5px",
+                  padding: "8px",
+                  margin: "15px 0px",
+                }}
+                sx={{ padding: "0 1rem", marginBottom: "1rem" }}
+              >
+                Estimated Duration: {duration} Hours
+              </Typography>
               <div
                 style={{
                   width: "100%",
@@ -1607,7 +1609,7 @@ const SuggestRoutes = () => {
                 margin="dense"
                 className="mb-3"
                 sx={{
-                  width: "80%",
+                  width: "100%",
                   marginTop: "16px",
                   // padding: "0 1rem",
                   marginBottom: "1rem",
@@ -1684,7 +1686,7 @@ const SuggestRoutes = () => {
                 margin="dense"
                 className="mb-3"
                 sx={{
-                  width: "80%",
+                  width: "100%",
                   // padding: "0 1rem",
                   marginBottom: "1rem",
                 }}
@@ -1737,6 +1739,7 @@ const SuggestRoutes = () => {
                       {...params}
                       label="Search Available Vehicles"
                       variant="outlined"
+                      sx={{fontSize:"10px"}}
                       fullWidth
                     />
                   )}

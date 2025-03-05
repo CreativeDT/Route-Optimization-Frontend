@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
-  Table,
+  Table,TablePagination,
   TableBody,
   TableCell,
   TableContainer,
@@ -34,6 +34,8 @@ const UserList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("All");
   const [openDialog, setOpenDialog] = useState(false);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
   const [editingUser, setEditingUser] = useState(null);
   const [newUser, setNewUser] = useState({
     name: "",
@@ -89,6 +91,7 @@ const UserList = () => {
         ? { ...user, password: "" }
         : { name: "", role: "driver", email: "", password: "", status: true }
     );
+    setSearchTerm(""); // Reset search term to avoid filtering issues
     setOpenDialog(true);
   };
 
@@ -139,6 +142,7 @@ const UserList = () => {
         .then(() => {
           fetchUsers(); // Re-fetch users after creation
           handleCloseDialog();
+          console.log("UserPayload:",userPayload)
           setSnackbar({
             open: true,
             message: "User added successfully!",
@@ -175,64 +179,106 @@ const UserList = () => {
       .catch((error) => console.error("Error removing user:", error));
   };
 
-  // const toggleUserStatus = (id) => {
-  //   setUsers(users.map(user => user.id === id ? { ...user, status: !user.status } : user));
-  // };
-  const handleToggle = async (userId, currentStatus) => {
-    const newStatus = currentStatus === "active" ? false : true; // Convert to boolean
+  const loggedInUserRole = localStorage.getItem("user_role");
 
-    try {
-      // Backend expects query parameters, not a request body
-      const token = localStorage.getItem("token");
-      const response = await axios.post(
-        `${config.API_BASE_URL}/users/updateStatus?active=` + newStatus,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+  // Other state and useEffect code
 
-      if (response.status === 200) {
-        setUsers((prevUsers) =>
-          prevUsers.map((user) =>
-            user.id === userId
-              ? { ...user, status: newStatus ? "active" : "inactive" }
-              : user
-          )
-        );
-        // Set the snackbar message based on the new status
+  // Function to handle status toggle
+
+    const handleToggle = async (userId, currentStatus) => {
+      let loggedInUserRole = localStorage.getItem("user_role");
+      let loggedInUserId = localStorage.getItem("user_id");
+    
+      console.log("Logged-in User Role:", loggedInUserRole);
+      console.log("Logged-in User ID:", loggedInUserId);
+      console.log("Target User ID:", userId);
+      console.log("Current Status:", currentStatus);
+    
+      // Prevent admin from changing other users' statuses
+      if (loggedInUserRole === "admin" && userId !== loggedInUserId) {
+        console.log("Admin is trying to change another user's status. Blocking...");
         setSnackbar({
           open: true,
-          message: `User status updated to ${
-            newStatus ? "active" : "inactive"
-          }`,
-          severity: "success",
+          message: "Admins cannot change other users' statuses.",
+          severity: "warning",
+        });
+        return; // Stop execution
+      }
+    
+      console.log("Proceeding with status update...");
+    
+      const newStatus = currentStatus === "active" ? false : true; // Toggle the status
+    
+      try {
+        const token = localStorage.getItem("token");
+        const response = await axios.post(
+          `${config.API_BASE_URL}/users/updateStatus?active=` + newStatus,
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+    
+        if (response.status === 200) {
+          console.log("Status updated successfully:", newStatus);
+          setUsers((prevUsers) =>
+            prevUsers.map((user) =>
+              user.id === userId
+                ? { ...user, status: newStatus ? "active" : "inactive" }
+                : user
+            )
+          );
+    
+          if (userId === loggedInUserId) {
+            setSnackbar({
+              open: true,
+              message: `Your status is now ${newStatus ? "active" : "inactive"}`,
+              severity: "success",
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error updating status:", error);
+        setSnackbar({
+          open: true,
+          message: "Failed to update status.",
+          severity: "error",
         });
       }
-    } catch (error) {
-      console.error("Error updating status:", error);
-      setSnackbar({
-        open: true,
-        message: "Failed to update user status",
-        severity: "error",
-      });
-    }
-  };
+    };
+    
+  
+  
   const filteredUsers = users.filter(
     (user) =>
-      (filter === "All" || user.role === filter.toLowerCase()) &&
+      (filter === "All" || user.role.includes(filter.toLowerCase())) &&
       user.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  
+
+  // Pagination handlers
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+};
+
+const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0); // Reset page to 0 when rows per page changes
+};
 
   return (
     <>
       <NavBar />
       <Breadcrumbs />
-      <Paper sx={{ padding: 3, margin: "auto", maxWidth: 900 }}>
+      <Paper sx={{ padding: 3, margin: "auto" , backgroundColor:  '#E8E8E8'}}>
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <Typography variant="h6" gutterBottom>
-            Users List
+          <Typography variant="h5" gutterBottom>
+           Admin Dashboard !!
           </Typography>
-
+      </Box>
+      <Box style={{ display: "flex", justifyContent: "space-between" }}>
           {/* Filter Tabs */}
+          <Typography variant="h5" gutterBottom>
+           UsersList
+          </Typography>
           <Tabs
             value={filter}
             onChange={(e, newValue) => setFilter(newValue)}
@@ -252,15 +298,15 @@ const UserList = () => {
               value="driver"
             />
           </Tabs>
-        </Box>
+       
         {/* Search Bar & Add Button */}
-        <div style={{ display: "flex", justifyContent: "space-between" }}>
+        {/* <div style={{ display: "flex", justifyContent: "space-between" }}> */}
           <TextField
             variant="outlined"
-            placeholder="Search User"
+            placeholder="Search"
             size="small"
             fullWidth
-            sx={{ mr: 2, width: "70%" }}
+            sx={{ mr: 2, width: "30%" }}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <Button
@@ -271,12 +317,26 @@ const UserList = () => {
           >
             Create User
           </Button>
-        </div>
-
+        {/* </div> */}
+        </Box>
         {/* Users Table */}
-        <TableContainer component={Paper} sx={{ maxHeight: 340 }}>
+        <TableContainer component={Paper}  sx={{ maxHeight: 300, overflowY: "auto", "&::-webkit-scrollbar": {
+      width: "6px",  // Width of the scrollbar
+      height: "6px",
+    },
+    "&::-webkit-scrollbar-track": {
+      background: "#f1f1f1", // Track color
+      borderRadius: "10px",
+    },
+    "&::-webkit-scrollbar-thumb": {
+      background: "#888", // Scrollbar color
+      borderRadius: "10px",
+    },
+    "&::-webkit-scrollbar-thumb:hover": {
+      background: "#555", // Scrollbar color on hover
+    }, }} >
           <Table sx={{ minWidth: 650, borderCollapse: "collapse" }}>
-            <TableHead sx={{ position: "sticky" }}>
+            <TableHead sx={{ position: "sticky", top: 0, backgroundColor: "#00796b", zIndex: 1 }}>
               <TableRow sx={{ backgroundColor: "#00796b", color: "white" }}>
                 <TableCell sx={{ color: "white" }}>SNo</TableCell>
                 <TableCell sx={{ color: "white" }}>User Name</TableCell>
@@ -286,10 +346,12 @@ const UserList = () => {
                 <TableCell sx={{ color: "white" }}>Action</TableCell>
               </TableRow>
             </TableHead>
-            <TableBody sx={{ overflow: "auto" }}>
-              {filteredUsers.map((user, index) => (
+            <TableBody  sx={{ "& td, & th": { padding: "4px" } }} >
+              {filteredUsers
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) // Apply pagination
+                  .map((user, index) => (
                 <TableRow key={user.id}>
-                  <TableCell>{index + 1}</TableCell>
+                  <TableCell>{page * rowsPerPage + index + 1.}</TableCell>
                   <TableCell>{user.name}</TableCell>
                   <TableCell>
                     <Box sx={{ display: "flex", alignItems: "center" }}>
@@ -298,12 +360,15 @@ const UserList = () => {
                     </Box>
                   </TableCell>
                   <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <Switch
-                      checked={user.status === "active"}
-                      onChange={() => handleToggle(user.id, user.status)}
-                    />
-                  </TableCell>
+                   <TableCell>
+                   <Switch
+  checked={user.status === "active"}
+  onChange={() => handleToggle(user.id, user.status)}
+  disabled={loggedInUserRole && loggedInUserRole.toLowerCase() === "admin"} 
+/>
+
+                  </TableCell> 
+                 
                   <TableCell>
                     <IconButton
                       color="primary"
@@ -323,6 +388,16 @@ const UserList = () => {
             </TableBody>
           </Table>
         </TableContainer>
+        {/* Table Pagination */}
+        <TablePagination
+                    rowsPerPageOptions={[5,10, 25, 50]}
+                    component="div"
+                    count={filteredUsers.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                />
 
         {/* Add/Edit User Dialog */}
         <Dialog open={openDialog} onClose={handleCloseDialog}>
@@ -365,6 +440,7 @@ const UserList = () => {
             >
               <option value="Driver">Driver</option>
               <option value="Manager">Manager</option>
+              <option value="Admin">Admin</option>
             </TextField>
 
             {errorMessage && (
