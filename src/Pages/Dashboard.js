@@ -1,17 +1,19 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import Navbar from '../Components/NavBar';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { Grid, Card, CardContent, Typography } from "@mui/material";
+import Navbar from "../Components/NavBar";
+import Breadcrumbs from "./Breadcrumbs/Breadcrumbs";
+import backgroundImage from "../Assets/images/61758.jpg";
 import './Dashboard.css';
-
 // Import icons
-import RouteIcon from '../Assets/images/road-map.png';
-import TrackingIcon from '../Assets/images/tracking.png';
-import AnalyticsIcon from '../Assets/images/analysis.png';
-import Breadcrumbs from './Breadcrumbs/Breadcrumbs';
-
+import RouteIcon from "../Assets/images/road-map.png";
+import TrackingIcon from "../Assets/images/tracking.png";
+import AnalyticsIcon from "../Assets/images/analysis.png";
+import userIcon from '../Assets/images/user_details.png';
+import vehicleIcon from '../Assets/images/vehicle_detail.png';
 // Import video
 //import GlobeVideo from '../Assets/videos/globe.mp4';
-import backgroundImage from '../Assets/images/61758.jpg';
+
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -21,70 +23,127 @@ const Dashboard = () => {
       image: RouteIcon,
       alt: "Route Planning",
       label: "Route Planning",
-      description: (
+      description:(
         <>
           <p>Plan the most efficient routes with real-time traffic updates and optimized paths. Optimize routes for cost savings.</p>
         </>
       ),
-      path: '/route-planning',
+      path: "/route-planning",
     },
     {
       image: TrackingIcon,
       alt: "Route Tracking",
       label: "Route Tracking",
-      description: (
+      description:(
         <>
           <p>Track your vehicles and shipments in real-time with advanced GPS technology. Monitor your fleet in real-time.</p>
         </>
       ),
-      path: '/route-tracking',
+      path: "/route-tracking",
     },
     {
       image: AnalyticsIcon,
       alt: "Analytics",
       label: "Analytics",
-      description: (
+      description:  (
         <>
           <p>Gain insights into your operations with detailed analytics and reports. Analyze fuel consumption, driver performance, delivery times.</p>
         </>
       ),
-      path: '/analytics',
+      path: "/analytics",
+    },
+    {
+      image: userIcon,
+      alt: "Users",
+      label: "Users Data",
+      description: "Track vehicles and shipments in real-time with GPS technology.",
+      path: "/userlist",
+    },
+    {
+      image: vehicleIcon,
+      alt: "Vehicles",
+      label: "Vehicles Data",
+      description: "Gain insights into operations with analytics on fuel, drivers, and delivery times.",
+      path: "/vehiclelist",
     },
   ];
 
-
   return (
-    <div className="dashboard-container">
+    <div className="dashboard-container" style={{  minHeight: "100vh", position: "relative" }}>
       <Navbar />
       <Breadcrumbs />
 
-      {/* <div className="video-background">
-        <video autoPlay loop muted playsInline>
-          <source src={GlobeVideo} type="video/mp4" />
-          Your browser does not support the video tag.
-        </video>
-      </div> */}
-
-<div className="image-background"> {/* Use image-background class */}
-        <img src={backgroundImage} alt="Background" />
+      {/* Background Image */}
+      <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: -1 }}>
+        <img src={backgroundImage} alt="Background" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.2 }} />
       </div>
 
-      <div className="icon-grid">
-        {iconData.map((icon, index) => (
-          <div
-            key={index}
-            className="icon-box"
-            onClick={() => navigate(icon.path)}
-          >
-            <div className="icon-content"> {/* Added a wrapper for content */}
-              <img src={icon.image} alt={icon.alt} className="icon-image" />
-              <span className="icon-label">{icon.label}</span>
-              <p className="icon-description">{icon.description}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+      {/* Dashboard Cards */}
+     
+       <div style={{ 
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                maxWidth: "95%",
+                margin: "auto",
+                padding: "20px 0",
+                flexWrap: 'wrap'
+            }}>
+              {iconData.map((icon, index) => (
+            <Card
+              // sx={{
+              //   padding: "10px",
+              //   textAlign: "center",
+              //   borderRadius: "16px",
+              //   boxShadow: 3,
+              //   transition: "transform 0.3s ease-in-out",
+              //   "&:hover": {
+              //     transform: "scale(1.05)",
+              //     boxShadow: 6,
+              //     cursor: "pointer",
+              //   },
+              // }}
+              sx={{
+                width: "180px",
+                height: "270px",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                padding: "10px",
+                textAlign: "center",
+                borderRadius: "10px",
+                boxShadow: 3,
+                transition: "transform 0.3s ease-in-out",
+                margin: '10px',
+                "&:hover": {
+                    transform: "scale(1.05)",
+                    boxShadow: 6,
+                    cursor: "pointer",
+                },
+            }}
+              onClick={() => navigate(icon.path)}
+            >
+             <img src={icon.image} alt={icon.alt} style={{ width: "60px", height: "60px", marginBottom: "10px" }} />
+             <CardContent sx={{display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+               
+            }}>
+             
+                <Typography  fontWeight="bold" gutterBottom>
+                  {icon.label}
+                </Typography>
+                <Typography variant="body2" color="textSecondary" sx={{fontSize:"10px"}}>
+                  {icon.description}
+                </Typography>
+              </CardContent>
+            </Card>
+            ))}
+       </div>
+        
+     </div>
+    
   );
 };
 

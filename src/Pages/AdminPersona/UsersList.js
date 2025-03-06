@@ -29,6 +29,7 @@ import NavBar from "../../Components/NavBar";
 import Breadcrumbs from "../Breadcrumbs/Breadcrumbs";
 import config from "../../config";
 
+
 const UserList = () => {
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -184,68 +185,69 @@ const UserList = () => {
   // Other state and useEffect code
 
   // Function to handle status toggle
+  const handleToggle = async (userId, currentStatus) => {
+    // Retrieve the user object from localStorage
+    const storedUser = JSON.parse(localStorage.getItem("user"));
 
-    const handleToggle = async (userId, currentStatus) => {
-      let loggedInUserRole = localStorage.getItem("user_role");
-      let loggedInUserId = localStorage.getItem("user_id");
-    
-      console.log("Logged-in User Role:", loggedInUserRole);
-      console.log("Logged-in User ID:", loggedInUserId);
-      console.log("Target User ID:", userId);
-      console.log("Current Status:", currentStatus);
-    
-      // Prevent admin from changing other users' statuses
-      if (loggedInUserRole === "admin" && userId !== loggedInUserId) {
+    // Extract the user role and ID from the stored object
+    const loggedInUserRole = storedUser?.role; // Use optional chaining to handle null
+    const loggedInUserId = storedUser?.id;
+
+    console.log("Logged-in User Role:", loggedInUserRole);
+    console.log("Logged-in User ID:", loggedInUserId);
+    console.log("Target User ID:", userId);
+    console.log("Current Status:", currentStatus);
+
+    // Prevent admin from changing other users' statuses
+    if (loggedInUserRole === "admin" && userId !== loggedInUserId) {
         console.log("Admin is trying to change another user's status. Blocking...");
         setSnackbar({
-          open: true,
-          message: "Admins cannot change other users' statuses.",
-          severity: "warning",
+            open: true,
+            message: "Admins cannot change other users' statuses.",
+            severity: "warning",
         });
         return; // Stop execution
-      }
-    
-      console.log("Proceeding with status update...");
-    
-      const newStatus = currentStatus === "active" ? false : true; // Toggle the status
-    
-      try {
+    }
+
+    console.log("Proceeding with status update...");
+
+    const newStatus = currentStatus === "active" ? false : true; // Toggle the status
+
+    try {
         const token = localStorage.getItem("token");
         const response = await axios.post(
-          `${config.API_BASE_URL}/users/updateStatus?active=` + newStatus,
-          {},
-          { headers: { Authorization: `Bearer ${token}` } }
+            `${config.API_BASE_URL}/users/updateStatus?active=` + newStatus,
+            {},
+            { headers: { Authorization: `Bearer ${token}` } }
         );
-    
+
         if (response.status === 200) {
-          console.log("Status updated successfully:", newStatus);
-          setUsers((prevUsers) =>
-            prevUsers.map((user) =>
-              user.id === userId
-                ? { ...user, status: newStatus ? "active" : "inactive" }
-                : user
-            )
-          );
-    
-          if (userId === loggedInUserId) {
-            setSnackbar({
-              open: true,
-              message: `Your status is now ${newStatus ? "active" : "inactive"}`,
-              severity: "success",
-            });
-          }
+            console.log("Status updated successfully:", newStatus);
+            setUsers((prevUsers) =>
+                prevUsers.map((user) =>
+                    user.id === userId
+                        ? { ...user, status: newStatus ? "active" : "inactive" }
+                        : user
+                )
+            );
+
+            if (userId === loggedInUserId) {
+                setSnackbar({
+                    open: true,
+                    message: `Your status is now ${newStatus ? "active" : "inactive"}`,
+                    severity: "success",
+                });
+            }
         }
-      } catch (error) {
+    } catch (error) {
         console.error("Error updating status:", error);
         setSnackbar({
-          open: true,
-          message: "Failed to update status.",
-          severity: "error",
+            open: true,
+            message: "Failed to update status.",
+            severity: "error",
         });
-      }
-    };
-    
-  
+    }
+};
   
   const filteredUsers = users.filter(
     (user) =>

@@ -1,0 +1,386 @@
+const toggleUserStatus = (id) => {
+  //   setUsers(users.map(user => user.id === id ? { ...user, status: !user.status } : user));
+  // };
+  // const handleToggle = async (userId, currentStatus) => {
+  //   const newStatus = currentStatus === "active" ? false : true; // Convert to boolean
+
+  //   try {
+  //     // Backend expects query parameters, not a request body
+  //     const token = localStorage.getItem("token");
+  //     const response = await axios.post(
+  //       `${config.API_BASE_URL}/users/updateStatus?active=` + newStatus,
+  //       {},
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+
+  //     if (response.status === 200) {
+  //       setUsers((prevUsers) =>
+  //         prevUsers.map((user) =>
+  //           user.id === userId
+  //             ? { ...user, status: newStatus ? "active" : "inactive" }
+  //             : user
+  //         )
+  //       );
+  //       // Set the snackbar message based on the new status
+  //       setSnackbar({
+  //         open: true,
+  //         message: `User status updated to ${
+  //           newStatus ? "active" : "inactive"
+  //         }`,
+  //         severity: "success",
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error updating status:", error);
+  //     setSnackbar({
+  //       open: true,
+  //       message: "Failed to update user status",
+  //       severity: "error",
+  //     });
+  //   }
+  // };
+
+
+
+
+   <Grid2 item xs={6} sx={{ minWidth: "30%" }}>
+                  {/* <Typography variant="subtitle1">Origin</Typography> */}
+                  <SearchBox
+                    sx={{
+                      fontSize: "12px",
+                      "& input": { fontSize: "14px", height: "30px" },
+                    }}
+                    accessToken={config.MAPBOX_ACCESS_TOKEN} // Use token from config
+                    value={selectedOrigin?.name || ""}// Display name, not [object Object]
+                    onRetrieve={(res) => {
+                      console.log("Full SearchBox Result (res):", res);
+
+                      // if (res?.features?.length > 0) {
+                      //   const feature = res.features[0];
+                      //   const name =
+                      //     // feature.properties?.context?.place?.name ||
+                      //     feature.properties?.place_formatted ||
+                      //     feature.properties?.name ||
+                      //     // feature.place_name ||
+                      //     // feature.text ||
+                      //     // feature.properties?.name ||
+                      //     "Unknown Location";
+                       
+                      //     const coordinates = feature.geometry?.coordinates ?? [];
+                      //     const [longitude, latitude] = coordinates;
+                      //     // // Ensure coordinates are valid numbers
+                      //   // const [longitude, latitude] = coordinates;
+                      //   // if (
+                      //   //   longitude &&
+                      //   //   latitude &&
+                      //   //   !isNaN(longitude) &&
+                      //   //   !isNaN(latitude)
+                      //   // ) {
+                      //     // const name =
+                      //     //   feature.properties?.context?.place?.name ||
+                      //     //   feature.properties?.place_formatted ||
+                      //     //   feature.properties?.name ||
+                      //     //   "Unknown Location";
+                      //     if (longitude && latitude && !isNaN(longitude) && !isNaN(latitude)) {
+                      //       setSelectedOrigin({ name, coordinates });
+                      //       console.log("Selected origin:", {
+                      //         name,
+                      //         coordinates,
+                      //       });
+                      //     } else {
+                      //       console.error("Invalid coordinates:", coordinates);
+                      //     setSelectedOrigin({ name, coordinates });
+                      //     console.log("Selected Origin:", {
+                      //       name,
+                      //       coordinates,
+                      //     });}
+                      //   } else {
+                      //     console.error("Invalid coordinates:", coordinates);
+                      //     setSelectedOrigin({
+                      //       name: "Location Not Found",
+                      //       coordinates: [],
+                      //     });
+                      //   }
+                      if (res?.features?.length > 0) {
+    const feature = res.features[0];
+
+    // ✅ Extract full location name
+    const fullAddress =
+      feature.properties?.full_address ||  // Best option
+      feature.place_name ||                // Alternative option
+      feature.properties?.place_formatted ||  
+      feature.properties?.name ||  
+      "Unknown Location";
+
+    console.log("✅ Extracted Address:", fullAddress);
+
+    const coordinates = feature.geometry?.coordinates ?? [];
+    const [longitude, latitude] = coordinates;
+
+    if (longitude && latitude && !isNaN(longitude) && !isNaN(latitude)) {
+      setSelectedOrigin({ name: fullAddress, coordinates });
+
+      console.log("✅ Stored Selected Origin:", { name: fullAddress, coordinates });
+    } else {
+      console.error("❌ Invalid coordinates:", coordinates);
+      setSelectedOrigin({ name: "Location Not Found", coordinates: [] });
+    }
+  } else {
+    console.error("❌ No valid data from Mapbox:", res);
+    setSelectedOrigin({ name: "Location Not Found", coordinates: [] });
+  }
+
+ 
+                         // **Clear the search field after selection**
+                         setSearchInput("");
+                      } 
+                    }
+                    onChange={(e) => {
+                      if (e && e.target) {
+                        setSearchInput(e.target.value); // Ensure e.target is valid
+                      }
+                    }}
+                    options={{ language: "en", country: "us" }}
+                    placeholder="Origin"
+                  />
+
+
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import Navbar from '../Components/NavBar';
+import './Dashboard.css';
+
+// Import icons
+import RouteIcon from '../Assets/images/road-map.png';
+import TrackingIcon from '../Assets/images/tracking.png';
+import AnalyticsIcon from '../Assets/images/analysis.png';
+import Breadcrumbs from './Breadcrumbs/Breadcrumbs';
+
+// Import video
+//import GlobeVideo from '../Assets/videos/globe.mp4';
+import backgroundImage from '../Assets/images/61758.jpg';
+
+const Dashboard = () => {
+  const navigate = useNavigate();
+
+  const iconData = [
+    {
+      image: RouteIcon,
+      alt: "Route Planning",
+      label: "Route Planning",
+      description: (
+        <>
+          <p>Plan the most efficient routes with real-time traffic updates and optimized paths. Optimize routes for cost savings.</p>
+        </>
+      ),
+      path: '/route-planning',
+    },
+    {
+      image: TrackingIcon,
+      alt: "Route Tracking",
+      label: "Route Tracking",
+      description: (
+        <>
+          <p>Track your vehicles and shipments in real-time with advanced GPS technology. Monitor your fleet in real-time.</p>
+        </>
+      ),
+      path: '/route-tracking',
+    },
+    {
+      image: AnalyticsIcon,
+      alt: "Analytics",
+      label: "Analytics",
+      description: (
+        <>
+          <p>Gain insights into your operations with detailed analytics and reports. Analyze fuel consumption, driver performance, delivery times.</p>
+        </>
+      ),
+      path: '/analytics',
+    },
+  ];
+
+
+  return (
+    <div className="dashboard-container" >
+      <Navbar />
+      <Breadcrumbs />
+
+      {/* <div className="video-background">
+        <video autoPlay loop muted playsInline>
+          <source src={GlobeVideo} type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+      </div> */}
+
+<div className="image-background"> {/* Use image-background class */}
+        <img src={backgroundImage} alt="Background" />
+      </div>
+
+      <div className="icon-grid">
+        {iconData.map((icon, index) => (
+          <div
+            key={index}
+            className="icon-box"
+            onClick={() => navigate(icon.path)}
+          >
+            <div className="icon-content"> {/* Added a wrapper for content */}
+              <img src={icon.image} alt={icon.alt} className="icon-image" />
+              <span className="icon-label">{icon.label}</span>
+              <p className="icon-description">{icon.description}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
+
+
+//latestchanges of dashboard//
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { Grid, Card, CardContent, Typography } from "@mui/material";
+import Navbar from "../Components/NavBar";
+import Breadcrumbs from "./Breadcrumbs/Breadcrumbs";
+import backgroundImage from "../Assets/images/61758.jpg";
+import './Dashboard.css';
+// Import icons
+import RouteIcon from "../Assets/images/road-map.png";
+import TrackingIcon from "../Assets/images/tracking.png";
+import AnalyticsIcon from "../Assets/images/analysis.png";
+import userIcon from '../Assets/images/user_details.png';
+import vehicleIcon from '../Assets/images/vehicle_detail.png';
+// Import video
+//import GlobeVideo from '../Assets/videos/globe.mp4';
+
+
+const Dashboard = () => {
+  const navigate = useNavigate();
+
+  const iconData = [
+    {
+      image: RouteIcon,
+      alt: "Route Planning",
+      label: "Route Planning",
+      description:(
+        <>
+          <p>Plan the most efficient routes with real-time traffic updates and optimized paths. Optimize routes for cost savings.</p>
+        </>
+      ),
+      path: "/route-planning",
+    },
+    {
+      image: TrackingIcon,
+      alt: "Route Tracking",
+      label: "Route Tracking",
+      description:(
+        <>
+          <p>Track your vehicles and shipments in real-time with advanced GPS technology. Monitor your fleet in real-time.</p>
+        </>
+      ),
+      path: "/route-tracking",
+    },
+    {
+      image: AnalyticsIcon,
+      alt: "Analytics",
+      label: "Analytics",
+      description:  (
+        <>
+          <p>Gain insights into your operations with detailed analytics and reports. Analyze fuel consumption, driver performance, delivery times.</p>
+        </>
+      ),
+      path: "/analytics",
+    },
+    {
+      image: userIcon,
+      alt: "Users",
+      label: "Users Data",
+      description: "Track vehicles and shipments in real-time with GPS technology.",
+      path: "/userlist",
+    },
+    {
+      image: vehicleIcon,
+      alt: "Vehicles",
+      label: "Vehicles Data",
+      description: "Gain insights into operations with analytics on fuel, drivers, and delivery times.",
+      path: "/vehiclelist",
+    },
+  ];
+
+  return (
+    <div className="dashboard-container" style={{  minHeight: "100vh", position: "relative" }}>
+      <Navbar />
+      <Breadcrumbs />
+
+      {/* Background Image */}
+      <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: -1 }}>
+        <img src={backgroundImage} alt="Background" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.2 }} />
+      </div>
+
+      {/* Dashboard Cards */}
+     
+       <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                maxWidth: "95%", 
+                margin: "auto", 
+                padding: "20px 0",
+                flexWrap: 'wrap' // Allow wrapping if necessary
+            }}>
+              {iconData.map((icon, index) => (
+            <Card
+              // sx={{
+              //   padding: "10px",
+              //   textAlign: "center",
+              //   borderRadius: "16px",
+              //   boxShadow: 3,
+              //   transition: "transform 0.3s ease-in-out",
+              //   "&:hover": {
+              //     transform: "scale(1.05)",
+              //     boxShadow: 6,
+              //     cursor: "pointer",
+              //   },
+              // }}
+              sx={{
+                width: "180px", // Fixed card width
+                height: "290px",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "center",
+                alignItems: "center",
+                padding: "10px",
+                textAlign: "center",
+                borderRadius: "10px",
+                boxShadow: 3,
+                transition: "transform 0.3s ease-in-out",
+                margin: '10px', // Add margin between cards
+                "&:hover": {
+                    transform: "scale(1.05)",
+                    boxShadow: 6,
+                    cursor: "pointer",
+                },
+            }}
+              onClick={() => navigate(icon.path)}
+            >
+              <img src={icon.image} alt={icon.alt} style={{ width: "60px", height: "60px" }} />
+              <CardContent>
+                <Typography  fontWeight="bold" gutterBottom>
+                  {icon.label}
+                </Typography>
+                <Typography variant="body2" color="textSecondary" sx={{fontSize:"10px"}}>
+                  {icon.description}
+                </Typography>
+              </CardContent>
+            </Card>
+            ))}
+       </div>
+        
+     </div>
+    
+  );
+};
+
+export default Dashboard;

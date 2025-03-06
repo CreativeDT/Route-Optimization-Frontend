@@ -11,7 +11,7 @@ import {
   Card,
   FormControl,
   InputLabel,
-  Select,
+  
   MenuItem,
   Button,
   Typography,
@@ -32,7 +32,7 @@ import {
 } from "@mui/material";
 import { Chip } from "@mui/material"; // Material-UI for styling
 import { SearchBox } from "@mapbox/search-js-react";
-//import Select1 from 'react-select';
+
 import { useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -54,6 +54,7 @@ import config from "../../config";
 //import { ExpandMore, Close } from "@mui/icons-material";
 import debounce from "lodash.debounce";
 import { v4 as uuidv4 } from "uuid";
+import Select from "react-select";
 
 import "../../App.css";
 const SuggestRoutes = () => {
@@ -85,6 +86,7 @@ const SuggestRoutes = () => {
   const [mapInitialized, setMapInitialized] = useState(false); // Track map initialization
   const [isLoading, setIsLoading] = useState(false); // Add this line
   const [errorFields, setErrorFields] = useState({});
+  const [searchTerm, setSearchTerm] = useState("");
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -103,6 +105,7 @@ const SuggestRoutes = () => {
   const [expectedDate, setExpectedDate] = useState(null);
   const [expectedEndDate, setExpectedEndDate] = useState(null);
   const [preload, setPreload] = useState("");
+  const inputRef = useRef(null);
 
   const StyledTextField = styled(TextField)(({ theme }) => ({
     "& .MuiOutlinedInput-root": {
@@ -676,13 +679,34 @@ const SuggestRoutes = () => {
       }
     });
   };
+  // const handleVehicleSelection = (event) => {
+  //   const selectedVehicle = vehicles.find(vehicle => vehicle.capacity === event.target.value);
+  //   console.log("Selected Vehicle:", selectedVehicle);
+  //   setSelectedVehicle(selectedVehicle);
+  //   getRiskFactors();
+  // };
 
-  const handleVehicleSelection = (event) => {
-    const selectedVehicle =  vehicles.filter(vehicle => vehicle.capacity >= event);                    //event.target.value;
-    console.log("Selected Vehicle:", selectedVehicle); // Log the selected vehicle
-    setSelectedVehicle(selectedVehicle); // Set selected vehicle
-    getRiskFactors();
-  };
+  // Handle vehicle selection
+const handleVehicleSelection = (selectedOption) => {
+  console.log("Selected Vehicle:", selectedOption);
+  setSelectedVehicle(selectedOption); // Set selected option in state
+  getRiskFactors();
+};
+
+  // Convert vehicles array to options for react-select
+const vehicleOptions = vehicles.map(vehicle => ({
+  value: vehicle.VehicleID,
+  label: `${vehicle.VehicleType} → ${vehicle.FuelType} → ${vehicle.Quantity}`,
+  vehicleData: vehicle // Store full vehicle data for reference
+}));
+
+  const filteredVehicles = vehicles.filter(vehicle =>
+    vehicle.VehicleType.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    vehicle.FuelType.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+
+  
   useEffect(() => {
     if (mapInstance && selectedRouteIndex) {
       console.log("Drawing route:", selectedRouteIndex);
@@ -1492,7 +1516,7 @@ const SuggestRoutes = () => {
                   //   setEndDate(null); // Reset end date when start date changes
                   // }}
                   onChange={handleStartDateChange}
-                  dateFormat="yyyy-MM-dd"
+                  dateFormat="M/d/yyy"
                   placeholderText="Start Date"
                   minDate={new Date()} // Disable past dates including yesterday
                   customInput={
@@ -1621,7 +1645,7 @@ const SuggestRoutes = () => {
   {duration > 0 ? `${duration} Hours` : 'Duration not available'}
 </Typography> */}
               {/* Vehicle Selection */}
-              {/* <StyledFormControl fullWidth margin="dense" className="mb-3" sx={{ width: '80%', padding: '0 1rem', marginBottom: '1rem' }}>
+              {/* <StyledFormControl fullWidth margin="dense" className="select-container" sx={{ width: '80%', padding: '0 1rem', marginBottom: '1rem' }}>
                                 <InputLabel sx={{ padding: '0 1.2rem' }}>Available Vehicles</InputLabel>
                                 <Select
                                     value={selectedVehicle}
@@ -1638,7 +1662,79 @@ const SuggestRoutes = () => {
                                         </MenuItem>
                                     ))}
                                 </Select>
-                            </StyledFormControl> */}
+                            </StyledFormControl>  */}
+                            <StyledFormControl
+  fullWidth
+  margin="dense"
+  className="select-container"
+  sx={{ width: "100%", marginBottom: "1rem" }}
+>
+  <Select
+    options={vehicleOptions}
+    value={selectedVehicle}
+    onChange={handleVehicleSelection}
+     placeholder="Search Available Vehicles..."
+  
+    isSearchable
+    menuPlacement="top" 
+    styles={{
+      control: (base) => ({
+        ...base,
+        height: "20px",
+        fontSize: "12px", 
+      }),
+      menu: (base) => ({
+        ...base,
+        marginTop: "-4px",fontSize: "12px", 
+        zIndex: 9999, // Ensures dropdown appears above other elements
+      }),
+      menuList: (base) => ({
+        ...base,
+        paddingTop: "0px",  
+        paddingBottom: "0px", 
+        fontSize: "12px", 
+      }),
+      option: (base) => ({
+        ...base,
+        fontSize: "12px",
+         padding: "8px 12px", // Adjust padding if needed
+      }),
+    
+    }}
+  />
+</StyledFormControl>
+                            {/* <FormControl fullWidth margin="dense" sx={{ width: "80%", padding: "0 1rem", marginBottom: "1rem" }}>
+      <InputLabel sx={{ padding: "0 1.2rem" }}>Available Vehicles</InputLabel>
+      <Select
+        value={selectedVehicle?.VehicleID || ""}
+        onChange={handleVehicleSelection}
+        displayEmpty
+        sx={{ height: "40px", padding: "0.5rem" }}
+      >
+        
+        <MenuItem disabled>
+          <TextField
+            variant="outlined"
+            size="small"
+            placeholder="Search vehicle..."
+            fullWidth
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            autoFocus
+          />
+        </MenuItem>
+
+        {filteredVehicles.length > 0 ? (
+          filteredVehicles.map((vehicle, index) => (
+            <MenuItem key={index} value={vehicle.VehicleID}>
+              {vehicle.VehicleType} → <strong>{vehicle.FuelType}</strong> → {vehicle.Quantity}
+            </MenuItem>
+          ))
+        ) : (
+          <MenuItem disabled>No vehicles found</MenuItem>
+        )}
+      </Select>
+    </FormControl> */}
               {/* <StyledFormControl fullWidth margin="dense" className="mb-3" sx={{ width: "80%", padding: "0 1rem", marginBottom: "1rem" }}>
                                 <Autocomplete
                                     freeSolo
@@ -1680,8 +1776,8 @@ const SuggestRoutes = () => {
                                         />
                                     )}
                                 />
-                            </StyledFormControl> */}
-              <StyledFormControl
+                            </StyledFormControl>
+              {/* <StyledFormControl
                 fullWidth
                 margin="dense"
                 className="mb-3"
@@ -1696,50 +1792,44 @@ const SuggestRoutes = () => {
                   clearOnEscape
                   options={vehicles} // Use the vehicles array directly
                   getOptionLabel={(option) =>
-                    option &&
-                    option.VehicleType &&
-                    option.FuelType &&
-                    option.Quantity
-                      ? `${option.VehicleType} → ${option.FuelType} → ${option.Quantity}`
-                      : "No Information"
-                  }
-                  value={selectedVehicle}
-                  onChange={(event, newValue) => {
+                    typeof option === "string"
+                        ? option
+                        : `${option.VehicleType} → ${option.FuelType} → ${option.Quantity}`
+                }
+                value={selectedVehicle}
+                inputRef={inputRef} // Assign the ref to the input
+                onChange={(event, newValue) => {
                     setSelectedVehicle(newValue);
-                    setInputValue(
-                      newValue
-                        ? `${newValue.VehicleType} → ${newValue.FuelType} → ${newValue.Quantity}`
-                        : ""
-                    );
+                    setInputValue(newValue ? `${newValue.VehicleType} → ${newValue.FuelType} → ${newValue.Quantity}` : "");
                     console.log("Selected Vehicle:", newValue);
                     getRiskFactors();
-                  }}
-                  inputValue={inputValue}
+                    inputRef.current.focus(); // Force focus back on the input
+                }}
+                  // inputValue={inputValue}
                   onInputChange={(event, newInputValue) => {
-                    if (newInputValue === "") {
-                      setSelectedVehicle(null); // Allow clearing
-                    }
+                    // if (newInputValue === "") {
+                    //   setSelectedVehicle(null); // Allow clearing
+                    // }
+                    if (inputRef.current) {
+                      inputRef.current.focus(); // Force focus back on the input
+                  }
                     setInputValue(newInputValue);
                   }}
                   filterOptions={(options, state) =>
                     state.inputValue.length > 0
-                      ? options.filter(
-                          (option) =>
-                            option.VehicleType.toLowerCase().includes(
-                              state.inputValue.toLowerCase()
-                            ) ||
-                            option.FuelType.toLowerCase().includes(
-                              state.inputValue.toLowerCase()
-                            )
+                        ? options.filter((option) =>
+                            option.VehicleType.toLowerCase().includes(state.inputValue.toLowerCase()) ||
+                            option.FuelType.toLowerCase().includes(state.inputValue.toLowerCase())
                         )
-                      : options
-                  }
+                        : [] // Show options only after typing
+                }
+               
                   renderInput={(params) => (
                     <TextField
                       {...params}
                       label="Search Available Vehicles"
                       variant="outlined"
-                      sx={{fontSize:"10px"}}
+                     
                       fullWidth
                     />
                   )}
@@ -1751,7 +1841,7 @@ const SuggestRoutes = () => {
                     </li>
                   )}
                 />
-              </StyledFormControl>
+              </StyledFormControl> */}
 
               {/* Snackbar Notification */}
               <Snackbar
@@ -1848,9 +1938,24 @@ const SuggestRoutes = () => {
                   Suggested Routes
                 </Typography>
 
-                <TableContainer component={Paper}>
-                  <Table size="small">
-                    <TableHead>
+                <TableContainer component={Paper}sx={{ maxHeight: 250, overflowY: "auto", "&::-webkit-scrollbar": {
+                 width: "6px",  // Width of the scrollbar
+                 height: "6px",
+               },
+               "&::-webkit-scrollbar-track": {
+                 background: "#f1f1f1", // Track color
+                 borderRadius: "10px",
+               },
+               "&::-webkit-scrollbar-thumb": {
+                 background: "#888", // Scrollbar color
+                 borderRadius: "10px",
+               },
+               "&::-webkit-scrollbar-thumb:hover": {
+                 background: "#555", // Scrollbar color on hover
+               }, }} >
+                 
+                 <Table size="small" sx={{ minWidth: 650, borderCollapse: "collapse" }}>
+                    <TableHead sx={{ position: "sticky", top: 0, backgroundColor: "#ddd", zIndex: 1 }}>
                       <TableRow
                         sx={{
                           "& th": {
@@ -1862,7 +1967,7 @@ const SuggestRoutes = () => {
                         }}
                       >
                         <TableCell>Select</TableCell>
-                        <TableCell>Route ID</TableCell>
+                        <TableCell>Route </TableCell>
                         <TableCell>Waypoints</TableCell>
                         <TableCell>Distance (km)</TableCell>
                         <TableCell>Duration (hrs)</TableCell>

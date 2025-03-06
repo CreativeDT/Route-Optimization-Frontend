@@ -35,7 +35,7 @@ const Menu = () => {
       <div className={`sidebar ${isMenuOpen ? 'open' : ''}`}>
         {/* <h2 className="menu-title" style={{ textAlign: '-webkit-auto', fontSize: '19px', fontWeight: 'bold', borderBottom: '2px  #34495e', color: '#34495e' }}>Menu</h2> */}
 
-        <div className="search-container">
+        {/* <div className="search-container">
           <FaSearch className="search-icon" />
           <input
             type="text"
@@ -44,7 +44,7 @@ const Menu = () => {
             value={searchQuery}
             onChange={handleSearchChange}
           />
-        </div>
+        </div> */}
 
         <div className="tile-container1">
           <Link to="/route-planning" className="tile1">
