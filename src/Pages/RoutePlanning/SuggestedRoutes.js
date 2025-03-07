@@ -87,6 +87,9 @@ const SuggestRoutes = () => {
   const [isLoading, setIsLoading] = useState(false); // Add this line
   const [errorFields, setErrorFields] = useState({});
   const [searchTerm, setSearchTerm] = useState("");
+  const [errorMessage, setErrorMessage] = useState(""); // State for the overall error message
+  const[label,setLabel] =useState([]);
+
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -667,11 +670,26 @@ const SuggestRoutes = () => {
 
   const preloadedDemandRef = useRef(null);
 
+//   const handlePreloadedDemandChange = (e) => {
+//     const value = e.target.value ? Number(e.target.value) : 0; // Ensure number format
+//     setPreloadedDemand(e.target.value);
+//     handleVehicleSelection(value); // Update vehicles based on demand change
+//     // Preserve focus after state update
+// requestAnimationFrame(() => {
+//       if (preloadedDemandRef.current) {
+//         preloadedDemandRef.current.focus();
+//       }
+//     });
+//   };
   const handlePreloadedDemandChange = (e) => {
     const value = e.target.value ? Number(e.target.value) : 0; // Ensure number format
-    setPreloadedDemand(e.target.value);
+    console.log("Preloaded Demand Value:", value); // Log the formatted value
+    
+    setPreloadedDemand(e.target.value); // Update the preloaded demand state
+    console.log("Updated Preloaded Demand:", e.target.value); // Log the updated preloaded demand
+    
     handleVehicleSelection(value); // Update vehicles based on demand change
-    // Preserve focus after state update
+    console.log("Vehicle selection triggered with preloaded demand:", value); // Log that vehicle selection was triggered
 
     requestAnimationFrame(() => {
       if (preloadedDemandRef.current) {
@@ -679,6 +697,8 @@ const SuggestRoutes = () => {
       }
     });
   };
+
+
   // const handleVehicleSelection = (event) => {
   //   const selectedVehicle = vehicles.find(vehicle => vehicle.capacity === event.target.value);
   //   console.log("Selected Vehicle:", selectedVehicle);
@@ -686,19 +706,70 @@ const SuggestRoutes = () => {
   //   getRiskFactors();
   // };
 
-  // Handle vehicle selection
-const handleVehicleSelection = (selectedOption) => {
-  console.log("Selected Vehicle:", selectedOption);
-  setSelectedVehicle(selectedOption); // Set selected option in state
-  getRiskFactors();
-};
-
+  
+  
   // Convert vehicles array to options for react-select
 const vehicleOptions = vehicles.map(vehicle => ({
   value: vehicle.VehicleID,
   label: `${vehicle.VehicleType} → ${vehicle.FuelType} → ${vehicle.Quantity}`,
   vehicleData: vehicle // Store full vehicle data for reference
 }));
+console.log("vehicles:",vehicles);
+
+// // Handle vehicle selection
+// const handleVehicleSelection = (selectedOptionOrEvent) => {
+//   let selectedVehicle;
+  
+//   // If it's a DOM event (from <select>), get the selected vehicle
+//   if (selectedOptionOrEvent.target) {
+//     selectedVehicle = vehicles.find(vehicle => vehicle.capacity === selectedOptionOrEvent.target.value);
+//     console.log("Selected Vehicle:", selectedVehicle);
+//   } 
+//   // If it's the selectedOption from react-select
+//   else {
+//     selectedVehicle = selectedOptionOrEvent;
+//   }
+
+//   console.log("Selected Vehicle1:", selectedVehicle);
+//   setSelectedVehicle(selectedVehicle);
+//   setLabel((selectedVehicle.label).split("→").map(item => item.trim()));
+//   console.log("Selected Vehicle2:", selectedVehicle);
+//   getRiskFactors();
+// };
+
+const handleVehicleSelection = (selectedOptionOrEvent) => {
+  let selectedVehicle;
+  
+  // ✅ Check if event comes from a select dropdown (DOM event)
+  if (selectedOptionOrEvent.target) {
+    selectedVehicle = vehicleOptions.find(
+      vehicle => vehicle.value === selectedOptionOrEvent.target.value
+    );
+  } else {
+    selectedVehicle = selectedOptionOrEvent; // ✅ Otherwise, it's a react-select option
+  }
+
+  if (!selectedVehicle) {
+    console.error("Invalid vehicle selection:", selectedOptionOrEvent);
+    return;
+  }
+
+  console.log("Selected Vehicle:", selectedVehicle);
+  setSelectedVehicle(selectedVehicle);
+
+  // ✅ Check if `label` exists before splitting
+  if (selectedVehicle.label) {
+    setLabel(selectedVehicle.label.split(" → ").map(item => item.trim()));
+  } else {
+    setLabel([]); // Reset label if no valid selection
+  }
+
+  getRiskFactors();
+};
+
+// Log the vehicleOptions to the console
+console.log("Vehicle Options:", vehicleOptions);
+
 
   const filteredVehicles = vehicles.filter(vehicle =>
     vehicle.VehicleType.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -860,21 +931,44 @@ const vehicleOptions = vehicles.map(vehicle => ({
     preloadedDemand,
   ]);
 
+  // const validateFields = () => {
+  //   const newErrors = {};
+  //   if (!selectedVehicle) newErrors.selectedVehicle = true;
+  //   // if (!selectedCountry) newErrors.selectedCountry = true;
+  //   if (!selectedOrigin) newErrors.selectedOrigin = true;
+  //   if (!selectedDestination) newErrors.selectedDestination = true;
+  //   if (!startDate) newErrors.startDate = true;
+  //   // if (!endDate) newErrors.endDate = true;
+  //   if (!preloadedDemand) newErrors.preloadedDemand = true;
+  //   if (selectedStops.length === 0) newErrors.selectedStops = true;
+
+  //   setErrors(newErrors);
+  //   return Object.keys(newErrors).length === 0; // Returns true if no errors
+  // };
+
   const validateFields = () => {
     const newErrors = {};
-    if (!selectedVehicle) newErrors.selectedVehicle = true;
-    // if (!selectedCountry) newErrors.selectedCountry = true;
-    if (!selectedOrigin) newErrors.selectedOrigin = true;
-    if (!selectedDestination) newErrors.selectedDestination = true;
-    if (!startDate) newErrors.startDate = true;
-    // if (!endDate) newErrors.endDate = true;
-    if (!preloadedDemand) newErrors.preloadedDemand = true;
-    if (selectedStops.length === 0) newErrors.selectedStops = true;
-
+  
+    if (!selectedVehicle) newErrors.selectedVehicle = "Please select a vehicle.";
+    // if (!selectedCountry) newErrors.selectedCountry = "Please select a country.";
+    if (!selectedOrigin) newErrors.selectedOrigin = "Please select an origin.";
+    if (!selectedDestination) newErrors.selectedDestination = "Please select a destination.";
+    if (!startDate) newErrors.startDate = "Please select a start date.";
+    // if (!endDate) newErrors.endDate = "Please select an end date.";
+    if (!preloadedDemand) newErrors.preloadedDemand = "Preloaded demand is required.";
+    if (selectedStops.length === 0) newErrors.selectedStops = "Please add at least one stop.";
+  
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0; // Returns true if no errors
+  
+    if (Object.keys(newErrors).length > 0) {
+      setErrorMessage("Please fill in all required fields before submitting.");
+      return false; // Validation failed
+    }
+  
+    setErrorMessage(""); // Clear error message if no errors
+    return true;
   };
-
+  
   const submitRouteSelection = () => {
     if (!validateFields()) {
       setSnackbar({
@@ -906,6 +1000,41 @@ const vehicleOptions = vehicles.map(vehicle => ({
     // Check formatted dates in the console
     console.log("Formatted Start Date: ", formattedStartDate);
     console.log("Formatted End Date: ", formattedEndDate);
+
+
+// Log the payload before sending it
+// const label = selectedVehicle.label;
+// setLabel(selectedVehicle.label);
+console.log("label", label);
+// const  vehicaletype = label.split("→").map(item => item.trim());
+// console.log("Selected Vehicle:", vehicaletype);
+// console.log("Selected Vehicle:", vehicaletype[0]);
+console.log("Sending Payload:", {
+  accident: riskFactors.accident,
+  delay: riskFactors.delay,
+  reroute: riskFactors.reroute,
+  srm: riskFactors.srm,
+  country: "United States",
+  origin: selectedOrigin,
+  destination: selectedDestination,
+  preloaded_demand: Number(preloadedDemand) || 0, // Ensure it's a valid number
+  vehicle_type: label[0],
+  vehicle_id: selectedVehicle.VehicleID,
+  fuel_type: label[1],
+  start_date: formattedStartDate,
+  end_date: formattedEndDate,
+  vehicle_capacity: label[2], // Ensure it's a valid number
+  stop_demands: selectedStops.map((stop) => ({
+    drop_demand: Number(stop.drop_demand) || 0, // Handle invalid drop_demand
+    pickup_demand: Number(stop.pickup_demand) || 0, // Handle invalid pickup_demand
+    priority: Number(stop.priority) || 0, // Handle invalid priority
+    name: stop.label,
+    coordinates: stop.coordinates,
+  })),
+});
+
+
+
     axios
       .post(
         `${config.API_BASE_URL}/v2/suggestRoutes`,
@@ -918,12 +1047,12 @@ const vehicleOptions = vehicles.map(vehicle => ({
           origin: selectedOrigin,
           destination: selectedDestination,
           preloaded_demand: Number(preloadedDemand),
-          vehicle_type: selectedVehicle.VehicleType,
-          vehicle_id: selectedVehicle.VehicleID,
-          fuel_type: selectedVehicle.FuelType,
+          vehicle_type: label[0],
+          vehicle_id:  selectedVehicle.value,
+          fuel_type: label[1],
           start_date: formattedStartDate,
           end_date: formattedEndDate,
-          vehicle_capacity: Number(selectedVehicle.Quantity),
+          vehicle_capacity:  label[2],
           stop_demands: selectedStops.map((stop) => ({
             drop_demand: Number(stop.drop_demand),
             pickup_demand: Number(stop.pickup_demand),
@@ -1382,7 +1511,7 @@ const vehicleOptions = vehicles.map(vehicle => ({
               <Grid2 item xs={6} sx={{ minWidth: "30%", marginBottom: "25px" }}>
                 {/* <Typography variant="subtitle1">Stops</Typography> */}
 
-                {selectedStops.map((stop, index) => (
+                {/* {selectedStops.map((stop, index) => (
                   <Chip
                     key={index}
                     label={stop.label}
@@ -1391,7 +1520,7 @@ const vehicleOptions = vehicles.map(vehicle => ({
                       padding: "4px",
                     }}
                   />
-                ))}
+                ))} */}
                 <SearchBox
                     accessToken={config.MAPBOX_ACCESS_TOKEN} // Use token from config
                   onRetrieve={handleRetrieveStops} // Handle stops retrieval
@@ -1404,15 +1533,28 @@ const vehicleOptions = vehicles.map(vehicle => ({
                 <Box
                   key={index}
                   sx={{
-                    mb: 2,
-                    width: "70%",
+                   
+                    width: "100%",backgroundColor:"#ddd",borderRadius:"5px",padding:"5px"
                     //   padding: "0 1rem",
                     //   marginBottom: "1rem",
                   }}
                 >
-                  <Typography style={{ color: "black", fontSize: "12px" }}>
+                  <Box sx={{display:"flex"}}>
+                  <Typography style={{ color: "black", fontSize: "12px",fontWeight:"600" }}>
                     {stop.label || "Unknown Stop"}
+                    
                   </Typography>
+                  {/* Delete Button */}
+    <Button
+      
+      
+      size="small"
+      onClick={() => handleRemoveStop(stop)} // Remove stop on click
+      sx={{ minWidth: "8px", height: "8px", ml: 12,color:'black',fontWeight:"600",mt:1 }}
+    >
+      X
+    </Button>
+    </Box>
                   <Grid2
                     container
                     spacing={2}
@@ -1423,7 +1565,7 @@ const vehicleOptions = vehicles.map(vehicle => ({
                       flexWrap: "nowrap",
                     }}
                   >
-                    <Grid2 item xs={4} sx={{ minWidth: "40%" }}>
+                    <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
                       <StyledTextField
                         inputRef={(el) =>
                           (inputRefs.current[`${index}-drop_demand`] = el)
@@ -1442,7 +1584,7 @@ const vehicleOptions = vehicles.map(vehicle => ({
                       />
                     </Grid2>
 
-                    <Grid2 item xs={4} sx={{ minWidth: "40%" }}>
+                    <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
                       <StyledTextField
                         inputRef={(el) =>
                           (inputRefs.current[`${index}-pickup_demand`] = el)
@@ -1460,7 +1602,7 @@ const vehicleOptions = vehicles.map(vehicle => ({
                         sx={{ height: "40px" }}
                       />
                     </Grid2>
-                    <Grid2 item xs={4} sx={{ minWidth: "40%" }}>
+                    <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
                       <StyledTextField
                         inputRef={(el) =>
                           (inputRefs.current[`${index}-priority`] = el)
@@ -1501,7 +1643,7 @@ const vehicleOptions = vehicles.map(vehicle => ({
               <div
                 style={{
                   width: "100%",
-                  display: "flex",
+                  display: "flex",justifyContent:"center",
                   gap: ".5rem",
                   marginBottom: "1rem",
                   fontSize: "10px",
