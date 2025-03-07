@@ -403,6 +403,14 @@ const SuggestRoutes = () => {
   //       });
 
   // };
+   // Fetch Duration on Origin, Destination, or Stops change
+   useEffect(() => {
+    if (selectedOrigin && selectedDestination) {
+      getDuration();
+    }
+  }, [selectedOrigin, selectedDestination, selectedStops]); // Recalculate duration when stops are added/removed
+
+
   const getDuration = () => {
     if (
       !selectedOrigin?.coordinates ||
@@ -425,32 +433,76 @@ const SuggestRoutes = () => {
       return;
     }
 
-    axios
-      .post(`${config.API_BASE_URL}/v2/getDuration`, {
-        origin: {
-          name: selectedOrigin.name,
-          coordinates: selectedOrigin.coordinates,
-        },
-        destination: {
-          name: selectedDestination.name,
-          coordinates: selectedDestination.coordinates,
-        },
-        stops: selectedStops.map((stop) => ({
+    // axios
+    //   .post(`${config.API_BASE_URL}/v2/getDuration`, {
+    //     origin: {
+    //       name: selectedOrigin.name,
+    //       coordinates: selectedOrigin.coordinates,
+    //     },
+    //     destination: {
+    //       name: selectedDestination.name,
+    //       coordinates: selectedDestination.coordinates,
+    //     },
+    //     stops: selectedStops.map((stop) => ({
+    //       name: stop.label || "Unnamed Stop",
+    //       coordinates: stop.coordinates || [],
+    //     })),
+    //   })
+    //   .then((response) => {
+    //     console.log("Duration API Response:", response.data);
+    //     if (response.data?.duration) {
+    //       setDuration(response.data.duration);
+    //     } else {
+    //       console.warn("Duration is missing in the response:", response.data);
+    //     }
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error fetching duration:", error);
+    //   });
+
+
+
+    const fetchDuration = () => {
+      // Prepare the request payload
+     const requestData = {
+      origin: {
+        name: selectedOrigin.name,
+        coordinates: selectedOrigin.coordinates,
+      },
+      destination: {
+        name: selectedDestination.name,
+        coordinates: selectedDestination.coordinates,
+      },
+      stops: selectedStops
+        .filter((stop) => stop.coordinates && stop.coordinates.length === 2) // Ensure valid coordinates
+        .map((stop) => ({
           name: stop.label || "Unnamed Stop",
-          coordinates: stop.coordinates || [],
+          coordinates: stop.coordinates,
         })),
-      })
-      .then((response) => {
-        console.log("Duration API Response:", response.data);
-        if (response.data?.duration) {
-          setDuration(response.data.duration);
-        } else {
-          console.warn("Duration is missing in the response:", response.data);
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching duration:", error);
-      });
+    };
+    
+     // Remove stops key if there are no stops to avoid unnecessary data
+     if (requestData.stops.length === 0) {
+      delete requestData.stops;
+    }
+      // Call the API
+      axios
+        .post(`${config.API_BASE_URL}/v2/getDuration`, requestData)
+        .then((response) => {
+          console.log("Duration API Response:", response.data);
+    
+          if (response.data?.duration) {
+            setDuration(response.data.duration);
+          } else {
+            console.warn("Duration is missing in the response:", response.data);
+          }
+        })
+        .catch((error) => {
+          console.error("Error fetching duration:", error);
+        });
+    };
+     //Call the function to actually fetch duration
+  fetchDuration();
   };
 
   // Function to get expected end date
@@ -537,9 +589,9 @@ const SuggestRoutes = () => {
         setVehicles([]);
       });
   };
-  // useEffect(() => {
-  //     getAvailableVehicles();
-  // }, []);
+  useEffect(() => {
+      getAvailableVehicles();
+  }, []);
 
   const getRiskFactors = () => {
     axios
@@ -920,14 +972,14 @@ console.log("Vehicle Options:", vehicleOptions);
       !selectedVehicle ||
         !selectedOrigin ||
         !selectedDestination ||
-        !selectedStops.length ||
+        // !selectedStops.length ||
         !preloadedDemand
     );
   }, [
     selectedVehicle,
     selectedOrigin,
     selectedDestination,
-    selectedStops,
+    // selectedStops,
     preloadedDemand,
   ]);
 
@@ -956,7 +1008,7 @@ console.log("Vehicle Options:", vehicleOptions);
     if (!startDate) newErrors.startDate = "Please select a start date.";
     // if (!endDate) newErrors.endDate = "Please select an end date.";
     if (!preloadedDemand) newErrors.preloadedDemand = "Preloaded demand is required.";
-    if (selectedStops.length === 0) newErrors.selectedStops = "Please add at least one stop.";
+    // if (selectedStops.length === 0) newErrors.selectedStops = "Please add at least one stop.";
   
     setErrors(newErrors);
   
@@ -1093,6 +1145,9 @@ console.log("Sending Payload:", {
       });
   };
 
+  useEffect(() => {
+    setMessage("");
+  }, [selectedRouteIndex]);
   // Disable submit button until all fields are filled
   const isSubmitDisabled =
     !selectedVehicle ||
@@ -1100,12 +1155,10 @@ console.log("Sending Payload:", {
     !selectedDestination ||
     !startDate ||
     !endDate ||
-    !preloadedDemand ||
-    selectedStops.length === 0;
+    !preloadedDemand ;
+    // selectedStops.length === 0;
 
-  useEffect(() => {
-    setMessage("");
-  }, [selectedRouteIndex]);
+
 
   //   const handleSelectRoute = (route) => {
   //     if (selectedRouteIndex && selectedRouteIndex.routeID !== route.routeID) {
