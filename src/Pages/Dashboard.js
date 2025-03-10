@@ -68,7 +68,7 @@ const Dashboard = () => {
       description:  (
         <>
           <p>
-            Gain insights into your operations with detailed analytics and reports. Analyze fuel consumption, driver performance, delivery times.
+          Manage user access and permissions. Add, edit and deactivate user accounts.
             </p>
         </>
       ),
