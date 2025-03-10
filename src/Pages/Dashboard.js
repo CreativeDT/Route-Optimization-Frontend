@@ -4,6 +4,7 @@ import { Grid, Card, CardContent, Typography } from "@mui/material";
 import Navbar from "../Components/NavBar";
 import Breadcrumbs from "./Breadcrumbs/Breadcrumbs";
 import backgroundImage from "../Assets/images/61758.jpg";
+import adminIcon from '../Assets/images/admin.png';
 import './Dashboard.css';
 // Import icons
 import RouteIcon from "../Assets/images/road-map.png";
@@ -25,7 +26,10 @@ const Dashboard = () => {
       label: "Route Planning",
       description:(
         <>
-          <p>Plan the most efficient routes with real-time traffic updates and optimized paths. Optimize routes for cost savings.</p>
+          <p>
+            Plan the most efficient routes with real-time traffic updates and optimized paths. Optimize routes for cost savings.
+
+          </p>
         </>
       ),
       path: "/route-planning",
@@ -36,7 +40,9 @@ const Dashboard = () => {
       label: "Route Tracking",
       description:(
         <>
-          <p>Track your vehicles and shipments in real-time with advanced GPS technology. Monitor your fleet in real-time.</p>
+          <p>
+            Track your vehicles and shipments in real-time with advanced GPS technology. Monitor your fleet in real-time.
+            </p>
         </>
       ),
       path: "/route-tracking",
@@ -47,24 +53,26 @@ const Dashboard = () => {
       label: "Analytics",
       description:  (
         <>
-          <p>Gain insights into your operations with detailed analytics and reports. Analyze fuel consumption, driver performance, delivery times.</p>
+          <p>
+            Gain insights into your operations with detailed analytics and reports. Analyze fuel consumption, driver performance, delivery times.
+            </p>
         </>
       ),
       path: "/analytics",
     },
+    
     {
-      image: userIcon,
-      alt: "Users",
-      label: "Users Data",
-      description: "Track vehicles and shipments in real-time with GPS technology.",
+      image: adminIcon,
+      alt: "Admin",
+      label: "Administartion",
+      description:  (
+        <>
+          <p>
+            Gain insights into your operations with detailed analytics and reports. Analyze fuel consumption, driver performance, delivery times.
+            </p>
+        </>
+      ),
       path: "/userlist",
-    },
-    {
-      image: vehicleIcon,
-      alt: "Vehicles",
-      label: "Vehicles Data",
-      description: "Gain insights into operations with analytics on fuel, drivers, and delivery times.",
-      path: "/vehiclelist",
     },
   ];
 
@@ -90,7 +98,7 @@ const Dashboard = () => {
                 flexWrap: 'wrap'
             }}>
               {iconData.map((icon, index) => (
-            <Card
+            <Card  key={index}
               // sx={{
               //   padding: "10px",
               //   textAlign: "center",

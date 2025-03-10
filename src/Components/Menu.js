@@ -6,6 +6,7 @@ import './Menu.css';
 import routeIcon from '../Assets/images/road-map.png';
 import trackingIcon from '../Assets/images/tracking.png';
 import analyticsIcon from '../Assets/images/analysis.png';
+import adminIcon from '../Assets/images/admin.png';
 import userIcon from '../Assets/images/user_details.png';
 import vehicleIcon from '../Assets/images/vehicle_detail.png';
 // import fleetIcon from '../Assets/images/fleet-icon.png';
@@ -63,14 +64,11 @@ const Menu = () => {
           </Link>
 
           <Link to="/userlist" className="tile1">
-            <img src={userIcon} alt="Userslist" className="icon-image" />
-            <span>Users Details</span>
+            <img src={adminIcon} alt="Userslist" className="icon-image" />
+            <span>Administration</span>
           </Link>
 
-          <Link to="/vehiclelist" className="tile1">
-            <img src={vehicleIcon} alt="Vehicleslist" className="icon-image" />
-            <span>Vehicle Details</span>
-          </Link>
+         
           
 
           {/* <Link to="/fleet-management" className="tile1">

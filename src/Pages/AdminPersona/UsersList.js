@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 import {
   Table,TablePagination,
   TableBody,
@@ -28,15 +29,18 @@ import { Edit, Delete, Add } from "@mui/icons-material";
 import NavBar from "../../Components/NavBar";
 import Breadcrumbs from "../Breadcrumbs/Breadcrumbs";
 import config from "../../config";
-
-
+import { useNavigate } from 'react-router-dom';
+ 
+ 
 const UserList = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("All");
   const [openDialog, setOpenDialog] = useState(false);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [activeTab, setActiveTab] = useState(0);
   const [editingUser, setEditingUser] = useState(null);
   const [newUser, setNewUser] = useState({
     name: "",
@@ -52,7 +56,7 @@ const UserList = () => {
     severity: "success",
   });
  
-
+ 
   // Fetch users from API
   const fetchUsers = () => {
     const token = localStorage.getItem("token");
@@ -60,7 +64,7 @@ const UserList = () => {
       console.error("No token found, authorization failed");
       return;
     }
-
+ 
     axios
       .get(`${config.API_BASE_URL}/users/usersList`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -79,33 +83,67 @@ const UserList = () => {
       })
       .catch((error) => console.error("Error fetching users:", error));
   };
-
+ 
   useEffect(() => {
     fetchUsers();
   }, []);
-
+ 
+  // // Open Dialog for Add/Edit
+  // const handleOpenDialog = (user = null) => {
+  //   console.log("Opening dialog, user:", user); // Log the user object
+  //   setEditingUser(user);
+  //   setNewUser(
+  //     user
+  //       ? { ...user, password: "" }
+  //       : { name: "", role: "driver", email: "", password: "", status: true }
+  //   );
+  //   setSearchTerm(""); // Reset search term to avoid filtering issues
+  //   setOpenDialog(true);
+  // };
   // Open Dialog for Add/Edit
   const handleOpenDialog = (user = null) => {
+    console.log("Opening dialog, user:", user); // Log the user object
     setEditingUser(user);
-    setNewUser(
-      user
-        ? { ...user, password: "" }
-        : { name: "", role: "driver", email: "", password: "", status: true }
-    );
-    setSearchTerm(""); // Reset search term to avoid filtering issues
+    if (user) {
+      // Editing existing user
+      setNewUser({
+        name: user.name,
+        role: user.role,
+        email: user.email,
+        password: "", // Clear password for editing
+        status: user.status,
+      });
+    } else {
+      // Creating new user
+      setNewUser({
+        name: "",
+        role: "driver",
+        email: "",
+        password: "",
+        status: true,
+      });
+    }
+    setSearchTerm("");
     setOpenDialog(true);
   };
-
+ 
   // Close Dialog
   const handleCloseDialog = () => {
     setOpenDialog(false);
     setEditingUser(null);
+    setErrorMessage(""); // Clear error message when closing
   };
-
+ 
   // Save User (Add or Edit)
   const handleSaveUser = () => {
     setErrorMessage(""); // Reset error message
+ 
 
+     // Validation: Check if all fields are filled
+     if (!newUser.name || !newUser.email || !newUser.password || !newUser.role) {
+      setErrorMessage("Please fill in all fields.");
+      return; // Stop execution if validation fails
+    }
     const userPayload = {
       username: newUser.name,
       password: newUser.password,
@@ -113,15 +151,15 @@ const UserList = () => {
       email: newUser.email,
       status: newUser.status ? "active" : "inactive",
     };
-
+ 
     const token = localStorage.getItem("token");
     if (!token) {
       console.error("No token found, authorization failed");
       return;
     }
-
+ 
     const headers = { Authorization: `Bearer ${token}` };
-
+ 
     if (editingUser) {
       // Update user
       axios
@@ -160,11 +198,16 @@ const UserList = () => {
         });
     }
   };
-
+  const handleTabChange = (event, newPage) => {
+    setActiveTab(newPage);
+    if (newPage === 1) {
+      navigate('/vehiclelist');
+    }
+  };
   const handleDeleteUser = (id) => {
     const token = localStorage.getItem("token");
     if (!token) return;
-
+ 
     axios
       .delete(`${config.API_BASE_URL}/users/removeUser?user_id=${id}`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -179,25 +222,25 @@ const UserList = () => {
       })
       .catch((error) => console.error("Error removing user:", error));
   };
-
+ 
   const loggedInUserRole = localStorage.getItem("user_role");
-
+ 
   // Other state and useEffect code
-
+ 
   // Function to handle status toggle
   const handleToggle = async (userId, currentStatus) => {
     // Retrieve the user object from localStorage
     const storedUser = JSON.parse(localStorage.getItem("user"));
-
+ 
     // Extract the user role and ID from the stored object
     const loggedInUserRole = storedUser?.role; // Use optional chaining to handle null
     const loggedInUserId = storedUser?.id;
-
+ 
     console.log("Logged-in User Role:", loggedInUserRole);
     console.log("Logged-in User ID:", loggedInUserId);
     console.log("Target User ID:", userId);
     console.log("Current Status:", currentStatus);
-
+ 
     // Prevent admin from changing other users' statuses
     if (loggedInUserRole === "admin" && userId !== loggedInUserId) {
         console.log("Admin is trying to change another user's status. Blocking...");
@@ -208,11 +251,11 @@ const UserList = () => {
         });
         return; // Stop execution
     }
-
+ 
     console.log("Proceeding with status update...");
-
+ 
     const newStatus = currentStatus === "active" ? false : true; // Toggle the status
-
+ 
     try {
         const token = localStorage.getItem("token");
         const response = await axios.post(
@@ -220,7 +263,7 @@ const UserList = () => {
             {},
             { headers: { Authorization: `Bearer ${token}` } }
         );
-
+ 
         if (response.status === 200) {
             console.log("Status updated successfully:", newStatus);
             setUsers((prevUsers) =>
@@ -230,7 +273,7 @@ const UserList = () => {
                         : user
                 )
             );
-
+ 
             if (userId === loggedInUserId) {
                 setSnackbar({
                     open: true,
@@ -248,45 +291,72 @@ const UserList = () => {
         });
     }
 };
-  
+ 
   const filteredUsers = users.filter(
     (user) =>
       (filter === "All" || user.role.includes(filter.toLowerCase())) &&
       user.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  
-
+ 
+ 
   // Pagination handlers
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
 };
-
+ 
 const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0); // Reset page to 0 when rows per page changes
 };
-
+ 
   return (
     <>
       <NavBar />
       <Breadcrumbs />
       <Paper sx={{ padding: 3, margin: "auto" , backgroundColor:  '#E8E8E8'}}>
-        <Box sx={{ display: "flex", alignItems: "center" }}>
+        {/* <Box sx={{ display: "flex", alignItems: "center" }}>
           <Typography variant="h5" gutterBottom>
            Admin Dashboard !!
           </Typography>
+          <Typography variant="h5" gutterBottom component={Link} to="/userlist" style={{ textDecoration: "none", color: "inherit" }}>
+           UsersList
+          </Typography>
+          <Typography variant="h5" gutterBottom component={Link} to="/vehiclelist" style={{ textDecoration: "none", color: "inherit" }}>
+           VehicleList
+          </Typography>
+
+      </Box> */}
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px' }}>
+          <Typography variant="h5" component="div">
+           Admin Dashboard !!
+          </Typography>
+          <Tabs value={activeTab} onChange={handleTabChange} >
+          <Tab label="UsersList"  />
+          <Tab label="VehicleList" />
+        </Tabs>
       </Box>
       <Box style={{ display: "flex", justifyContent: "space-between" }}>
           {/* Filter Tabs */}
-          <Typography variant="h5" gutterBottom>
-           UsersList
-          </Typography>
+        
           <Tabs
             value={filter}
             onChange={(e, newValue) => setFilter(newValue)}
             textColor="primary"
+            sx={{
+              border: "1px solid #969696",
+              borderRadius: "3px",
+              
+            }}
           >
-            <Tab label={`All (${users.length})`} value="All" />
+            <Tab label={`All (${users.length})`} value="All" 
+             sx={{
+              color: "black", 
+              "&.Mui-selected": {
+                backgroundColor: "#ddd", // Background when selected
+                color: "#1976d2", // Text color when selected
+              },
+            }}
+            />
             <Tab
               label={`Managers (${
                 users.filter((u) => u.role === "manager").length
@@ -366,10 +436,10 @@ const handleChangeRowsPerPage = (event) => {
                    <Switch
   checked={user.status === "active"}
   onChange={() => handleToggle(user.id, user.status)}
-  disabled={loggedInUserRole && loggedInUserRole.toLowerCase() === "admin"} 
+  disabled={loggedInUserRole && loggedInUserRole.toLowerCase() === "admin"}
 />
-
-                  </TableCell> 
+ 
+                  </TableCell>
                  
                   <TableCell>
                     <IconButton
@@ -400,26 +470,31 @@ const handleChangeRowsPerPage = (event) => {
                     onPageChange={handleChangePage}
                     onRowsPerPageChange={handleChangeRowsPerPage}
                 />
-
+ 
         {/* Add/Edit User Dialog */}
         <Dialog open={openDialog} onClose={handleCloseDialog}>
           <DialogTitle>{editingUser ? "Edit User" : "Create User"}</DialogTitle>
           <DialogContent>
+          {console.log("newUser:", newUser)}
             <TextField
               label="Name"
               fullWidth
               sx={{ mt: 2 }}
               value={newUser.name}
-              onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
+              onChange={(e) => {
+                e.preventDefault(); // Prevent default behavior
+                setNewUser({ ...newUser, name: e.target.value });
+              }}
             />
             <TextField
               label="Email"
               fullWidth
               sx={{ mt: 2 }}
               value={newUser.email}
-              onChange={(e) =>
-                setNewUser({ ...newUser, email: e.target.value })
-              }
+              onChange={(e) => {
+      e.preventDefault(); // Prevent default behavior
+      setNewUser({ ...newUser, email: e.target.value });
+    }}
             />
             <TextField
               label="Password"
@@ -427,9 +502,10 @@ const handleChangeRowsPerPage = (event) => {
               sx={{ mt: 2 }}
               type="password"
               value={newUser.password}
-              onChange={(e) =>
-                setNewUser({ ...newUser, password: e.target.value })
-              }
+              onChange={(e) => {
+                e.preventDefault(); // Prevent default behavior
+                setNewUser({ ...newUser, password: e.target.value });
+              }}
             />
             <TextField
               label="Role"
@@ -444,7 +520,7 @@ const handleChangeRowsPerPage = (event) => {
               <option value="Manager">Manager</option>
               <option value="Admin">Admin</option>
             </TextField>
-
+ 
             {errorMessage && (
               <Typography color="error" sx={{ mt: 1 }}>
                 {errorMessage}
@@ -473,5 +549,5 @@ const handleChangeRowsPerPage = (event) => {
     </>
   );
 };
-
+ 
 export default UserList;

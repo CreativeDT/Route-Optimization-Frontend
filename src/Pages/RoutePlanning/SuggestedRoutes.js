@@ -356,11 +356,11 @@ const SuggestRoutes = () => {
   // }, [selectedOrigin, selectedDestination,selectedStops, startDate, endDate]); // Add startDate and endDate to the dependency array
 
   useEffect(() => {
-    if (selectedOrigin && selectedDestination && selectedStops.length > 0&& startDate && endDate) {
+    if (selectedOrigin && selectedDestination && selectedStops.length > 0&& startDate && endDate && preloadedDemand) {
       getDuration();
       getAvailableVehicles();
     }
-  }, [selectedOrigin, selectedDestination, startDate, endDate,selectedStops]); // Add startDate and endDate to the dependency array
+  }, [selectedOrigin, selectedDestination, startDate, endDate,selectedStops,preloadedDemand]); // Add startDate and endDate to the dependency array
   
 
   // useEffect(() => {
@@ -1348,7 +1348,7 @@ console.log("Sending Payload:", {
                 <Grid2 item xs={6} sx={{ minWidth: "30%" }}>
                   {/* <Typography variant="subtitle1">Origin</Typography> */}
                   <SearchBox
-  accessToken="pk.eyJ1IjoicmVudWthZ2FkZGFtIiwiYSI6ImNtN3F4NGk4YTBkemUyaXBoaWV2aWVxdHMifQ.uk2lmxSHLMbQWi3giwDPHw"
+ accessToken={config.MAPBOX_ACCESS_TOKEN} // Use token from config
   value={selectedOrigin?.name || ""}
   onRetrieve={(res) => {
     console.log("Mapbox Response for Origin:", res);

@@ -1,20 +1,27 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { Link } from "react-router-dom";
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
     Typography, Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle,
-    Select, MenuItem, FormControl, InputLabel, IconButton, Snackbar, Alert,TablePagination
+    Select, MenuItem, FormControl, InputLabel, IconButton, Snackbar, Alert,TablePagination, Tabs,
+    Tab,
+    Box,
 } from "@mui/material";
 import { Edit, Add, Delete } from "@mui/icons-material";
 import NavBar from "../../Components/NavBar";
 import Breadcrumbs from "../Breadcrumbs/Breadcrumbs";
 import config from "../../config";
+import { useNavigate } from 'react-router-dom';
 
 const VehiclesList = () => {
+    const navigate = useNavigate();
     const [vehicles, setVehicles] = useState([]);
     const [searchTerm, setSearchTerm] = useState("");
     const [openDialog, setOpenDialog] = useState(false);
     const [page, setPage] = useState(0);
+      const [filter, setFilter] = useState("All");
+     const [activeTab, setActiveTab] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [editingVehicle, setEditingVehicle] = useState(null);
     const [newVehicle, setNewVehicle] = useState({
@@ -31,7 +38,12 @@ const VehiclesList = () => {
     useEffect(() => {
         fetchVehicles();
     }, []);
-
+    // const filteredvehicles = vehicle.filter(
+    //     (user) =>
+    //       (filter === "All" || vehicle.FuelType.includes(filter.toLowerCase())) &&
+    //     FuelType.name.toLowerCase().includes(searchTerm.toLowerCase())
+    //   );
+     
     const fetchVehicles = () => {
         const token = localStorage.getItem("token");
         if (!token) {
@@ -63,15 +75,52 @@ const VehiclesList = () => {
             LicenseNo: "",
             VehicleStatus: "In Transit",
         });
+        console.log("newVehicle in handleOpenDialog:", newVehicle); // Check the state
         setOpenDialog(true);
+      
     };
 
     const handleCloseDialog = () => {
         setOpenDialog(false);
         setEditingVehicle(null);
     };
-
+    const handleTabChange = (event, newPage) => {
+        setActiveTab(newPage);
+        if (newPage === 0) {
+            navigate('/userlist'); // Navigate to UserList when the first tab is clicked
+          }
+      };
     const handleSaveVehicle = () => {
+        if (!newVehicle.VehicleType || !newVehicle.FuelType || !newVehicle.ExhaustCO2 || !newVehicle.Mileage || !newVehicle.VehicleCapacity || !newVehicle.LicenseNo || !newVehicle.VehicleStatus) {
+            setSnackbar({ open: true, message: "Please fill in all fields.", severity: "error" });
+            return;
+        }
+        if (vehicles.some(vehicle => vehicle.LicenseNo === newVehicle.LicenseNo && (!editingVehicle || vehicle.VehicleID !== editingVehicle.VehicleID))) {
+            setSnackbar({ open: true, message: "License number already registered.", severity: "error" });
+            return;
+        }
+         
+
+        const isDuplicate = vehicles.some(vehicle => {
+            console.log("vehicle.LicenseNo:", vehicle.LicenseNo);
+            console.log("newVehicle.LicenseNo:", newVehicle.LicenseNo);
+    
+            // Check if LicenseNo exists for both vehicles
+            if (!vehicle.LicenseNo || !newVehicle.LicenseNo) {
+                return false; // Skip this vehicle if LicenseNo is missing
+            }
+    
+            return (
+                vehicle.LicenseNo.toLowerCase() === newVehicle.LicenseNo.toLowerCase() &&
+                (editingVehicle ? vehicle.VehicleID !== editingVehicle.VehicleID : true)
+            );
+        });
+        if (isDuplicate) {
+            setSnackbar({ open: true, message: "License number already registered.", severity: "error" });
+            return;
+        }
+    
+    
         const token = localStorage.getItem("token");
         if (!token) {
             console.error("No token found, authorization failed");
@@ -129,10 +178,14 @@ const VehiclesList = () => {
             });
     };
 
-    const filteredVehicles = vehicles.filter(vehicle =>
-        (vehicle.VehicleType && vehicle.VehicleType.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (vehicle.LicenseNo && vehicle.LicenseNo.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    const filteredVehicles = vehicles.filter(vehicle => {
+        const searchTermLower = searchTerm.toLowerCase();
+        return (
+            (vehicle.VehicleType && vehicle.VehicleType.toLowerCase().includes(searchTermLower)) ||
+            (vehicle.LicenseNo && vehicle.LicenseNo.toLowerCase().includes(searchTermLower)) ||
+            (vehicle.FuelType && vehicle.FuelType.toLowerCase().includes(searchTermLower)) 
+        );
+    });
     // Pagination handlers
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -148,16 +201,52 @@ const handleChangeRowsPerPage = (event) => {
             <NavBar />
             <Breadcrumbs />
             <Paper sx={{ padding: 3, margin: "auto" , backgroundColor:  '#E8E8E8'}}>
-                <Typography variant="h5" gutterBottom>
-                           Admin Dashboard !!
-                          </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px' }}>
+          <Typography variant="h5" component="div">
+           Admin Dashboard !!
+          </Typography>
+          <Tabs value={activeTab} onChange={handleTabChange} >
+          <Tab label="UsersList"  />
+          <Tab label="VehicleList" />
+        </Tabs>
+      </Box>
                         
 
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <Typography variant="h6" gutterBottom>
-                           Vehicle List
-                          </Typography>
-
+              
+  {/* <Tabs
+            value={filter}
+            onChange={(e, newValue) => setFilter(newValue)}
+            textColor="primary"
+            sx={{
+              border: "1px solid #969696",
+              borderRadius: "3px",
+              
+            }}
+          >
+            <Tab label={`All (${vehicles.length})`} value="All" 
+             sx={{
+              color: "black", 
+              "&.Mui-selected": {
+                backgroundColor: "#ddd", // Background when selected
+                color: "#1976d2", // Text color when selected
+              },
+            }}
+            />
+            <Tab
+              label={`Disel (${
+                vehicles.filter((u) => u.FuelType === "diesel").length
+              })`}
+              value="disel"
+            />
+            <Tab
+              label={`Petrol (${
+                vehicles.filter((u) => u.FuelType === "petrol").length
+              })`}
+              value="petrol"
+            />
+          </Tabs> */}
+       
                     
                     <TextField
                         variant="outlined"
