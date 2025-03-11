@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import {
   Table,TablePagination,
   TableBody,
@@ -17,7 +17,7 @@ import {
   IconButton,
   Dialog,
   DialogActions,
-  DialogContent,
+  DialogContent,CircularProgress,
   DialogTitle,
   Tabs,
   Tab,
@@ -30,11 +30,14 @@ import NavBar from "../../Components/NavBar";
 import Breadcrumbs from "../Breadcrumbs/Breadcrumbs";
 import config from "../../config";
 import { useNavigate } from 'react-router-dom';
- 
+import "./Form.css";  
  
 const UserList = () => {
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("All");
   const [openDialog, setOpenDialog] = useState(false);
@@ -57,6 +60,7 @@ const UserList = () => {
   });
  
  
+
   // Fetch users from API
   const fetchUsers = () => {
     const token = localStorage.getItem("token");
@@ -88,42 +92,16 @@ const UserList = () => {
     fetchUsers();
   }, []);
  
-  // // Open Dialog for Add/Edit
-  // const handleOpenDialog = (user = null) => {
-  //   console.log("Opening dialog, user:", user); // Log the user object
-  //   setEditingUser(user);
-  //   setNewUser(
-  //     user
-  //       ? { ...user, password: "" }
-  //       : { name: "", role: "driver", email: "", password: "", status: true }
-  //   );
-  //   setSearchTerm(""); // Reset search term to avoid filtering issues
-  //   setOpenDialog(true);
-  // };
   // Open Dialog for Add/Edit
   const handleOpenDialog = (user = null) => {
     console.log("Opening dialog, user:", user); // Log the user object
     setEditingUser(user);
-    if (user) {
-      // Editing existing user
-      setNewUser({
-        name: user.name,
-        role: user.role,
-        email: user.email,
-        password: "", // Clear password for editing
-        status: user.status,
-      });
-    } else {
-      // Creating new user
-      setNewUser({
-        name: "",
-        role: "driver",
-        email: "",
-        password: "",
-        status: true,
-      });
-    }
-    setSearchTerm("");
+    setNewUser(
+      user
+        ? { ...user, password: "" }
+        : { name: "", role: "driver", email: "", password: "", status: true }
+    );
+    setSearchTerm(""); // Reset search term to avoid filtering issues
     setOpenDialog(true);
   };
  
@@ -191,9 +169,17 @@ const UserList = () => {
         .catch((error) => {
           console.error("Error creating user:", error);
           if (error.response && error.response.status === 400) {
-            setErrorMessage(
-              "User already exists. Please try a different username."
-            );
+            const backendError = error.response.data.detail;
+            if (backendError === "Username already exists") {
+              setErrorMessage("Username already exists. Please choose a different username.");
+            } else if (backendError === "Email already exists") {
+              setErrorMessage("Email already exists. Please use a different email.");
+            } else {
+              setErrorMessage(backendError); // Generic error from backend
+            }
+          }
+          else {
+            setErrorMessage("An unexpected error occurred. Please try again.");
           }
         });
     }
@@ -313,54 +299,32 @@ const handleChangeRowsPerPage = (event) => {
     <>
       <NavBar />
       <Breadcrumbs />
-      <Paper sx={{ padding: 3, margin: "auto" , backgroundColor:  '#E8E8E8'}}>
-        {/* <Box sx={{ display: "flex", alignItems: "center" }}>
-          <Typography variant="h5" gutterBottom>
-           Admin Dashboard !!
+      <Paper sx={{border:"1px solid #ddd", margin: "auto" }}>
+      <Box sx={{ display: "flex", alignItems: "center" ,justifyContent: "space-between"  }}>
+            <Typography variant="h6" sx={{color:"#156272"}} gutterBottom className="title">Admin Dashboard</Typography>
+            <Box  className="nav-links"> 
+            <Typography   gutterBottom component={NavLink} to="/userlist" className="nav-link">
+           Users
           </Typography>
-          <Typography variant="h5" gutterBottom component={Link} to="/userlist" style={{ textDecoration: "none", color: "inherit" }}>
-           UsersList
+          <Typography gutterBottom component={NavLink} to="/vehiclelist" className="nav-link">
+           Vehicles
           </Typography>
-          <Typography variant="h5" gutterBottom component={Link} to="/vehiclelist" style={{ textDecoration: "none", color: "inherit" }}>
-           VehicleList
-          </Typography>
+          </Box>
+          </Box>
 
-      </Box> */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px' }}>
-          <Typography variant="h5" component="div">
-           Admin Dashboard !!
-          </Typography>
-          <Tabs value={activeTab} onChange={handleTabChange} >
-          <Tab label="UsersList"  />
-          <Tab label="VehicleList" />
-        </Tabs>
-      </Box>
-      <Box style={{ display: "flex", justifyContent: "space-between" }}>
+          <Box className="filter-container">
           {/* Filter Tabs */}
-        
+       
           <Tabs
             value={filter}
             onChange={(e, newValue) => setFilter(newValue)}
-            textColor="primary"
-            sx={{
-              border: "1px solid #969696",
-              borderRadius: "3px",
-              
-            }}
-          >
-            <Tab label={`All (${users.length})`} value="All" 
-             sx={{
-              color: "black", 
-              "&.Mui-selected": {
-                backgroundColor: "#ddd", // Background when selected
-                color: "#1976d2", // Text color when selected
-              },
-            }}
-            />
+            >
+            <Tab label={`All (${users.length})`} value="All" className="tab"/>
             <Tab
               label={`Managers (${
                 users.filter((u) => u.role === "manager").length
               })`}
+              className="tab"
               value="manager"
             />
             <Tab
@@ -368,17 +332,16 @@ const handleChangeRowsPerPage = (event) => {
                 users.filter((u) => u.role === "driver").length
               })`}
               value="driver"
+              className="tab"
             />
           </Tabs>
        
         {/* Search Bar & Add Button */}
-        {/* <div style={{ display: "flex", justifyContent: "space-between" }}> */}
+        <Box className="search-add-container">
           <TextField
-            variant="outlined"
             placeholder="Search"
             size="small"
-            fullWidth
-            sx={{ mr: 2, width: "30%" }}
+           
             onChange={(e) => setSearchTerm(e.target.value)}
           />
           <Button
@@ -389,9 +352,10 @@ const handleChangeRowsPerPage = (event) => {
           >
             Create User
           </Button>
-        {/* </div> */}
-        </Box>
-        {/* Users Table */}
+          </Box>
+          </Box>
+            
+
         <TableContainer component={Paper}  sx={{ maxHeight: 300, overflowY: "auto", "&::-webkit-scrollbar": {
       width: "6px",  // Width of the scrollbar
       height: "6px",
@@ -408,7 +372,7 @@ const handleChangeRowsPerPage = (event) => {
       background: "#555", // Scrollbar color on hover
     }, }} >
           <Table sx={{ minWidth: 650, borderCollapse: "collapse" }}>
-            <TableHead sx={{ position: "sticky", top: 0, backgroundColor: "#00796b", zIndex: 1 }}>
+            <TableHead sx={{ position: "sticky", top: 0, backgroundColor: "#156272", zIndex: 1 , padding: "8px"}}>
               <TableRow sx={{ backgroundColor: "#00796b", color: "white" }}>
                 <TableCell sx={{ color: "white" }}>SNo</TableCell>
                 <TableCell sx={{ color: "white" }}>User Name</TableCell>
@@ -434,7 +398,7 @@ const handleChangeRowsPerPage = (event) => {
                   <TableCell>{user.email}</TableCell>
                    <TableCell>
                    <Switch
-  checked={user.status === "active"}
+  checked={user.status === "inactive"}
   onChange={() => handleToggle(user.id, user.status)}
   disabled={loggedInUserRole && loggedInUserRole.toLowerCase() === "admin"}
 />
@@ -460,6 +424,7 @@ const handleChangeRowsPerPage = (event) => {
             </TableBody>
           </Table>
         </TableContainer>
+          
         {/* Table Pagination */}
         <TablePagination
                     rowsPerPageOptions={[5,10, 25, 50]}
@@ -475,26 +440,21 @@ const handleChangeRowsPerPage = (event) => {
         <Dialog open={openDialog} onClose={handleCloseDialog}>
           <DialogTitle>{editingUser ? "Edit User" : "Create User"}</DialogTitle>
           <DialogContent>
-          {console.log("newUser:", newUser)}
             <TextField
               label="Name"
               fullWidth
               sx={{ mt: 2 }}
               value={newUser.name}
-              onChange={(e) => {
-                e.preventDefault(); // Prevent default behavior
-                setNewUser({ ...newUser, name: e.target.value });
-              }}
+              onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
             />
             <TextField
               label="Email"
               fullWidth
               sx={{ mt: 2 }}
               value={newUser.email}
-              onChange={(e) => {
-      e.preventDefault(); // Prevent default behavior
-      setNewUser({ ...newUser, email: e.target.value });
-    }}
+              onChange={(e) =>
+                setNewUser({ ...newUser, email: e.target.value })
+              }
             />
             <TextField
               label="Password"
@@ -502,10 +462,9 @@ const handleChangeRowsPerPage = (event) => {
               sx={{ mt: 2 }}
               type="password"
               value={newUser.password}
-              onChange={(e) => {
-                e.preventDefault(); // Prevent default behavior
-                setNewUser({ ...newUser, password: e.target.value });
-              }}
+              onChange={(e) =>
+                setNewUser({ ...newUser, password: e.target.value })
+              }
             />
             <TextField
               label="Role"

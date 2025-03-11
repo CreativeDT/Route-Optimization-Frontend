@@ -65,7 +65,7 @@ const Menu = () => {
 
           <Link to="/userlist" className="tile1">
             <img src={adminIcon} alt="Userslist" className="icon-image" />
-            <span>Administration</span>
+            <span>Administrations</span>
           </Link>
 
          

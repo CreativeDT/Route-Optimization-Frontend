@@ -1347,7 +1347,7 @@ console.log("Sending Payload:", {
 
                 <Grid2 item xs={6} sx={{ minWidth: "30%" }}>
                   {/* <Typography variant="subtitle1">Origin</Typography> */}
-                  <SearchBox
+                  {/* <SearchBox
  accessToken={config.MAPBOX_ACCESS_TOKEN} // Use token from config
   value={selectedOrigin?.name || ""}
   onRetrieve={(res) => {
@@ -1372,7 +1372,8 @@ console.log("Sending Payload:", {
   }}
   options={{ language: "en", country: "us" }}
   placeholder="Origin"
-/>
+/> */}
+
                   {/* <SearchBox
   accessToken="pk.eyJ1IjoicmVudWthZ2FkZGFtIiwiYSI6ImNtN3F4NGk4YTBkemUyaXBoaWV2aWVxdHMifQ.uk2lmxSHLMbQWi3giwDPHw"
   value={selectedOrigin?.name || ""}
@@ -1402,6 +1403,52 @@ console.log("Sending Payload:", {
   options={{ language: "en", country: "us" }}
   placeholder="Origin"
 /> */}
+
+<SearchBox
+                     accessToken={config.MAPBOX_ACCESS_TOKEN} // Use token from config
+                    value={selectedOrigin?.name || ""}
+                  
+
+                    onRetrieve={(res) => {
+                      console.log("Full SearchBox Result (res):", res);
+
+                      if (res && res.features && res.features.length > 0) {
+                        const feature = res.features[0];
+                        console.log("First Feature:", JSON.stringify(feature, null, 2)); // Log detailed feature data
+                        const name =
+                          // feature.properties?.context?.place?.name ||
+                          // feature.properties?.place_formatted ||
+                          // feature.properties?.name ||
+                          feature.place_name ||
+                          feature.text ||
+                          feature.properties?.name ||
+                          "Unknown Location";
+                        const coordinates = feature.geometry?.coordinates ?? [];
+
+                        if (coordinates.length === 2) {
+                          setSelectedOrigin({ name, coordinates });
+                          console.log("Selected Destination:", {
+                            name,
+                            coordinates,
+                          });
+                        } else {
+                          console.error("Invalid coordinates:", coordinates);
+                          setSelectedOrigin({ name, coordinates: [] });
+                        }
+                      } else {
+                        console.error(
+                          "Invalid or missing data in Mapbox response:",
+                          res
+                        );
+                        setSelectedOrigin({
+                          name: "Location Not Found",
+                          coordinates: [],
+                        });
+                      }
+                    }}
+                    options={{ language: "en", country: "us" }}
+                    placeholder="Origin"
+                  />
                 </Grid2>
                 {/* <Grid2 item xs={6} sx={{ minWidth: '30%' }}>
                                     <StyledFormControl fullWidth margin="dense">
@@ -1784,7 +1831,7 @@ console.log("Sending Payload:", {
               </div>
               <StyledTextField
                 inputRef={preloadedDemandRef}
-                label="Preloaded Demand"
+                label="Preloaded Demand "
                 type="number"
                 value={preloadedDemand}
                 onChange={handlePreloadedDemandChange}
