@@ -787,7 +787,7 @@ const SuggestRoutes = () => {
   // Convert vehicles array to options for react-select
 const vehicleOptions = vehicles.map(vehicle => ({
   value: vehicle.VehicleID,
-  label: `${vehicle.VehicleType} → ${vehicle.FuelType} → ${vehicle.Quantity}kgs`,
+  label: `${vehicle.VehicleType} → ${vehicle.FuelType} → ${vehicle.Quantity}`,
   vehicleData: vehicle // Store full vehicle data for reference
 }));
 console.log("vehicles:",vehicles);

@@ -143,7 +143,7 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
                         <Popup>{waypoint.name}</Popup>
                     </Marker>
                 ))}
-                {routeWaypoints.slice(1, -1).map((waypoint, index) => (
+                {/* {routeWaypoints.slice(1, -1).map((waypoint, index) => (
                     <Marker
                         key={index}
                         position={[waypoint.coordinates[1], waypoint.coordinates[0]]}
@@ -151,7 +151,7 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
                     >
                         <Popup>{waypoint.name}</Popup>
                     </Marker>
-                ))}
+                ))} */}
 
                 {vehiclePosition && route.status === 'started' && (
                     <Marker
@@ -388,7 +388,7 @@ const RouteTracking = () => {
 
                 {/* Right Column: Map */}
                 <Grid item xs={12} md={8} sx={{ height: 'calc(100vh - 100px)', overflow: 'hidden' }}>
-                    {selectedRoutes?.[0]?.route_coordinates ? (
+                    {selectedRoutes.length > 0 && (
                         <Box sx={{ height: '100%', borderRadius: 2 }}>
                             <MapContainer
                                 center={selectedRoutes[0].route_coordinates.length > 0 ? 
@@ -409,8 +409,6 @@ const RouteTracking = () => {
                                 ))}
                             </MapContainer>
                         </Box>
-                    ): (
-                        <p>Loading map...</p>
                     )}
                 </Grid>
             </Grid>
