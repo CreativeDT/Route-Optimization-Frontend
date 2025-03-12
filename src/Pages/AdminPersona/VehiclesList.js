@@ -213,7 +213,7 @@ const handleChangeRowsPerPage = (event) => {
             <NavBar />
             <Breadcrumbs />
              <Paper sx={{border:"1px solid #ddd", margin: "auto" }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' ,mt:1}}>
           <Typography variant="h6" component="div">
            Admin Dashboard !!
           </Typography>
@@ -232,24 +232,42 @@ const handleChangeRowsPerPage = (event) => {
       </Box>
                         
 
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                {/* <div style={{ display: "flex", justifyContent: "space-between" ,mt:2,mb:2}}> */}
               
-                <Box sx={{ display: "flex", gap: 2, alignItems: "center"}}>
+                {/* <Box sx={{ display: "flex", gap: 2, alignItems: "center"}}> */}
+                 <Box className="filter-container">
+                    <Box>
   <Button 
     variant={filter === "All" ? "contained" : "outlined"} 
     onClick={() => setFilter("All")}
+    sx={{
+        backgroundColor: filter === "All" ? "#388e3c" : "transparent", // Change background color
+        color: filter === "All" ? "white" : "primary.main", // Change text color
+        
+    }}
   >
     All ({allCount})
   </Button>
   <Button 
     variant={filter === "Diesel" ? "contained" : "outlined"} 
     onClick={() => setFilter("Diesel")}
+
+    sx={{
+        backgroundColor: filter === "Diesel" ? "#388e3c" : "transparent", // Change background color
+        color: filter === "Diesel" ? "white" : "primary.main", // Change text color
+        
+    }}
   >
     Diesel ({dieselCount})
   </Button>
   <Button 
     variant={filter === "Gasoline" ? "contained" : "outlined"} 
     onClick={() => setFilter("Gasoline")}
+    sx={{
+        backgroundColor: filter === "Gasoline" ? "#388e3c" : "transparent", // Change background color
+        color: filter === "Gasoline" ? "white" : "primary.main", // Change text color
+        
+    }}
   >
     Gasoline ({gasolineCount})
   </Button>
@@ -268,7 +286,7 @@ const handleChangeRowsPerPage = (event) => {
                     <Button variant="contained" color="primary" startIcon={<Add />} onClick={() => handleOpenDialog()}>
                         Add Vehicle
                     </Button>
-                </div>
+                    </Box>
 
               <TableContainer component={Paper}  sx={{ maxHeight: 300, overflowY: "auto", "&::-webkit-scrollbar": {
                     width: "6px",  // Width of the scrollbar

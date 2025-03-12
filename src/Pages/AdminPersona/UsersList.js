@@ -327,14 +327,29 @@ const handleChangeRowsPerPage = (event) => {
           <Tabs
             value={filter}
             onChange={(e, newValue) => setFilter(newValue)}
+           
             >
-            <Tab label={`All (${users.length})`} value="All" className="tab"/>
+            <Tab label={`All (${users.length})`} value="All"  className="tab"
+              sx={{
+                backgroundColor: filter === "All" ? "#388e3c" : "transparent", // Change the background color of active tab
+                color: filter === "All" ? "white" : "black", // Change text color for active tab
+               
+                 borderRadius:"5px"
+              }}
+             />
+            
             <Tab
               label={`Managers (${
                 users.filter((u) => u.role === "manager").length
               })`}
               className="tab"
               value="manager"
+              sx={{
+                backgroundColor: filter === "manager" ? "#388e3c" : "transparent", // Change the background color of active tab
+                color: filter === "manager" ? "white" : "black", // Change text color for active tab
+              
+                 borderRadius:"5px"
+              }}
             />
             <Tab
               label={`Drivers (${
@@ -342,6 +357,12 @@ const handleChangeRowsPerPage = (event) => {
               })`}
               value="driver"
               className="tab"
+              sx={{
+                backgroundColor: filter === "driver" ? "#388e3c" : "transparent", // Change the background color of active tab
+                color: filter === "driver" ? "white" : "black", // Change text color for active tab
+             
+                borderRadius:"5px"
+              }}
             />
           </Tabs>
        

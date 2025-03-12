@@ -29,7 +29,7 @@
 /* Navbar.css */
 .nav-links {
     display: flex;
-   
+   border-radius: 5px;
     font-size: 1rem;
     border:1px solid #ddd;padding:3px;border-radius: 2px;
   }
@@ -49,7 +49,7 @@
  
   .nav-link.active {
     color: #ddd; 
-    font-weight: bold;
+    font-weight: bold;border-radius: 3px;
     background-color: #388e3c; 
    }
 
@@ -62,29 +62,29 @@
     align-items: center;
     flex-wrap: wrap;
     gap: 10px;
-  }
+}
   
   /* Tabs Styling */
-  .tabs {
+  /* .tabs {
     border: 1px solid #969696;
     border-radius: 3px;
   
-  }
+  } */
   
-  .tab {
-    font-size: 14px; /* Reduce font size */
-    padding: 5px 10px; /* Reduce padding */
+  /* .tab {
+    font-size: 14px;
+    padding: 5px 10px; 
     color: black; min-height: 22px;
     border:1px solid red;
-  }
+  } */
   
   .tab.Mui-selected {
-    background-color: #ddd; /* Background when selected */
-    color: #1976d2; /* Text color when selected */
+    
+    color: #fff!important; 
   }
-  .tab.MuiTab{
+  /* .tab.MuiTab{
     border:1px solid red;
-  }
+  } */
   
   /* Search Bar & Button Container */
   .search-add-container {

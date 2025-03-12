@@ -361,21 +361,28 @@ const RouteTracking = () => {
                                                 <Box sx={{ display: "flex", alignItems: "center" }}>
                                                     {/* Dot based on status */}
                                                     <Box
-                                                        sx={{
-                                                            width: 10,
-                                                            height: 10,
-                                                            borderRadius: "50%",
-                                                            backgroundColor: consignment.status === "started" ? "green" : "red",
-                                                            marginRight: 2,
-                                                        }}
-                                                    />
-                                                    {`${consignment.origin} ➜ ${consignment.destination}`}
+                                                    sx={{
+                                                        width: 10,
+                                                        height: 10,
+                                                        flexShrink: 0, // Prevents resizing
+                                                        borderRadius: "50%",
+                                                        backgroundColor: consignment.status === "started" ? "green" : "red",
+                                                        marginRight: 2,
+                                                    }}
+                                                />
+                                                     <Typography variant="body2" sx={{ fontSize: "12px" }}>
+                                                     {`${consignment.origin} ➜ ${consignment.destination}`}
+                                                        </Typography> 
                                                 </Box>
                                             }
                                             secondary={
                                                 <React.Fragment>
-                                                    <div>{consignment.statusText}</div>
-                                                    <div>Predicted CO₂ Emission: {consignment.carbon_emission || "N/A"} Kg</div>
+                                                    <Typography variant="body2" sx={{ fontSize: "10px" }}>
+                                                        {consignment.statusText}
+                                                        </Typography>
+                                                        <Typography variant="body2" sx={{ fontSize: "10px"}}>
+                                                        Predicted CO₂ Emission: {consignment.carbon_emission || "N/A"} Kg
+                                                        </Typography>
                                                 </React.Fragment>
                                             }
                                         />
@@ -410,6 +417,7 @@ const RouteTracking = () => {
                             </MapContainer>
                         </Box>
                     )}
+                    
                 </Grid>
             </Grid>
         </Box>
