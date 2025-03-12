@@ -1046,7 +1046,7 @@ console.log("Vehicle Options:", vehicleOptions);
   };
   
   const submitRouteSelection = () => {
-    if (!validateFields()) {
+    if (!validateFields() || !validateStops()) {
       setSnackbar({
         open: true,
         message: "Please fill all required fields.",
@@ -1168,19 +1168,26 @@ console.log("Sending Payload:", {
         setIsLoading(false);
       });
   };
+// Disable submit button if fields are not filled correctly
+const isSubmitDisabled = useMemo(() => {
+  return !validateFields() || !validateStops();
+}, [selectedVehicle, selectedOrigin, selectedDestination, startDate, endDate, preloadedDemand, selectedStops]);
+
+
 
   useEffect(() => {
     setMessage("");
   }, [selectedRouteIndex]);
-  // Disable submit button until all fields are filled
-  const isSubmitDisabled =
-    !selectedVehicle ||
-    !selectedOrigin ||
-    !selectedDestination ||
-    !startDate ||
-    !endDate ||
-    !preloadedDemand ;
-    // selectedStops.length === 0;
+  
+  
+  // const isSubmitDisabled =
+  //   !selectedVehicle ||
+  //   !selectedOrigin ||
+  //   !selectedDestination ||
+  //   !startDate ||
+  //   !endDate ||
+  //   !preloadedDemand ;
+  //   // selectedStops.length === 0;
 
 
 
