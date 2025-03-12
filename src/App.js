@@ -10,6 +10,7 @@ import RoutePlanning from './Pages/RoutePlanning/SuggestedRoutes';
 
 import UserList from './Pages/AdminPersona/UsersList';
 import VehiclesList from './Pages/AdminPersona/VehiclesList';
+import DriverDashboard from './Pages/DriverPersona/DriverDashboard';
 
 
 const App = () => {
@@ -25,6 +26,7 @@ const App = () => {
         <Route path="/route-planning" element={<RoutePlanning />} />
         <Route path="/userlist" element={<UserList/>}/>
         <Route path="/vehiclelist" element={<VehiclesList/>}/>
+        <Route path="/driverdashboard" element={<DriverDashboard />} />
       </Routes>
     </Router>
   );

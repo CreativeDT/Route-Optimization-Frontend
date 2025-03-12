@@ -388,10 +388,12 @@ const RouteTracking = () => {
 
                 {/* Right Column: Map */}
                 <Grid item xs={12} md={8} sx={{ height: 'calc(100vh - 100px)', overflow: 'hidden' }}>
-                    {selectedRoutes.length > 0 && (
+                    {selectedRoutes?.[0]?.route_coordinates ? (
                         <Box sx={{ height: '100%', borderRadius: 2 }}>
                             <MapContainer
-                                center={selectedRoutes[0].route_coordinates.length > 0 ? [selectedRoutes[0].route_coordinates[0][1], selectedRoutes[0].route_coordinates[0][0]] : [41.8781, -87.6298]}
+                                center={selectedRoutes[0].route_coordinates.length > 0 ? 
+                                    [selectedRoutes[0].route_coordinates[0][1], selectedRoutes[0].route_coordinates[0][0]] 
+                                    : [41.8781, -87.6298]}
                                 zoom={6}
                                 style={{ height: '100%', width: '100%' }}
                             >
@@ -407,6 +409,8 @@ const RouteTracking = () => {
                                 ))}
                             </MapContainer>
                         </Box>
+                    ): (
+                        <p>Loading map...</p>
                     )}
                 </Grid>
             </Grid>

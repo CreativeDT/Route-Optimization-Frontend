@@ -50,7 +50,7 @@ const UserList = () => {
     role: "driver",
     email: "",
     password: "",
-    status: true,
+    // status: true,
   });
   const [errorMessage, setErrorMessage] = useState("");
   const [snackbar, setSnackbar] = useState({
@@ -81,7 +81,7 @@ const UserList = () => {
             name: user.username,
             email: user.email,
             role: user.role.toLowerCase(), // Convert role to lowercase
-            status: user.status === "active",
+            // status: user.status === "active",
           }))
         );
       })
@@ -99,7 +99,7 @@ const UserList = () => {
     setNewUser(
       user
         ? { ...user, password: "" }
-        : { name: "", role: "driver", email: "", password: "", status: true }
+        : { name: "", role: "driver", email: "", password: "", status: false }
     );
     setSearchTerm(""); // Reset search term to avoid filtering issues
     setOpenDialog(true);
@@ -127,9 +127,18 @@ const UserList = () => {
       password: newUser.password,
       user_role: newUser.role.toLowerCase(),
       email: newUser.email,
-      status: newUser.status ? "active" : "inactive",
+      // status: newUser.status ? "active" : "inactive",
     };
  
+    const userPayload1 = {
+      user_id: editingUser?.user_id, // Ensure ID is sent when editing
+      username: newUser.username,
+      password: newUser.password,
+      email: newUser.email,
+      user_role: newUser.user_role,
+    
+    };
+    
     const token = localStorage.getItem("token");
     if (!token) {
       console.error("No token found, authorization failed");
@@ -141,7 +150,7 @@ const UserList = () => {
     if (editingUser) {
       // Update user
       axios
-        .put(`/updateUser/${editingUser.id}`, userPayload, { headers })
+        .put(`${config.API_BASE_URL}/users/updateUserProfile`, userPayload1, { headers })
         .then(() => {
           fetchUsers(); // Re-fetch users after update
           handleCloseDialog();
@@ -406,12 +415,12 @@ const handleChangeRowsPerPage = (event) => {
                   </TableCell>
                  
                   <TableCell>
-                    <IconButton
+                    {/* <IconButton
                       color="primary"
                       onClick={() => handleOpenDialog(user)}
                     >
                       <Edit />
-                    </IconButton>
+                    </IconButton> */}
                     <IconButton
                       onClick={() => handleDeleteUser(user.id)}
                       color="error"

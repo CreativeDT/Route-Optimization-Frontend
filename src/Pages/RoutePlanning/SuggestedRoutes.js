@@ -62,7 +62,7 @@ const SuggestRoutes = () => {
   // const [endDate, setEndDate] = useState(null);
   const [startDate, setStartDate] = useState(new Date()); // Set a default current date
   const [endDate, setEndDate] = useState(new Date()); // Set a default current date
-
+  const [searchBoxValue, setSearchBoxValue] = useState('');
   const [countries, setCountries] = useState([]);
   const [origins, setOrigins] = useState([]);
   const [destinations, setDestinations] = useState([]);
@@ -89,7 +89,7 @@ const SuggestRoutes = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [errorMessage, setErrorMessage] = useState(""); // State for the overall error message
   const[label,setLabel] =useState([]);
-
+  const [stopsError, setStopsError] = useState("");
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -109,7 +109,7 @@ const SuggestRoutes = () => {
   const [expectedEndDate, setExpectedEndDate] = useState(null);
   const [preload, setPreload] = useState("");
   const inputRef = useRef(null);
-
+  const searchBoxRef = useRef(null);
   const StyledTextField = styled(TextField)(({ theme }) => ({
     "& .MuiOutlinedInput-root": {
       "& fieldset": {
@@ -505,6 +505,22 @@ const SuggestRoutes = () => {
   fetchDuration();
   };
 
+  const validateStops = () => {
+    const invalidStops = selectedStops.filter(
+      (stop) => (!stop.drop_demand || stop.drop_demand === 0) &&
+                (!stop.pickup_demand || stop.pickup_demand === 0)
+    );
+  
+    if (invalidStops.length > 0) {
+      setStopsError("Each selected stop must have at least one demand (Drop or Pickup).");
+      return false; // Validation failed
+    }
+  
+    setStopsError(""); // Clear error if validation passes
+    return true; // Validation passed
+  };
+  
+
   // Function to get expected end date
   const getExpectedEndDate = async (startDate, duration) => {
     if (!startDate || !duration) return;
@@ -574,6 +590,7 @@ const SuggestRoutes = () => {
   //   }, []);
 
   const getAvailableVehicles = () => {
+   
     axios
       .post(`${config.API_BASE_URL}/getAvailableVehicles`, {
         start_date: startDate.toISOString().split("T")[0],
@@ -590,7 +607,9 @@ const SuggestRoutes = () => {
       });
   };
   useEffect(() => {
+    
       getAvailableVehicles();
+   
   }, []);
 
   const getRiskFactors = () => {
@@ -686,6 +705,11 @@ const SuggestRoutes = () => {
     } else {
       console.error("Invalid or empty response from SearchBox.");
     }
+
+    // Reset the SearchBox value
+    if (searchBoxRef.current) {
+      searchBoxRef.current.value = '';
+    }
   };
 
   // Handle the removal of a stop
@@ -763,7 +787,7 @@ const SuggestRoutes = () => {
   // Convert vehicles array to options for react-select
 const vehicleOptions = vehicles.map(vehicle => ({
   value: vehicle.VehicleID,
-  label: `${vehicle.VehicleType} → ${vehicle.FuelType} → ${vehicle.Quantity}`,
+  label: `${vehicle.VehicleType} → ${vehicle.FuelType} → ${vehicle.Quantity}kgs`,
   vehicleData: vehicle // Store full vehicle data for reference
 }));
 console.log("vehicles:",vehicles);
@@ -1462,8 +1486,13 @@ console.log("Sending Payload:", {
                                 </Grid2> */}
                 <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
                   {/* <Typography variant="subtitle1">Destination</Typography> */}
-                  <SearchBox
-                     accessToken={config.MAPBOX_ACCESS_TOKEN} // Use token from config
+                <SearchBox sx={{
+                  "& .mbx09a18d42--SearchIcon svg": {
+                    width: "14px",
+                    height: "14px",color:"#ddd",
+                  },
+                }}
+                                  accessToken={config.MAPBOX_ACCESS_TOKEN} // Use token from config
                     value={selectedDestination?.name || ""}
                     // onRetrieve={(res) => setSelectedDestination(res.features[0]?.place_name)}
 
@@ -1591,6 +1620,7 @@ console.log("Sending Payload:", {
                   onRetrieve={handleRetrieveStops} // Handle stops retrieval
                   options={{ language: "en", country: "us" }}
                   placeholder="Search stops"
+                  ref={searchBoxRef} 
                 />
               </Grid2>
 
@@ -1599,12 +1629,12 @@ console.log("Sending Payload:", {
                   key={index}
                   sx={{
                    
-                    width: "100%",backgroundColor:"#ddd",borderRadius:"5px",padding:"5px"
+                    width: "100%",backgroundColor:"#dfdfdf",borderRadius:"5px",padding:"5px"
                     //   padding: "0 1rem",
                     //   marginBottom: "1rem",
                   }}
                 >
-                  <Box sx={{display:"flex"}}>
+                  <Box sx={{display:"flex",position:"relative"}}>
                   <Typography style={{ color: "black", fontSize: "12px",fontWeight:"600" }}>
                     {stop.label || "Unknown Stop"}
                     
@@ -1615,11 +1645,31 @@ console.log("Sending Payload:", {
       
       size="small"
       onClick={() => handleRemoveStop(stop)} // Remove stop on click
-      sx={{ minWidth: "8px", height: "8px", ml: 12,color:'black',fontWeight:"600",mt:1 }}
+      sx={{ minWidth: "8px", height: "8px", ml: 12,color:'black',fontWeight:"600",mt:1 ,position:"absolute",top:"-8px", 
+        right: "5px", minWidth: "15px",
+        height: "20px",
+        fontSize: "8px",
+        backgroundColor: "#ddd",border:"1px solid #8b8b8b",
+        color: "black",
+        borderRadius: "50%" }}
     >
       X
     </Button>
     </Box>
+
+    {/* Validation Error Message */}
+    {(!stop.drop_demand || stop.drop_demand === 0) && (!stop.pickup_demand || stop.pickup_demand === 0) && (
+      <Typography sx={{ color: "red", fontSize: "8px"}}>
+        At least one demand (Drop or Pickup) must be provided.
+      </Typography>
+    )}
+
+{/* {stopsError && (
+  <Typography color="error" sx={{ fontSize: "8px", marginTop: "1px" }}>
+    {stopsError}
+  </Typography>
+)} */}
+
                   <Grid2
                     container
                     spacing={2}
@@ -1645,7 +1695,14 @@ console.log("Sending Payload:", {
                         size="small"
                         fullWidth
                         margin="dense"
-                        sx={{ height: "40px" }} // Fixed height for consistent input box sizes
+                        sx={{ height: "20px","& .MuiFormLabel-root": {
+                                fontSize: "10px", // Adjust input text size
+                              },
+                          
+                            "& .MuiInputBase-input": {
+                              fontSize: "12px", // Reduce input text size
+                            }
+                        }}
                       />
                     </Grid2>
 
@@ -1664,7 +1721,14 @@ console.log("Sending Payload:", {
                         size="small"
                         fullWidth
                         margin="dense"
-                        sx={{ height: "40px" }}
+                        sx={{ height: "20px","& .MuiFormLabel-root": {
+                          fontSize: "10px", // Adjust input text size
+                        },
+                    
+                      "& .MuiInputBase-input": {
+                        fontSize: "12px", // Reduce input text size
+                      },
+                    }}
                       />
                     </Grid2>
                     <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
@@ -1674,7 +1738,7 @@ console.log("Sending Payload:", {
                         }
                         label="Priority"
                         type="number"
-                        value={stop.priority || 0}
+                        value={stop.priority || 3}
                         onChange={(e) => {
                           const value = Math.max(
                             0,
@@ -1685,7 +1749,14 @@ console.log("Sending Payload:", {
                         size="small"
                         fullWidth
                         margin="dense"
-                        sx={{ height: "40px" }}
+                        sx={{ height: "20px","& .MuiFormLabel-root": {
+                          fontSize: "10px", // Adjust input text size
+                        },
+                    
+                      "& .MuiInputBase-input": {
+                        fontSize: "12px", // Reduce input text size
+                      },
+                    }}
                       />
                     </Grid2>
                   </Grid2>
@@ -1696,12 +1767,12 @@ console.log("Sending Payload:", {
                 className="mb-2"
                 style={{
                   color: "black",
-                  backgroundColor: "#ddd",
+                  backgroundColor: "#dfdfdf",
                   borderRadius: "5px",
                   padding: "8px",
                   margin: "15px 0px",
                 }}
-                sx={{ padding: "0 1rem", marginBottom: "1rem" }}
+                sx={{ padding: "0 1rem", marginBottom: "1rem",fontSize:"12px" }}
               >
                 Estimated Duration: {duration} Hours
               </Typography>
@@ -1732,6 +1803,7 @@ console.log("Sending Payload:", {
                       variant="outlined"
                       size="small"
                       fullWidth
+                    
                       InputProps={{
                         endAdornment: (
                           <InputAdornment position="end">
@@ -1805,7 +1877,7 @@ console.log("Sending Payload:", {
 
                 {expectedEndDate && (
                   <StyledTextField
-                    label="Expected End Date"
+                    label="Expected End"
                     variant="outlined"
                     size="small"
                     fullWidth
@@ -1821,7 +1893,7 @@ console.log("Sending Payload:", {
                       "& .MuiInputBase-input": {
                         fontSize: "0.65rem",
                         padding: "16px",
-                        backgroundColor: "#ddd",
+                        backgroundColor: "#dfdfdf",
                         fontWeight: "bold",
                       },
                       //  padding: "0 1rem",
@@ -1831,7 +1903,7 @@ console.log("Sending Payload:", {
               </div>
               <StyledTextField
                 inputRef={preloadedDemandRef}
-                label="Preloaded Demand "
+                label="Preloaded Demand kgs "
                 type="number"
                 value={preloadedDemand}
                 onChange={handlePreloadedDemandChange}

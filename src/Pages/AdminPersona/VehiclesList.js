@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
     Typography, Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle,
@@ -21,6 +22,7 @@ const VehiclesList = () => {
     const [openDialog, setOpenDialog] = useState(false);
     const [page, setPage] = useState(0);
       const [filter, setFilter] = useState("All");
+
      const [activeTab, setActiveTab] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [editingVehicle, setEditingVehicle] = useState(null);
@@ -79,6 +81,16 @@ const VehiclesList = () => {
         setOpenDialog(true);
       
     };
+    // Count Vehicles
+const dieselCount = vehicles.filter(v => v.FuelType === "Diesel").length;
+const gasolineCount = vehicles.filter(v => v.FuelType === "Gasoline").length;
+const allCount = vehicles.length;
+
+// Apply Filtering
+const filteredVehicles = vehicles.filter(vehicle => {
+    if (filter === "All") return true;
+    return vehicle.FuelType === filter;
+});
 
     const handleCloseDialog = () => {
         setOpenDialog(false);
@@ -178,14 +190,14 @@ const VehiclesList = () => {
             });
     };
 
-    const filteredVehicles = vehicles.filter(vehicle => {
-        const searchTermLower = searchTerm.toLowerCase();
-        return (
-            (vehicle.VehicleType && vehicle.VehicleType.toLowerCase().includes(searchTermLower)) ||
-            (vehicle.LicenseNo && vehicle.LicenseNo.toLowerCase().includes(searchTermLower)) ||
-            (vehicle.FuelType && vehicle.FuelType.toLowerCase().includes(searchTermLower)) 
-        );
-    });
+    // const filteredVehicles = vehicles.filter(vehicle => {
+    //     const searchTermLower = searchTerm.toLowerCase();
+    //     return (
+    //         (vehicle.VehicleType && vehicle.VehicleType.toLowerCase().includes(searchTermLower)) ||
+    //         (vehicle.LicenseNo && vehicle.LicenseNo.toLowerCase().includes(searchTermLower)) ||
+    //         (vehicle.FuelType && vehicle.FuelType.toLowerCase().includes(searchTermLower)) 
+    //     );
+    // });
     // Pagination handlers
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -200,52 +212,49 @@ const handleChangeRowsPerPage = (event) => {
         <>
             <NavBar />
             <Breadcrumbs />
-            <Paper sx={{ padding: 3, margin: "auto" , backgroundColor:  '#E8E8E8'}}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px' }}>
-          <Typography variant="h5" component="div">
+             <Paper sx={{border:"1px solid #ddd", margin: "auto" }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6" component="div">
            Admin Dashboard !!
           </Typography>
-          <Tabs value={activeTab} onChange={handleTabChange} >
+          <Box  className="nav-links"> 
+            <Typography   gutterBottom component={NavLink} to="/userlist" className="nav-link">
+           Users
+          </Typography>
+          <Typography gutterBottom component={NavLink} to="/vehiclelist" className="nav-link">
+           Vehicles
+          </Typography>
+          </Box>
+          {/* <Tabs value={activeTab} onChange={handleTabChange} >
           <Tab label="UsersList"  />
           <Tab label="VehicleList" />
-        </Tabs>
+        </Tabs> */}
       </Box>
                         
 
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
               
-  {/* <Tabs
-            value={filter}
-            onChange={(e, newValue) => setFilter(newValue)}
-            textColor="primary"
-            sx={{
-              border: "1px solid #969696",
-              borderRadius: "3px",
-              
-            }}
-          >
-            <Tab label={`All (${vehicles.length})`} value="All" 
-             sx={{
-              color: "black", 
-              "&.Mui-selected": {
-                backgroundColor: "#ddd", // Background when selected
-                color: "#1976d2", // Text color when selected
-              },
-            }}
-            />
-            <Tab
-              label={`Disel (${
-                vehicles.filter((u) => u.FuelType === "diesel").length
-              })`}
-              value="disel"
-            />
-            <Tab
-              label={`Petrol (${
-                vehicles.filter((u) => u.FuelType === "petrol").length
-              })`}
-              value="petrol"
-            />
-          </Tabs> */}
+                <Box sx={{ display: "flex", gap: 2, alignItems: "center"}}>
+  <Button 
+    variant={filter === "All" ? "contained" : "outlined"} 
+    onClick={() => setFilter("All")}
+  >
+    All ({allCount})
+  </Button>
+  <Button 
+    variant={filter === "Diesel" ? "contained" : "outlined"} 
+    onClick={() => setFilter("Diesel")}
+  >
+    Diesel ({dieselCount})
+  </Button>
+  <Button 
+    variant={filter === "Gasoline" ? "contained" : "outlined"} 
+    onClick={() => setFilter("Gasoline")}
+  >
+    Gasoline ({gasolineCount})
+  </Button>
+</Box>
+
        
                     
                     <TextField
@@ -302,7 +311,7 @@ const handleChangeRowsPerPage = (event) => {
                                     <TableCell>{vehicle.ExhaustCO2} g/km</TableCell>
                                     <TableCell>{vehicle.VehicleStatus}</TableCell>
                                     <TableCell>
-                                        <IconButton color="primary" onClick={() => handleOpenDialog(vehicle)}><Edit /></IconButton>
+                                        {/* <IconButton color="primary" onClick={() => handleOpenDialog(vehicle)}><Edit /></IconButton> */}
                                         <IconButton color="error" onClick={() => handleDeleteVehicle(vehicle.VehicleID)}><Delete /></IconButton>
                                     </TableCell>
                                 </TableRow>
