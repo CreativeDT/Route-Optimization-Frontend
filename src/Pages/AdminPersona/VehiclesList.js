@@ -53,7 +53,8 @@ const VehiclesList = () => {
             return;
         }
 
-        axios.get(`${config.API_BASE_URL}/getVehicles`, {
+        axios.get(`${config.API_BASE_URL}/getVehicles`, 
+            {
             headers: { Authorization: `Bearer ${token}` },
         })
             .then(response => {
@@ -86,11 +87,6 @@ const dieselCount = vehicles.filter(v => v.FuelType === "Diesel").length;
 const gasolineCount = vehicles.filter(v => v.FuelType === "Gasoline").length;
 const allCount = vehicles.length;
 
-// Apply Filtering
-const filteredVehicles = vehicles.filter(vehicle => {
-    if (filter === "All") return true;
-    return vehicle.FuelType === filter;
-});
 
     const handleCloseDialog = () => {
         setOpenDialog(false);
@@ -190,14 +186,37 @@ const filteredVehicles = vehicles.filter(vehicle => {
             });
     };
 
-    // const filteredVehicles = vehicles.filter(vehicle => {
-    //     const searchTermLower = searchTerm.toLowerCase();
-    //     return (
-    //         (vehicle.VehicleType && vehicle.VehicleType.toLowerCase().includes(searchTermLower)) ||
-    //         (vehicle.LicenseNo && vehicle.LicenseNo.toLowerCase().includes(searchTermLower)) ||
-    //         (vehicle.FuelType && vehicle.FuelType.toLowerCase().includes(searchTermLower)) 
-    //     );
-    // });
+//     // Apply Filtering
+// const filteredVehicles = vehicles.filter(vehicle => {
+//     if (filter === "All") return true;
+//     return vehicle.FuelType === filter;
+// });
+
+
+//     const filteredVehicles = vehicles.filter(vehicle => {
+//         const searchTermLower = searchTerm.toLowerCase();
+//         return (
+//             (vehicle.VehicleType && vehicle.VehicleType.toLowerCase().includes(searchTermLower)) ||
+//             (vehicle.LicenseNo && vehicle.LicenseNo.toLowerCase().includes(searchTermLower)) ||
+//             (vehicle.FuelType && vehicle.FuelType.toLowerCase().includes(searchTermLower)) 
+//         );
+//     });
+
+const filteredVehicles = vehicles.filter(vehicle => {
+    const searchTermLower = searchTerm.toLowerCase();
+
+    // Apply fuel type filter
+    const fuelTypeMatch = filter === "All" || vehicle.FuelType === filter;
+
+    // Apply search term filter
+    const searchMatch =
+        (vehicle.VehicleType && vehicle.VehicleType.toLowerCase().includes(searchTermLower)) ||
+        (vehicle.LicenseNo && vehicle.LicenseNo.toLowerCase().includes(searchTermLower)) ||
+        (vehicle.FuelType && vehicle.FuelType.toLowerCase().includes(searchTermLower));
+
+    return fuelTypeMatch && searchMatch; // ✅ Both conditions must be true
+});
+
     // Pagination handlers
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
@@ -273,19 +292,20 @@ const handleChangeRowsPerPage = (event) => {
   </Button>
 </Box>
 
-       
+         <Box className="search-add-container">
                     
                     <TextField
                         variant="outlined"
                         placeholder="Search Vehicle"
                         size="small"
-                        fullWidth
-                        sx={{ mr: 2, width: '30%' }}
+                       
+                      
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
                     <Button variant="contained" color="primary" startIcon={<Add />} onClick={() => handleOpenDialog()}>
                         Add Vehicle
                     </Button>
+                    </Box>
                     </Box>
 
               <TableContainer component={Paper}  sx={{ maxHeight: 300, overflowY: "auto", "&::-webkit-scrollbar": {

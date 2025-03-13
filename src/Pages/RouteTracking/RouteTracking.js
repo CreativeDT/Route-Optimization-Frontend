@@ -67,6 +67,7 @@ const getVehicleIcon = (status) => {
             return vehicleIcon; // Default icon if status is unknown
     }
 };
+const defaultCenter = [41.8781, -87.6298]; // Default center (Chicago)
 
 
 const waypointIcon = new L.Icon({
@@ -400,7 +401,7 @@ const RouteTracking = () => {
                             <MapContainer
                                 center={selectedRoutes[0].route_coordinates.length > 0 ? 
                                     [selectedRoutes[0].route_coordinates[0][1], selectedRoutes[0].route_coordinates[0][0]] 
-                                    : [41.8781, -87.6298]}
+                                    :    defaultCenter }
                                 zoom={6}
                                 style={{ height: '100%', width: '100%' }}
                             >
