@@ -243,7 +243,7 @@ const handleChangeRowsPerPage = (event) => {
     sx={{
         backgroundColor: filter === "All" ? "#388e3c" : "transparent", // Change background color
         color: filter === "All" ? "white" : "primary.main", // Change text color
-        
+        border:"1px solid #ddd",
     }}
   >
     All ({allCount})
@@ -255,7 +255,7 @@ const handleChangeRowsPerPage = (event) => {
     sx={{
         backgroundColor: filter === "Diesel" ? "#388e3c" : "transparent", // Change background color
         color: filter === "Diesel" ? "white" : "primary.main", // Change text color
-        
+        border:"1px solid #ddd",
     }}
   >
     Diesel ({dieselCount})
@@ -266,7 +266,7 @@ const handleChangeRowsPerPage = (event) => {
     sx={{
         backgroundColor: filter === "Gasoline" ? "#388e3c" : "transparent", // Change background color
         color: filter === "Gasoline" ? "white" : "primary.main", // Change text color
-        
+        border:"1px solid #ddd",
     }}
   >
     Gasoline ({gasolineCount})
@@ -304,8 +304,8 @@ const handleChangeRowsPerPage = (event) => {
                     background: "#555", // Scrollbar color on hover
                   }, }} >
                         <Table sx={{ minWidth: 650, borderCollapse: "collapse" }}>
-                          <TableHead sx={{ position: "sticky", top: 0, backgroundColor: "#00796b", zIndex: 1 }}>
-                            <TableRow sx={{ backgroundColor: "#00796b", color: "white" }}>
+                          <TableHead sx={{ position: "sticky", top: 0, backgroundColor: "#156272", zIndex: 1 }}>
+                            <TableRow sx={{   backgroundColor: "#156272",color: "white" }}>
                                 <TableCell sx={{ color: "white" }}>SNo</TableCell>
                                 <TableCell sx={{ color: "white" }}>Vehicle Type</TableCell>
                                 <TableCell sx={{ color: "white" }}>Fuel Type</TableCell>

@@ -90,6 +90,7 @@ const SuggestRoutes = () => {
   const [errorMessage, setErrorMessage] = useState(""); // State for the overall error message
   const[label,setLabel] =useState([]);
   const [stopsError, setStopsError] = useState("");
+  const [searchValue, setSearchValue] = useState("");
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -707,9 +708,8 @@ const SuggestRoutes = () => {
     }
 
     // Reset the SearchBox value
-    if (searchBoxRef.current) {
-      searchBoxRef.current.value = '';
-    }
+    setSearchValue("");
+    console.log("setSearchValue:",searchValue)
   };
 
   // Handle the removal of a stop
@@ -789,6 +789,7 @@ const vehicleOptions = vehicles.map(vehicle => ({
   value: vehicle.VehicleID,
   label: `${vehicle.VehicleType} → ${vehicle.FuelType} → ${vehicle.Quantity}`,
   vehicleData: vehicle // Store full vehicle data for reference
+  
 }));
 console.log("vehicles:",vehicles);
 
@@ -1095,7 +1096,7 @@ console.log("Sending Payload:", {
   destination: selectedDestination,
   preloaded_demand: Number(preloadedDemand) || 0, // Ensure it's a valid number
   vehicle_type: label[0],
-  vehicle_id: selectedVehicle.VehicleID,
+  vehicle_id: selectedVehicle.value,
   fuel_type: label[1],
   start_date: formattedStartDate,
   end_date: formattedEndDate,
@@ -1627,7 +1628,12 @@ const isSubmitDisabled = useMemo(() => {
                   onRetrieve={handleRetrieveStops} // Handle stops retrieval
                   options={{ language: "en", country: "us" }}
                   placeholder="Search stops"
-                  ref={searchBoxRef} 
+                  value={searchValue} //  Ensure UI reflects state
+                  onChange={(value) => {
+                    console.log("SearchBox onChange event:", value); // Debugging
+                    setSearchValue(value); // ✅ Set value directly
+                  }}
+ 
                 />
               </Grid2>
 
@@ -1710,6 +1716,9 @@ const isSubmitDisabled = useMemo(() => {
                               fontSize: "12px", // Reduce input text size
                             }
                         }}
+                        onBlur={() => {
+                          
+                        }}
                       />
                     </Grid2>
 
@@ -1735,6 +1744,9 @@ const isSubmitDisabled = useMemo(() => {
                       "& .MuiInputBase-input": {
                         fontSize: "12px", // Reduce input text size
                       },
+                    }}
+                    onBlur={() => {
+                      
                     }}
                       />
                     </Grid2>
@@ -1956,11 +1968,15 @@ const isSubmitDisabled = useMemo(() => {
   sx={{ width: "100%", marginBottom: "1rem" }}
 >
   <Select
-    options={vehicleOptions}
+    options={vehicleOptions.map(vehicle => ({
+      value: vehicle.value,
+      label: `${vehicle.label} → ID: ${vehicle.value.slice(-5)}`, // Include vehicle_id in label
+      vehicle_id: vehicle.vehicle_id, // Add vehicle_id for further use
+    }))}
     value={selectedVehicle}
     onChange={handleVehicleSelection}
      placeholder="Search Available Vehicles..."
-  
+     
     isSearchable
     menuPlacement="top" 
     styles={{

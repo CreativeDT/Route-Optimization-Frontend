@@ -332,8 +332,8 @@ const handleChangeRowsPerPage = (event) => {
             <Tab label={`All (${users.length})`} value="All"  className="tab"
               sx={{
                 backgroundColor: filter === "All" ? "#388e3c" : "transparent", // Change the background color of active tab
-                color: filter === "All" ? "white" : "black", // Change text color for active tab
-               
+                color: filter === "All" ? "white" : "#1976d2", // Change text color for active tab
+                border:"1px solid #ddd",padding:"5px 15px",
                  borderRadius:"5px"
               }}
              />
@@ -346,8 +346,8 @@ const handleChangeRowsPerPage = (event) => {
               value="manager"
               sx={{
                 backgroundColor: filter === "manager" ? "#388e3c" : "transparent", // Change the background color of active tab
-                color: filter === "manager" ? "white" : "black", // Change text color for active tab
-              
+                color: filter === "manager" ? "white" : "#1976d2", // Change text color for active tab
+                border:"1px solid #ddd",padding:"5px 15px",
                  borderRadius:"5px"
               }}
             />
@@ -359,8 +359,8 @@ const handleChangeRowsPerPage = (event) => {
               className="tab"
               sx={{
                 backgroundColor: filter === "driver" ? "#388e3c" : "transparent", // Change the background color of active tab
-                color: filter === "driver" ? "white" : "black", // Change text color for active tab
-             
+                color: filter === "driver" ? "white" : "#1976d2", // Change text color for active tab
+                border:"1px solid #ddd",padding:"5px 15px",
                 borderRadius:"5px"
               }}
             />
@@ -402,8 +402,8 @@ const handleChangeRowsPerPage = (event) => {
       background: "#555", // Scrollbar color on hover
     }, }} >
           <Table sx={{ minWidth: 650, borderCollapse: "collapse" }}>
-            <TableHead sx={{ position: "sticky", top: 0, backgroundColor: "#156272", zIndex: 1 , padding: "8px"}}>
-              <TableRow sx={{ backgroundColor: "#00796b", color: "white" }}>
+            <TableHead sx={{ position: "sticky", top: 0, backgroundColor:"#156272", zIndex: 1 , padding: "8px"}}>
+              <TableRow sx={{ backgroundColor: "#156272", color: "white" }}>
                 <TableCell sx={{ color: "white" }}>SNo</TableCell>
                 <TableCell sx={{ color: "white" }}>User Name</TableCell>
                 <TableCell sx={{ color: "white" }}>Role</TableCell>
