@@ -402,8 +402,8 @@ const handleChangeRowsPerPage = (event) => {
       background: "#555", // Scrollbar color on hover
     }, }} >
           <Table sx={{ minWidth: 650, borderCollapse: "collapse" }}>
-            <TableHead sx={{ position: "sticky", top: 0, backgroundColor:"#156272", zIndex: 1 , padding: "8px"}}>
-              <TableRow sx={{ backgroundColor: "#156272", color: "white" }}>
+            <TableHead sx={{ position: "sticky", top: 0, backgroundColor:"#156272", zIndex: 1 ,"& th": { padding: "4px" } }}>
+              <TableRow sx={{ backgroundColor: "#156272", color: "white" ,"& th": { padding: "4px" } }}>
                 <TableCell sx={{ color: "white" }}>SNo</TableCell>
                 <TableCell sx={{ color: "white" }}>User Name</TableCell>
                 <TableCell sx={{ color: "white" }}>Role</TableCell>

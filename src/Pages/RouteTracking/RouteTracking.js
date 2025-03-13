@@ -3,7 +3,7 @@ import { Box, Typography, Card, CardContent, Grid, List, ListItem, ListItemText,
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap, Tooltip } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import 'leaflet/dist/leaflet.css';
-import Navbar from '../../Components/NavBar';
+
 import axios from 'axios';
 import '../../markerCluster.css';
 import L from 'leaflet';
@@ -19,6 +19,7 @@ import UseWebSocket from '../../WebSockets/UseWebSockets';  // Import WebSocket 
 import Breadcrumbs from '../Breadcrumbs/Breadcrumbs'; // Import your Breadcrumbs component
 import config from '../../config'; // Import your config file
 import debounce from "lodash.debounce";
+import NavBar from '../../Components/NavBar';
 const redIcon = new L.Icon({
     iconUrl: redIconImage,
     iconSize: [20, 20],
@@ -323,79 +324,134 @@ const RouteTracking = () => {
     );
 
     return (
-        <Box sx={{ bgcolor: '#f4f6f8', minHeight: '90vh', padding: '3px!important', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-            <Navbar />
-            <Breadcrumbs />
+      <Box
+        sx={{
+          bgcolor: "#f4f6f8",
+          minHeight: "90vh",
+          padding: "3px!important",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+        }}
+      >
+        <NavBar  />
+        <Breadcrumbs />
+        
+     
 
-            <Grid container spacing={2} sx={{ p: 2, flexGrow: 1, overflow: 'hidden', padding: '1px!important' }}>
+        <Grid
+          container
+          spacing={2}
+          sx={{
+            p: 2,
+            flexGrow: 1,
+            overflow: "hidden",
+            padding: "1px!important",
+          }}
+        >
+          {/* Left Column: Consignments and Route Details */}
+          <Grid
+            item
+            xs={12}
+            md={4}
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 2,
+              height: "70%!important",
+            }}
+          >
+            <Paper
+              elevation={3}
+              sx={{
+                p: 2,
+                display: "flex",
+                flexDirection: "column",
+                gap: 2,
+                height: "70%",
+              }}
+            >
+              {/* Search Field */}
+              <TextField
+                label="Search Consignments"
+                variant="outlined"
+                fullWidth
+                size="small"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
 
-                {/* Left Column: Consignments and Route Details */}
-                <Grid item xs={12} md={4} sx={{ display: "flex", flexDirection: "column", gap: 2, height: "70%!important" }}>
-                    <Paper elevation={3} sx={{ p: 2, display: "flex", flexDirection: "column", gap: 2, height: "70%" }}>
-                        {/* Search Field */}
-                        <TextField
-                            label="Search Consignments"
-                            variant="outlined"
-                            fullWidth
-                            size="small"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                        />
+              {/* Consignments List */}
+              <Box sx={{ flex: "0 0 auto", height: "440px" }}>
+                <Typography variant="h6" gutterBottom>
+                  Consignments
+                </Typography>
+                <List sx={{ maxHeight: "400px", overflowY: "auto" }}>
+                  {filteredConsignments.map((consignment) => (
+                    <ListItem
+                      key={consignment.routeID}
+                      button="true"
+                      onClick={() => handleConsignmentSelection(consignment)}
+                      sx={{ border: "1px solid #ddd", mb: 1, borderRadius: 1 }}
+                    >
+                      <Checkbox
+                        checked={selectedConsignments.includes(
+                          consignment.routeID
+                        )}
+                        onChange={() => handleConsignmentSelection(consignment)}
+                      />
+                      <ListItemText
+                        primary={
+                          <Box sx={{ display: "flex", alignItems: "center" }}>
+                            {/* Dot based on status */}
+                            <Box
+                              sx={{
+                                width: 10,
+                                height: 10,
+                                flexShrink: 0, // Prevents resizing
+                                borderRadius: "50%",
+                                backgroundColor:
+                                  consignment.status === "started"
+                                    ? "green"
+                                    : "red",
+                                marginRight: 2,
+                              }}
+                            />
+                            <Typography
+                              variant="body2"
+                              sx={{ fontSize: "12px" }}
+                            >
+                              {`${consignment.origin} ➜ ${consignment.destination}`}
+                            </Typography>
+                          </Box>
+                        }
+                        secondary={
+                          <React.Fragment>
+                            <Typography
+                              variant="body2"
+                              sx={{ fontSize: "10px" }}
+                            >
+                              {consignment.statusText}
+                            </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{ fontSize: "10px" }}
+                            >
+                              Predicted CO₂ Emission:{" "}
+                              {consignment.carbon_emission || "N/A"} Kg
+                            </Typography>
+                          </React.Fragment>
+                        }
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Box>
+            </Paper>
+          </Grid>
 
-                        {/* Consignments List */}
-                        <Box sx={{ flex: "0 0 auto", height: "440px" }}>
-                            <Typography variant="h6" gutterBottom>Consignments</Typography>
-                            <List sx={{ maxHeight: "400px", overflowY: "auto" }}>
-                                {filteredConsignments.map((consignment) => (
-                                    <ListItem
-                                        key={consignment.routeID}
-                                        button="true"
-                                        onClick={() => handleConsignmentSelection(consignment)}
-                                        sx={{ border: "1px solid #ddd", mb: 1, borderRadius: 1 }}
-                                    >
-                                        <Checkbox
-                                            checked={selectedConsignments.includes(consignment.routeID)}
-                                            onChange={() => handleConsignmentSelection(consignment)}
-                                        />
-                                        <ListItemText
-                                            primary={
-                                                <Box sx={{ display: "flex", alignItems: "center" }}>
-                                                    {/* Dot based on status */}
-                                                    <Box
-                                                    sx={{
-                                                        width: 10,
-                                                        height: 10,
-                                                        flexShrink: 0, // Prevents resizing
-                                                        borderRadius: "50%",
-                                                        backgroundColor: consignment.status === "started" ? "green" : "red",
-                                                        marginRight: 2,
-                                                    }}
-                                                />
-                                                     <Typography variant="body2" sx={{ fontSize: "12px" }}>
-                                                     {`${consignment.origin} ➜ ${consignment.destination}`}
-                                                        </Typography> 
-                                                </Box>
-                                            }
-                                            secondary={
-                                                <React.Fragment>
-                                                    <Typography variant="body2" sx={{ fontSize: "10px" }}>
-                                                        {consignment.statusText}
-                                                        </Typography>
-                                                        <Typography variant="body2" sx={{ fontSize: "10px"}}>
-                                                        Predicted CO₂ Emission: {consignment.carbon_emission || "N/A"} Kg
-                                                        </Typography>
-                                                </React.Fragment>
-                                            }
-                                        />
-                                    </ListItem>
-                                ))}
-                            </List>
-                        </Box>
-                    </Paper>
-                </Grid>
-
-                {/* Right Column: Map */}
-                <Grid item xs={12} md={8} sx={{ height: 'calc(100vh - 100px)', overflow: 'hidden' }}>
+          {/* Right Column: Map */}
+          {/* <Grid item xs={12} md={8} sx={{ height: 'calc(100vh - 100px)', overflow: 'hidden' }}>
                     {selectedRoutes.length > 0 && (
                         <Box sx={{ height: '100%', borderRadius: 2 }}>
                             <MapContainer
@@ -419,9 +475,47 @@ const RouteTracking = () => {
                         </Box>
                     )}
                     
-                </Grid>
-            </Grid>
-        </Box>
+                </Grid> */}
+          <Grid
+            item
+            xs={12}
+            md={8}
+            sx={{ height: "90vh", overflow: "hidden" }}
+          >
+            <Box sx={{ height: "100%", borderRadius: 2 }}>
+              <MapContainer
+                center={
+                  selectedRoutes.length > 0 &&
+                  selectedRoutes[0].route_coordinates.length > 0
+                    ? [
+                        selectedRoutes[0].route_coordinates[0][1],
+                        selectedRoutes[0].route_coordinates[0][0],
+                      ]
+                    : defaultCenter // Use defaultCenter when no routes are selected
+                }
+                zoom={selectedRoutes.length > 0 ? 6 : 4} // Default zoom level, can be adjusted
+                style={{ height: "100%", width: "100%" }}
+              >
+                {/* ... TileLayer and conditional MapView rendering ... */}
+                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+
+                {selectedRoutes.map((route, index) => (
+                  <MapView
+                    key={index}
+                    coordinates={route.route_coordinates}
+                    routeWaypoints={route.route_waypoints || []}
+                    route={route}
+                    vehiclePosition={
+                      route.status === "started" ? vehiclePosition : null
+                    }
+                    multipleRoutes={selectedRoutes.length > 1}
+                  />
+                ))}
+              </MapContainer>
+            </Box>
+          </Grid>
+        </Grid>
+      </Box>
     );
 };
 

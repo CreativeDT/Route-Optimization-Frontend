@@ -325,7 +325,7 @@ const handleChangeRowsPerPage = (event) => {
                   }, }} >
                         <Table sx={{ minWidth: 650, borderCollapse: "collapse" }}>
                           <TableHead sx={{ position: "sticky", top: 0, backgroundColor: "#156272", zIndex: 1 }}>
-                            <TableRow sx={{   backgroundColor: "#156272",color: "white" }}>
+                            <TableRow sx={{   backgroundColor: "#156272",color: "white" ,"& th": { padding: "4px" } }}>
                                 <TableCell sx={{ color: "white" }}>SNo</TableCell>
                                 <TableCell sx={{ color: "white" }}>Vehicle Type</TableCell>
                                 <TableCell sx={{ color: "white" }}>Fuel Type</TableCell>
