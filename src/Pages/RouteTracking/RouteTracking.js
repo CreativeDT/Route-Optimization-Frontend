@@ -78,7 +78,7 @@ const waypointIcon = new L.Icon({
     popupAnchor: [0, -10],
 });
 
-const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleRoutes, vehiclePosition }) => {
+const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleRoutes, vehiclePositions }) => {
     const map = useMap();
     const vehicleMarkerRef = useRef(null); // Ref for the vehicle marker
 
@@ -88,6 +88,10 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
             map.fitBounds(latLngs);
         }
     }, [coordinates, map]);
+      // Get the vehicle position for this route
+  const vehiclePosition = vehiclePositions[route.routeID];
+
+  const hasCenteredRef = useRef(false);
     useEffect(() => {
         if (vehiclePosition && map && route.status === 'started') {
             console.log("Updating vehicle position on map:", vehiclePosition);
@@ -103,10 +107,17 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
                 ).addTo(map);
                 vehicleMarkerRef.current = newMarker;
             }
-            map.flyTo([vehiclePosition.lat, vehiclePosition.lng], map.getZoom(), { animate: true, duration: 1.5 });
+            // map.flyTo([vehiclePosition.lat, vehiclePosition.lng], map.getZoom(), { animate: true, duration: 1.5 });
+        // Center the map only once
+    if (!hasCenteredRef.current) {
+        map.flyTo([vehiclePosition.lat, vehiclePosition.lng], map.getZoom(), { animate: true, duration: 1.5 });
+        hasCenteredRef.current = true;
+      }
+        
         }
     }, [vehiclePosition, map, route.status]);
 
+   
     useEffect(() => {
         console.log('Route Waypoints in MapView:', routeWaypoints);
     }, [routeWaypoints]);
@@ -211,7 +222,7 @@ const RouteTracking = () => {
     const [selectedConsignments, setSelectedConsignments] = useState([]);
     const [shouldConnectWebSocket, setShouldConnectWebSocket] = useState(false);
     // const { vehiclePosition } = UseWebSocket("ws://localhost:8000/ws"); // Get WebSocket Data
-    const { vehiclePosition } = UseWebSocket(config.WEBSOCKET_URL, shouldConnectWebSocket);
+    const { vehiclePositions } = UseWebSocket(config.WEBSOCKET_URL, shouldConnectWebSocket);
 
 
 
@@ -279,12 +290,12 @@ const RouteTracking = () => {
 
 
 
-    useEffect(() => {
-        if (vehiclePosition) {
-            console.log("Updated vehicle position:", vehiclePosition);
-            // Update the map with the new vehicle position
-        }
-    }, [vehiclePosition]);
+    // useEffect(() => {
+    //     if (vehiclePosition) {
+    //         console.log("Updated vehicle position:", vehiclePosition);
+    //         // Update the map with the new vehicle position
+    //     }
+    // }, [vehiclePosition]);
 
     const handleConsignmentSelection = async (consignment) => {
         const isSelected = selectedConsignments.includes(consignment.routeID);
@@ -336,7 +347,7 @@ const RouteTracking = () => {
       >
         <NavBar  />
         <Breadcrumbs />
-        
+
      
 
         <Grid
@@ -505,9 +516,7 @@ const RouteTracking = () => {
                     coordinates={route.route_coordinates}
                     routeWaypoints={route.route_waypoints || []}
                     route={route}
-                    vehiclePosition={
-                      route.status === "started" ? vehiclePosition : null
-                    }
+                    vehiclePositions={vehiclePositions}  // Pass the object with positions
                     multipleRoutes={selectedRoutes.length > 1}
                   />
                 ))}

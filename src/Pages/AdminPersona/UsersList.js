@@ -25,7 +25,7 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
-import { Edit, Delete, Add } from "@mui/icons-material";
+import { Edit, Delete, Add ,Visibility, VisibilityOff } from "@mui/icons-material";
 import NavBar from "../../Components/NavBar";
 import Breadcrumbs from "../Breadcrumbs/Breadcrumbs";
 import config from "../../config";
@@ -59,7 +59,7 @@ const UserList = () => {
     severity: "success",
   });
  
- 
+  const [showPassword, setShowPassword] = useState(false);
 
   // Fetch users from API
   const fetchUsers = () => {
@@ -485,16 +485,35 @@ const handleChangeRowsPerPage = (event) => {
               onChange={(e) =>
                 setNewUser({ ...newUser, email: e.target.value })
               }
+              error={newUser.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUser.email)}
+              helperText={
+                newUser.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUser.email)
+                  ? "Enter a valid email address"
+                  : ""
+              }
             />
             <TextField
               label="Password"
               fullWidth
               sx={{ mt: 2 }}
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={newUser.password}
               onChange={(e) =>
                 setNewUser({ ...newUser, password: e.target.value })
               }
+              error={newUser.password && newUser.password.length < 6}
+              helperText={
+                newUser.password && newUser.password.length < 6
+                  ? "Password must be at least 6 characters long"
+                  : ""
+              }
+              InputProps={{
+                endAdornment: (
+                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                ),
+              }}
             />
             <TextField
               label="Role"

@@ -401,6 +401,7 @@ const handleChangeRowsPerPage = (event) => {
         label="Exhaust CO2 Emissions (g/km)"
         variant="outlined"
         sx={{ mt: 2 }}
+            type="number"
         value={newVehicle.ExhaustCO2}
         onChange={(e) => setNewVehicle({ ...newVehicle, ExhaustCO2: e.target.value })}
     />
@@ -409,6 +410,7 @@ const handleChangeRowsPerPage = (event) => {
         fullWidth
         label="Mileage (km/l)"
         variant="outlined"
+        type="number"
         sx={{ mt: 2 }}
         value={newVehicle.Mileage}
         onChange={(e) => setNewVehicle({ ...newVehicle, Mileage: e.target.value })}
@@ -418,6 +420,7 @@ const handleChangeRowsPerPage = (event) => {
         fullWidth
         label="Vehicle Capacity (kg)"
         variant="outlined"
+            type="number"
         sx={{ mt: 2 }}
         value={newVehicle.VehicleCapacity}
         onChange={(e) => setNewVehicle({ ...newVehicle, VehicleCapacity: e.target.value })}

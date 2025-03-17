@@ -1,139 +1,175 @@
-import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { Typography, TextField, Button, Box, Paper,  Link, MenuItem, Container } from '@mui/material';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
-import { motion } from 'framer-motion';
-import { AuthContext } from '../Context/AuthContext';
-import './Login.css'; // Import the CSS for background animation
-import logo from '../Assets/images/CSG Logo_PNG.png';
-import config from '../config'; 
+import React, { useState, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { Typography, TextField, Button, Box, Paper, Link, MenuItem, Container } from "@mui/material";
+import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import { motion } from "framer-motion";
+import { AuthContext } from "../Context/AuthContext";
+import "./Login.css"; // Import the CSS for background animation
+import logo from "../Assets/images/CSG Logo_PNG.png";
+import config from "../config";
 
 const theme = createTheme();
 
 const Login = () => {
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [userRole, setUserRole] = useState('admin');
-    const [error, setError] = useState('');
-    const navigate = useNavigate();
-    const { login } = useContext(AuthContext);
-    console.log('config ::',config);
-    const handleLogin = async (e) => {
-        e.preventDefault();
-        try {
-            const response = await axios.post(`${config.API_BASE_URL}/login`, {
-                username,
-                password,
-                user_role: userRole
-            });
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [userRole, setUserRole] = useState("admin");
+  const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const { login } = useContext(AuthContext);
 
-            if (response.data) {
-                const userData = { 
-                    token: response.data.access_token,
-                    username,
-                    userRole
-                };
-                login(userData);
-                axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.access_token}`;
-                navigate('/dashboard');
-            }
-        } catch (err) {
-            console.error('Login Error:', err.response?.data || err.message);
-            setError(err.response?.data?.detail || 'Invalid username, password, or role');
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    try {
+        console.log("  login with:", { username, userRole });
+
+      const response = await axios.post(`${config.API_BASE_URL}/login`, {
+        username,
+        password,
+        user_role: userRole,
+      });
+      console.log("Login API Response:", response.data);
+      if (response.data) {
+        const { access_token, user_id, driver_id } = response.data;
+         console.log ("response data: ",response.data)
+        // Store user details in localStorage
+        localStorage.setItem("token", access_token);
+       localStorage.setItem("user_id", user_id || "");
+        localStorage.setItem("user_role", userRole);
+
+        // Store driver_id only if user is a driver
+        if (userRole === "driver" && driver_id) {
+            localStorage.setItem("driver_id", "0c69d4ab-da7d-440e-b8ee-7b2155c99bc1");
+            console.log("Stored driver_id:", driver_id);
+        } else {
+            localStorage.removeItem("driver_id"); // Ensure it's removed for non-drivers
         }
-    };
 
-    return (
-        <ThemeProvider theme={theme}>
-            <div className="login-page"> {/* Background wrapper */}
-                <Container
-                    component={motion.main}
-                    maxWidth="xs"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.5 }}
-                    sx={{ position: 'relative' }}
-                >
-                    <Paper elevation={3} className="login-box"> {/* Login box */}
-                    <motion.div 
-                            initial={{ scale: 0.8, opacity: 0 }} 
-                            animate={{ scale: 1, opacity: 1 }} 
-                            transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
-                            style={{ marginBottom: '10px' }} // Add some spacing below logo
-                        >
-                            <img src={logo} alt="CSG Logo" className="login-logo" />
-                        </motion.div>
-                        <motion.div initial={{ y: -50 }} animate={{ y: 0 }} transition={{ type: 'spring', stiffness: 100 }}>
-                            <LockOutlinedIcon sx={{ fontSize: 40, color: 'primary.main' }} />
-                        </motion.div>
-                        <Typography component="h1" variant="h6" sx={{ mt: 1, fontSize: '1.2rem' }}>
-                            Sign in
-                        </Typography>
-                        <Box component="form" onSubmit={handleLogin} sx={{ mt: 1 }}>
-                            <TextField
-                                margin="dense"  // Reduces vertical spacing
-                                required
-                                fullWidth
-                                size="small"    // Smaller input fields
-                                label="Username"
-                                autoFocus
-                                value={username}
-                                onChange={(e) => setUsername(e.target.value)}
-                            />
-                            <TextField
-                                margin="dense"
-                                required
-                                fullWidth
-                                size="small"
-                                label="Password"
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-                            <TextField
-                                margin="dense"
-                                required
-                                fullWidth
-                                size="small"
-                                label="User Role"
-                                select
-                                value={userRole}
-                                onChange={(e) => setUserRole(e.target.value)}
-                            >
-                                <MenuItem value="admin">Admin</MenuItem>
-                                <MenuItem value="manager">Manager</MenuItem>
-                                <MenuItem value="driver">Driver</MenuItem>
-                            </TextField>
-                            {error && (
-                                <Typography color="error" variant="body2" sx={{ fontSize: '0.8rem' }}>
-                                    {error}
-                                </Typography>
-                            )}
-                            <Button
-                                type="submit"
-                                fullWidth
-                                variant="contained"
-                                size="small"  // Smaller button
-                                sx={{ mt: 2, mb: 1, py: 1, fontSize: '0.9rem', transition: 'transform 0.2s', '&:hover': { transform: 'scale(1.05)' } }}
-                            >
-                                Sign In
-                            </Button>
-                            <Box sx={{ textAlign: 'center', mt: 1 }}>
-                                <Link href="#" variant="body2" sx={{ display: 'block', mb: 0.5, fontSize: '0.85rem' }}>
-                                    Forgot password?
-                                </Link>
-                                <Link href="/signup" variant="body2" sx={{ display: 'block', fontSize: '0.85rem' }}>
-                                    {"Don't have an account? Sign Up"}
-                                </Link>
-                            </Box>
-                        </Box>
-                    </Paper>
-                </Container>
-            </div>
-        </ThemeProvider>
-    );
+        // Check localStorage after storing values
+      console.log(" Stored in localStorage:", {
+        token: localStorage.getItem("token"),
+        user_id: localStorage.getItem("user_id"),
+        user_role: localStorage.getItem("user_role"),
+        driver_id: localStorage.getItem("driver_id"), // Should exist only for drivers
+      });
+
+        // Set authentication token for future requests
+        axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
+
+        // Redirect based on user role
+        if (userRole === "driver") {
+          navigate("/driverdashboard");
+        } else if (userRole === "manager") {
+          navigate("/fleetmanagerdashboard");
+        } else {
+          navigate("/dashboard");
+        }
+      }
+    } catch (err) {
+      console.error("Login Error:", err.response?.data || err.message);
+      
+      setError(err.response?.data?.detail || "Invalid username, password, or role");
+    }
+  };
+
+  return (
+    <ThemeProvider theme={theme}>
+      <div className="login-page">
+        <Container
+          component={motion.main}
+          maxWidth="xs"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          sx={{ position: "relative" }}
+        >
+          <Paper elevation={3} className="login-box">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
+              style={{ marginBottom: "10px" }}
+            >
+              <img src={logo} alt="CSG Logo" className="login-logo" />
+            </motion.div>
+            <motion.div initial={{ y: -50 }} animate={{ y: 0 }} transition={{ type: "spring", stiffness: 100 }}>
+              <LockOutlinedIcon sx={{ fontSize: 40, color: "primary.main" }} />
+            </motion.div>
+            <Typography component="h1" variant="h6" sx={{ mt: 1, fontSize: "1.2rem" }}>
+              Sign in
+            </Typography>
+            <Box component="form" onSubmit={handleLogin} sx={{ mt: 1 }}>
+              <TextField
+                margin="dense"
+                required
+                fullWidth
+                size="small"
+                label="Username"
+                autoFocus
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+              <TextField
+                margin="dense"
+                required
+                fullWidth
+                size="small"
+                label="Password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <TextField
+                margin="dense"
+                required
+                fullWidth
+                size="small"
+                label="User Role"
+                select
+                value={userRole}
+                onChange={(e) => setUserRole(e.target.value)}
+              >
+                <MenuItem value="admin">Admin</MenuItem>
+                <MenuItem value="manager">Fleet Manager</MenuItem>
+                <MenuItem value="driver">Driver</MenuItem>
+              </TextField>
+              {error && (
+                <Typography color="error" variant="body2" sx={{ fontSize: "0.8rem" }}>
+                  {error}
+                </Typography>
+              )}
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                size="small"
+                sx={{
+                  mt: 2,
+                  mb: 1,
+                  py: 1,
+                  fontSize: "0.9rem",
+                  transition: "transform 0.2s",
+                  "&:hover": { transform: "scale(1.05)" },
+                }}
+              >
+                Sign In
+              </Button>
+              <Box sx={{ textAlign: "center", mt: 1 }}>
+                <Link href="#" variant="body2" sx={{ display: "block", mb: 0.5, fontSize: "0.85rem" }}>
+                  Forgot password?
+                </Link>
+                <Link href="/signup" variant="body2" sx={{ display: "block", fontSize: "0.85rem" }}>
+                  {"Don't have an account? Sign Up"}
+                </Link>
+              </Box>
+            </Box>
+          </Paper>
+        </Container>
+      </div>
+    </ThemeProvider>
+  );
 };
 
 export default Login;

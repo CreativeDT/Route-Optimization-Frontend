@@ -738,8 +738,9 @@ const SuggestRoutes = () => {
 
     // Retain focus for the specific input field
     setTimeout(() => {
-      if (inputRefs.current[`${index}-${field}`]) {
-        inputRefs.current[`${index}-${field}`].focus();
+      const inputEl = inputRefs.current[`${index}-${field}`];
+      if (inputEl && document.activeElement !== inputEl) {
+        inputEl.focus();
       }
     }, 0);
   };
@@ -757,6 +758,8 @@ const SuggestRoutes = () => {
 //       }
 //     });
 //   };
+
+
   const handlePreloadedDemandChange = (e) => {
     const value = e.target.value ? Number(e.target.value) : 0; // Ensure number format
     console.log("Preloaded Demand Value:", value); // Log the formatted value
@@ -764,15 +767,19 @@ const SuggestRoutes = () => {
     setPreloadedDemand(e.target.value); // Update the preloaded demand state
     console.log("Updated Preloaded Demand:", e.target.value); // Log the updated preloaded demand
     
-    handleVehicleSelection(value); // Update vehicles based on demand change
-    console.log("Vehicle selection triggered with preloaded demand:", value); // Log that vehicle selection was triggered
-
-    requestAnimationFrame(() => {
-      if (preloadedDemandRef.current) {
-        preloadedDemandRef.current.focus();
-      }
-    });
-  };
+    if(selectedOrigin && selectedDestination) {
+      handleVehicleSelection(value);
+      console.log("Vehicle selection triggered with preloaded demand:", value);
+    } else {
+      console.warn("Origin/Destination not selected. Skipping vehicle selection update.");
+    }
+    
+  requestAnimationFrame(() => {
+    if (preloadedDemandRef.current) {
+      preloadedDemandRef.current.focus();
+    }
+  });
+};
 
 
   // const handleVehicleSelection = (event) => {
@@ -1708,7 +1715,7 @@ const isSubmitDisabled = useMemo(() => {
                         size="small"
                         fullWidth
                         margin="dense"
-                        sx={{ height: "20px","& .MuiFormLabel-root": {
+                        sx={{"& .MuiFormLabel-root": {
                                 fontSize: "10px", // Adjust input text size
                               },
                           
