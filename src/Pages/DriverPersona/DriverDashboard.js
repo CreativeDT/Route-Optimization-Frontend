@@ -59,7 +59,7 @@ const DriverDashboard = () => {
          
       
       ,
-      path: "/analytics",
+      path: "/driverfleetstatus",
     },
     
     {

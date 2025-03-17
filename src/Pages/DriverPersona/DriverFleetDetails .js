@@ -2,6 +2,9 @@ import React, { useEffect, useState, useContext } from "react";
 import { Container, Typography, CircularProgress, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Alert } from "@mui/material";
 import axios from "axios";
 import { AuthContext } from "../../Context/AuthContext";
+import "./Table.css"; 
+import NavBar from "../../Components/NavBar";
+import Breadcrumbs from "../Breadcrumbs/Breadcrumbs";
 
 const DriverFleetDetails = () => {
   const [consignments, setConsignments] = useState([]);
@@ -49,15 +52,19 @@ const DriverFleetDetails = () => {
   }, [token]);
 
   return (
-    <Container maxWidth="md">
-      <Typography variant="h4">Driver Fleet Details</Typography>
+    <>
+<NavBar />
+  <Breadcrumbs />
+    <Container fullwidth>
+
+      <Typography variant="h6">Driver Fleet Details</Typography>
       {loading ? (
         <CircularProgress />
       ) : error ? (
         <Alert severity="error">{error}</Alert>
       ) : consignments.length > 0 ? (
         <TableContainer component={Paper}>
-          <Table>
+          <Table className="customTable">
             <TableHead>
               <TableRow>
                 <TableCell>Route ID</TableCell>
@@ -88,6 +95,7 @@ const DriverFleetDetails = () => {
         <Typography>No consignments found.</Typography>
       )}
     </Container>
+    </>
   );
 };
 

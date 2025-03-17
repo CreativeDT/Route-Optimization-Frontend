@@ -12,6 +12,7 @@ import UserList from './Pages/AdminPersona/UsersList';
 import VehiclesList from './Pages/AdminPersona/VehiclesList';
 import DriverDashboard from './Pages/DriverPersona/DriverDashboard';
 import DriverFleetDetails from './Pages/DriverPersona/DriverFleetDetails ';
+import DriverFleetstatus from './Pages/DriverPersona/DriverFleetstatus';
 
 
 
@@ -30,6 +31,7 @@ const App = () => {
         <Route path="/vehiclelist" element={<VehiclesList/>}/>
         <Route path="/driverdashboard" element={<DriverDashboard />} />
         <Route path="/driverfleetdetails" element={<DriverFleetDetails />} />
+        <Route path="/driverfleetstatus"  element={<DriverFleetstatus />} />
       </Routes>
     </Router>
   );

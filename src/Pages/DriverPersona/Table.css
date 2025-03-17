@@ -1,0 +1,12 @@
+
+.customTable th,
+.customTable td {
+  padding: 4px !important; 
+}
+.customTable th{
+    background-color:#156272 ;color: #fff;
+}
+
+.customTable .MuiTableRow-root {
+  height: 32px; 
+}
