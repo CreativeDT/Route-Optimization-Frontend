@@ -45,6 +45,7 @@ const UserList = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [activeTab, setActiveTab] = useState(0);
   const [editingUser, setEditingUser] = useState(null);
+  const [user,setUser] =useState(null)
   const [newUser, setNewUser] = useState({
     name: "",
     role: "driver",
@@ -58,9 +59,15 @@ const UserList = () => {
     message: "",
     severity: "success",
   });
- 
+  const token = localStorage.getItem("token");
+  console.log("Token before fetchUsers:", token);
+   
   const [showPassword, setShowPassword] = useState(false);
-
+  const login = (userData) => {
+    setUser(userData);
+    localStorage.setItem("token", userData.token);
+    localStorage.setItem("user", JSON.stringify(userData));
+  };
   // Fetch users from API
   const fetchUsers = () => {
     const token = localStorage.getItem("token");
@@ -68,7 +75,9 @@ const UserList = () => {
       console.error("No token found, authorization failed");
       return;
     }
+    console.log("Token stored in localStorage:", localStorage.getItem("token"));
  
+    console.log("Request headers:", { Authorization: `Bearer ${token}` });
     axios
       .get(`${config.API_BASE_URL}/users/usersList`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -85,7 +94,14 @@ const UserList = () => {
           }))
         );
       })
-      .catch((error) => console.error("Error fetching users:", error));
+      .catch((error) => {
+        console.error("Error fetching users:", error);
+        if (error.response?.status === 401) {
+          console.error("Token is invalid, redirecting to login");
+          localStorage.removeItem("token");
+          navigate("/login");
+        }
+      });
   };
  
   useEffect(() => {
@@ -121,6 +137,18 @@ const UserList = () => {
      if (!newUser.name || !newUser.email || !newUser.password || !newUser.role) {
       setErrorMessage("Please fill in all fields.");
       return; // Stop execution if validation fails
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUser.email)) {
+      setErrorMessage("Enter a valid email address.");
+      return;
+    }
+    if (newUser.password.length < 6 || newUser.password.length > 10) {
+      setErrorMessage("Password must be at least 6 characters long.");
+      return;
+    }
+    if (newUser.name.length > 15) {
+      setErrorMessage("Name must be at most 15 characters.");
+      return;
     }
     const userPayload = {
       username: newUser.name,
@@ -474,9 +502,17 @@ const handleChangeRowsPerPage = (event) => {
               label="Name"
               fullWidth
               sx={{ mt: 2 }}
+              type="text"
               value={newUser.name}
-              onChange={(e) => setNewUser({ ...newUser, name: e.target.value })}
-            />
+              onChange={(e) => {
+                const value = e.target.value;
+                if (/^[A-Za-z\s]*$/.test(value)) { // Allow only letters and spaces
+                  setNewUser({ ...newUser, name: value });
+                }
+              }}
+              error={newUser.name.length > 15} // Show error only if length exceeds 15
+              helperText={newUser.name.length > 15 ? "Max 15 characters allowed" : ""} // Show helper text only when exceeded
+                        />
             <TextField
               label="Email"
               fullWidth
@@ -498,13 +534,16 @@ const handleChangeRowsPerPage = (event) => {
               sx={{ mt: 2 }}
               type={showPassword ? "text" : "password"}
               value={newUser.password}
-              onChange={(e) =>
-                setNewUser({ ...newUser, password: e.target.value })
-              }
-              error={newUser.password && newUser.password.length < 6}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value.length <= 10) { // Prevent entering more than 10 characters
+                  setNewUser({ ...newUser, password: value });
+                }
+              }}
+              error={newUser.password.length > 0 && (newUser.password.length < 6 || newUser.password.length > 10)}
               helperText={
-                newUser.password && newUser.password.length < 6
-                  ? "Password must be at least 6 characters long"
+                newUser.password.length > 0 && (newUser.password.length < 6 || newUser.password.length > 10)
+                  ? "Password must be 6-10 characters long"
                   : ""
               }
               InputProps={{

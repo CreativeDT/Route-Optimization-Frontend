@@ -1,63 +1,62 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Grid, Card, CardContent, Typography } from "@mui/material";
-import Navbar from "../Components/NavBar";
-import Breadcrumbs from "./Breadcrumbs/Breadcrumbs";
-import backgroundImage from "../Assets/images/61758.jpg";
-import adminIcon from '../Assets/images/admin.png';
-import './Dashboard.css';
+
+import Breadcrumbs from "../Breadcrumbs/Breadcrumbs";
+import backgroundImage from "../../Assets/images/61758.jpg";
+import adminIcon from '../../Assets/images/admin.png';
+import '.././Dashboard.css';
 // Import icons
-import RouteIcon from "../Assets/images/road-map.png";
-import TrackingIcon from "../Assets/images/tracking.png";
-import AnalyticsIcon from "../Assets/images/analysis.png";
-import userIcon from '../Assets/images/user_details.png';
-import vehicleIcon from '../Assets/images/vehicle_detail.png';
+import RouteIcon from "../../Assets/images/road-map.png";
+import TrackingIcon from "../../Assets/images/tracking.png";
+import AnalyticsIcon from "../../Assets/images/analysis.png";
+import userIcon from '../../Assets/images/user_details.png';
+import vehicleIcon from '../../Assets/images/vehicle_detail.png';
+import NavBar from "../../Components/NavBar";
 // Import video
 //import GlobeVideo from '../Assets/videos/globe.mp4';
 
 
-const Dashboard = () => {
+const ManagerDashboard = () => {
   const navigate = useNavigate();
 
   const iconData = [
     {
-      image: RouteIcon,
-      alt: "Route Planning",
-      label: "Route Planning",
-      description:
-       "Plan the most efficient routes with real-time traffic updates and optimized paths. Optimize routes for cost savings.",
-      path: "/route-planning",
-    },
+        image: RouteIcon,
+        alt: "Route Planning",
+        label: "Route Planning",
+        description:" Plan the most efficient routes with real-time traffic updates and optimized paths. Optimize routes for cost savings.",
+        path: "/routeplanning",
+      },
+      
     {
       image: TrackingIcon,
       alt: "Route Tracking",
       label: "Route Tracking",
-      description:
-            "Track your vehicles and shipments in real-time with advanced GPS technology. Monitor your fleet in real-time.",
+      description: "Track your vehicles and shipments in real-time with advanced GPS technology. Monitor your fleet in real-time.",
       path: "/route-tracking",
     },
+    
     {
       image: AnalyticsIcon,
       alt: "Analytics",
       label: "Analytics",
-      description:  "Gain insights into your operations with detailed analytics and reports. Analyze fuel consumption, driver performance, delivery times.",
+      description: "Gain insights into your operations with detailed analytics and reports. Analyze fuel consumption, driver performance, delivery times.",
       path: "/analytics",
     },
-    
+   
     {
       image: adminIcon,
-      alt: "Admin",
+      alt: "Administration",
       label: "Administration",
-      description:  
-      "Manage user access and permissions. Add, edit and deactivate user accounts.",
-      path: "/userlist",
+      description:"  Manage user access and permissions. Add, edit and deactivate user accounts.",
+      path: "/manageradministration",
     },
   ];
 
   return (
     <div className="dashboard-container" style={{  minHeight: "100vh", position: "relative" }}>
-      <Navbar />
-      <Breadcrumbs />
+     
 
       {/* Background Image */}
       <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: -1 }}>
@@ -77,18 +76,7 @@ const Dashboard = () => {
             }}>
               {iconData.map((icon, index) => (
             <Card  key={index}
-              // sx={{
-              //   padding: "10px",
-              //   textAlign: "center",
-              //   borderRadius: "16px",
-              //   boxShadow: 3,
-              //   transition: "transform 0.3s ease-in-out",
-              //   "&:hover": {
-              //     transform: "scale(1.05)",
-              //     boxShadow: 6,
-              //     cursor: "pointer",
-              //   },
-              // }}
+              
               sx={{
                 width: "180px",
                 height: "270px",
@@ -133,4 +121,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default ManagerDashboard;

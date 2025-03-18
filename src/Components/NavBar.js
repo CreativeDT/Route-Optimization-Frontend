@@ -3,6 +3,7 @@ import React, { useContext, useState, useRef, useEffect } from 'react';
 import { FaUser, FaBell, FaCog, FaHome } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import Menu from './Menu';
+
 import './Navbar.css';
 // import logo from '../Assets/images/creative-logo-main.png';
 import logo from '../Assets/images/white_logo.png';
@@ -12,10 +13,13 @@ import ProfileDropdown from './ProfileDropdown';
 
 const NavBar = () => {
   const { user, logout } = useContext(AuthContext);
+
+  console.log("Current User in Navbar:", user);
+
   const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const profileRef = useRef(null);
-
+  console.log("Navbar Rendered - Current User:", user);  // Debug log for user state
   const handleHomeClick = () => {
     navigate("/dashboard");
   };
@@ -58,7 +62,9 @@ const NavBar = () => {
           <div className="profile-wrapper">
             <div className="profile-header" onClick={toggleProfile}>
               <FaUser className="icon" />
-              <span>{user ? user.username : 'Guest'}</span>
+             
+              <span>{user ? user.username: 'Guest'}</span>
+              
             </div>
             <ProfileDropdown isOpen={isProfileOpen} onClose={toggleProfile} />
           </div>

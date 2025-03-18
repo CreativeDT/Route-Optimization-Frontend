@@ -24,52 +24,62 @@ const Login = () => {
     e.preventDefault();
     try {
         console.log("  login with:", { username, userRole });
-
-      const response = await axios.post(`${config.API_BASE_URL}/login`, {
+        const response = await axios.post(`${config.API_BASE_URL}/login`, {
         username,
         password,
         user_role: userRole,
       });
       console.log("Login API Response:", response.data);
       if (response.data) {
-        const { access_token, user_id, driver_id } = response.data;
-         console.log ("response data: ",response.data)
-        // Store user details in localStorage
-        localStorage.setItem("token", access_token);
-       localStorage.setItem("user_id", user_id || "");
-        localStorage.setItem("user_role", userRole);
+          const { access_token, user_id, driver_id } = response.data;
+
+                  // Create user object
+                const userData = {
+                  token: access_token,
+                  user_id: user_id,
+                  user_role: userRole,
+                  username: username,
+              };
+        
+               // Store user details in localStorage
+               localStorage.setItem("user", JSON.stringify(userData));
+
+
+               // Store user details in localStorage
+              // localStorage.setItem("token", access_token);/
+              //  localStorage.setItem("user_id", user_id);
+                //  localStorage.setItem("user_role", userRole);
+              // Log the token to verify it's stored correctly
+              // console.log("Token stored in localStorage:", localStorage.getItem("token"));
+
 
         // Store driver_id only if user is a driver
         if (userRole === "driver" && driver_id) {
-            localStorage.setItem("driver_id", "0c69d4ab-da7d-440e-b8ee-7b2155c99bc1");
+            localStorage.setItem("driver_id", driver_id);
             console.log("Stored driver_id:", driver_id);
         } else {
             localStorage.removeItem("driver_id"); // Ensure it's removed for non-drivers
         }
 
-        // Check localStorage after storing values
-      console.log(" Stored in localStorage:", {
-        token: localStorage.getItem("token"),
-        user_id: localStorage.getItem("user_id"),
-        user_role: localStorage.getItem("user_role"),
-        driver_id: localStorage.getItem("driver_id"), // Should exist only for drivers
-      });
-
+        
         // Set authentication token for future requests
         axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
 
+         // Update AuthContext
+         console.log("Calling login function with:",userData);
+         login(userData); 
+         console.log("Calling login function with:", userData);
         // Redirect based on user role
         if (userRole === "driver") {
           navigate("/driverdashboard");
         } else if (userRole === "manager") {
-          navigate("/fleetmanagerdashboard");
+          navigate("/managerdashboard");
         } else {
           navigate("/dashboard");
         }
       }
     } catch (err) {
       console.error("Login Error:", err.response?.data || err.message);
-      
       setError(err.response?.data?.detail || "Invalid username, password, or role");
     }
   };

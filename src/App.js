@@ -12,7 +12,15 @@ import UserList from './Pages/AdminPersona/UsersList';
 import VehiclesList from './Pages/AdminPersona/VehiclesList';
 import DriverDashboard from './Pages/DriverPersona/DriverDashboard';
 import DriverFleetDetails from './Pages/DriverPersona/DriverFleetDetails ';
-import DriverFleetstatus from './Pages/DriverPersona/DriverFleetstatus';
+import Nearbyconsignments from './Pages/DriverPersona/Nearbyconsignments';
+import ManagerDashboard from './Pages/ManagerPersona/ManagerDashboard';
+import ManagerAdministration from './Pages/ManagerPersona/ManagerAdministration';
+
+
+
+
+
+
 
 
 
@@ -31,8 +39,13 @@ const App = () => {
         <Route path="/vehiclelist" element={<VehiclesList/>}/>
         <Route path="/driverdashboard" element={<DriverDashboard />} />
         <Route path="/driverfleetdetails" element={<DriverFleetDetails />} />
-        <Route path="/driverfleetstatus"  element={<DriverFleetstatus />} />
+        <Route path="/nearbyconsignments" element={<Nearbyconsignments />} />
+        <Route path="/managerdashboard"  element={<ManagerDashboard />} />
+        <Route path="/manageradministration" element={<ManagerAdministration />}/>
+        
+     
       </Routes>
+    
     </Router>
   );
 };

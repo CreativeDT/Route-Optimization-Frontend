@@ -401,29 +401,44 @@ const handleChangeRowsPerPage = (event) => {
         label="Exhaust CO2 Emissions (g/km)"
         variant="outlined"
         sx={{ mt: 2 }}
-            type="number"
+            type="text"
         value={newVehicle.ExhaustCO2}
-        onChange={(e) => setNewVehicle({ ...newVehicle, ExhaustCO2: e.target.value })}
+        onChange={(e) => {
+            const value = e.target.value;
+            if (/^\d*\.?\d*$/.test(value)) { // Allow only numbers and decimals
+              setNewVehicle({ ...newVehicle, ExhaustCO2: value });
+            }
+          }}
     />
 
     <TextField
         fullWidth
         label="Mileage (km/l)"
         variant="outlined"
-        type="number"
+        type="text"
         sx={{ mt: 2 }}
         value={newVehicle.Mileage}
-        onChange={(e) => setNewVehicle({ ...newVehicle, Mileage: e.target.value })}
+        onChange={(e) => {
+            const value = e.target.value;
+            if (/^\d*\.?\d*$/.test(value)) {
+              setNewVehicle({ ...newVehicle, Mileage: value });
+            }
+        }}
     />
 
     <TextField
         fullWidth
         label="Vehicle Capacity (kg)"
         variant="outlined"
-            type="number"
+            type="text"
         sx={{ mt: 2 }}
         value={newVehicle.VehicleCapacity}
-        onChange={(e) => setNewVehicle({ ...newVehicle, VehicleCapacity: e.target.value })}
+        onChange={(e) => {
+            const value = e.target.value;
+            if (/^\d*\.?\d*$/.test(value)) {
+              setNewVehicle({ ...newVehicle, VehicleCapacity: value });
+            }
+          }}
     />
 
     <TextField

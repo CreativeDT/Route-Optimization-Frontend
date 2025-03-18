@@ -767,7 +767,7 @@ const SuggestRoutes = () => {
     setPreloadedDemand(e.target.value); // Update the preloaded demand state
     console.log("Updated Preloaded Demand:", e.target.value); // Log the updated preloaded demand
     
-    if(selectedOrigin && selectedDestination) {
+    if(selectedOrigin || selectedDestination) {
       handleVehicleSelection(value);
       console.log("Vehicle selection triggered with preloaded demand:", value);
     } else {
@@ -850,6 +850,10 @@ const handleVehicleSelection = (selectedOptionOrEvent) => {
 
   getRiskFactors();
 };
+const uniqueVehicleOptions = Array.from(
+  new Map(vehicleOptions.map(vehicle => [vehicle.value, vehicle])).values()
+);
+
 
 // Log the vehicleOptions to the console
 console.log("Vehicle Options:", vehicleOptions);
@@ -1975,7 +1979,7 @@ const isSubmitDisabled = useMemo(() => {
   sx={{ width: "100%", marginBottom: "1rem" }}
 >
   <Select
-    options={vehicleOptions.map(vehicle => ({
+    options={uniqueVehicleOptions.map(vehicle => ({
       value: vehicle.value,
       label: `${vehicle.label} → ID: ${vehicle.value.slice(-5)}`, // Include vehicle_id in label
       vehicle_id: vehicle.vehicle_id, // Add vehicle_id for further use
