@@ -26,7 +26,7 @@ const ManagerDashboard = () => {
         alt: "Route Planning",
         label: "Route Planning",
         description:" Plan the most efficient routes with real-time traffic updates and optimized paths. Optimize routes for cost savings.",
-        path: "/routeplanning",
+        path: "/route-planning",
       },
       
     {

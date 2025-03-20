@@ -273,10 +273,21 @@ const RouteTracking = () => {
 
             console.log('Consignments:', response.data);
 
-            const consignmentsWithStatusText = response.data.consignments.map(consignment => ({
+            const consignmentsWithStatusText = response.data.consignments.map(
+              (consignment) => {
+              const isAssigned = consignment.driver_id !== null && consignment.driver_id !== undefined; // Check if driver_id exists
+              console.log("Consignment ID:", consignment.consignment_id, "Driver ID:", consignment.driver_id, "isAssigned:", isAssigned);
+              return {
                 ...consignment,
-                statusText: consignment.status === 'started' ? 'Started' : 'Not Started'
-            }));
+                statusText:
+                    consignment.status === 'started'
+                        ? 'Started'
+                        : 'Not Started',
+                assignedText: isAssigned ? 'Assigned' : 'Not Assigned',
+                assignedColor: isAssigned ? 'green' : 'red', // Set color based on assignment
+            };
+        }
+    );
 
             setConsignments(consignmentsWithStatusText);
         } catch (error) {
@@ -438,12 +449,20 @@ const RouteTracking = () => {
                         }
                         secondary={
                           <React.Fragment>
+                            <Box sx={{display:"flex",gap :5}}>
                             <Typography
                               variant="body2"
                               sx={{ fontSize: "10px" }}
                             >
-                              {consignment.statusText}
+                            Status:  {consignment.statusText}
                             </Typography>
+                            <Typography
+                              variant="body2"
+                              sx={{ fontSize: "10px" }}
+                            >
+                            Driver:  {consignment.assignedText}
+                            </Typography>
+                            </Box>
                             <Typography
                               variant="body2"
                               sx={{ fontSize: "10px" }}
