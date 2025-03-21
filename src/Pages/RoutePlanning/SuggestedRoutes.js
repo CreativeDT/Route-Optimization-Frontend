@@ -824,13 +824,13 @@ console.log("vehicles:",vehicles);
 const handleVehicleSelection = (selectedOptionOrEvent) => {
   let selectedVehicle;
   
-  // ✅ Check if event comes from a select dropdown (DOM event)
+  // Check if event comes from a select dropdown (DOM event)
   if (selectedOptionOrEvent.target) {
     selectedVehicle = vehicleOptions.find(
       vehicle => vehicle.value === selectedOptionOrEvent.target.value
     );
   } else {
-    selectedVehicle = selectedOptionOrEvent; // ✅ Otherwise, it's a react-select option
+    selectedVehicle = selectedOptionOrEvent; //  Otherwise, it's a react-select option
   }
 
   if (!selectedVehicle) {
@@ -841,14 +841,14 @@ const handleVehicleSelection = (selectedOptionOrEvent) => {
   console.log("Selected Vehicle:", selectedVehicle);
   setSelectedVehicle(selectedVehicle);
 
-  // ✅ Check if `label` exists before splitting
+  //  Check if `label` exists before splitting
   if (selectedVehicle.label) {
     setLabel(selectedVehicle.label.split(" → ").map(item => item.trim()));
   } else {
     setLabel([]); // Reset label if no valid selection
   }
 
-  getRiskFactors();
+  //  getRiskFactors();
 };
 const uniqueVehicleOptions = Array.from(
   new Map(vehicleOptions.map(vehicle => [vehicle.value, vehicle])).values()
@@ -1987,7 +1987,8 @@ const isSubmitDisabled = useMemo(() => {
     value={selectedVehicle}
     onChange={handleVehicleSelection}
      placeholder="Search Available Vehicles..."
-     
+    //  isDisabled={!origin || !destination} // Prevent selection without required fields
+    //  isSearchable={!!origin && !!destination} // Disable search when origin/destination are missing
     isSearchable
     menuPlacement="top" 
     styles={{
@@ -2202,7 +2203,7 @@ const isSubmitDisabled = useMemo(() => {
           <Box
             sx={{
               height: "85vh", // Full viewport height
-              display: "flex",
+              display: "flex",margin:"0px!important",
               flex: "0 0 75%",
               flexDirection: "column",
             }}
@@ -2227,7 +2228,7 @@ const isSubmitDisabled = useMemo(() => {
             <Box sx={{ flex: 2 }}>
               <div
                 ref={handleMapRef}
-                style={{ height: "100%", width: "100%" }}
+                style={{ height: "100%", width: "100%" ,padding:"5px"}}
               ></div>
               {!mapInitialized && (
                 <Typography variant="body1">Loading Map...</Typography>
@@ -2237,7 +2238,7 @@ const isSubmitDisabled = useMemo(() => {
               <Box
                 sx={{
                   flex: 2,
-                  borderTop: "1px solid #ccc",
+                  border: "1px solid #ccc",
                   overflowY: "auto",
                   //   padding: 2,
                   backgroundColor: "#fafafa",
@@ -2246,7 +2247,7 @@ const isSubmitDisabled = useMemo(() => {
                 <Typography
                   variant="h6"
                   sx={{ mb: 1 }}
-                  style={{ color: "black" }}
+                  style={{ color: "black" ,padding:"2px 10px",}}
                 >
                   Suggested Routes
                 </Typography>
@@ -2276,6 +2277,7 @@ const isSubmitDisabled = useMemo(() => {
                             fontSize: "10px",
                             fontWeight: "bold",
                             lineHeight: "15px",
+                            borderRight:"1px solid #bbb"
                           },
                         }}
                       >

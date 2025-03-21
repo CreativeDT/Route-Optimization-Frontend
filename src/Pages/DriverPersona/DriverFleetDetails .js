@@ -26,7 +26,30 @@ const DriverFleetDetails = () => {
   const [error, setError] = useState(null);
   const { user } = useContext(AuthContext);
   const token = localStorage.getItem("token");
-
+  const tableHeadStyles = {
+    position: "sticky",
+    top: 0,
+    backgroundColor: "#3f51b5", // Dark blue header
+    color: "#ffffff",
+    zIndex: 2,
+  };
+  
+  const tableCellStyles = {
+    borderRight: "1px solid #e0e0e0", // Light gray divider
+    color: "#ffffff",
+    fontWeight: "bold",
+  };
+  
+  const tableContainerStyles = {
+    maxHeight: "70vh", // Restrict height to allow scrolling
+    overflow: "auto",
+  };
+  
+  const rowStyles = {
+    "&:nth-of-type(odd)": { backgroundColor: "#f5f5f5" }, // Alternate row colors
+    "&:hover": { backgroundColor: "#e3f2fd" }, // Light blue on hover
+  };
+  
   useEffect(() => {
     if (!token) {
       setError("No authentication token found.");
@@ -104,17 +127,17 @@ const DriverFleetDetails = () => {
         ) : error ? (
           <Alert severity="error">{error}</Alert>
         ) : consignments.length > 0 ? (
-          <TableContainer component={Paper}>
-            <Table className="customTable">
+          <TableContainer component={Paper} sx={tableContainerStyles}>
+            <Table className="customTable"stickyHeader>
               <TableHead>
-                <TableRow>
-                  <TableCell>Route ID</TableCell>
-                  <TableCell>Vehicle ID</TableCell>
-                  <TableCell>Origin</TableCell>
-                  <TableCell>Destination</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Carbon Emission</TableCell>
-                  <TableCell>Created Date</TableCell>
+                <TableRow sx={tableHeadStyles}>
+                  <TableCell sx={tableCellStyles}>Route ID</TableCell>
+                  <TableCell sx={tableCellStyles}>Vehicle ID</TableCell>
+                  <TableCell sx={tableCellStyles}>Origin</TableCell>
+                  <TableCell sx={tableCellStyles}>Destination</TableCell>
+                  <TableCell sx={tableCellStyles}>Status</TableCell>
+                  <TableCell sx={tableCellStyles}>Carbon Emission</TableCell>
+                  <TableCell sx={tableCellStyles}>Created Date</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>

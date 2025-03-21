@@ -216,7 +216,7 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
     );
 });
 
-const RouteTracking = () => {
+const ManagerRouteTracking = () => {
     const [consignments, setConsignments] = useState([]);
     const [selectedRoutes, setSelectedRoutes] = useState([]);
     const [selectedConsignments, setSelectedConsignments] = useState([]);
@@ -555,4 +555,4 @@ const RouteTracking = () => {
     );
 };
 
-export default RouteTracking;
+export default ManagerRouteTracking;

@@ -7,9 +7,10 @@ import {
 } from "@mui/material";
 import { NavLink } from "react-router-dom";
 import NavBar from "../../Components/NavBar";
-import Breadcrumbs from "../Breadcrumbs/Breadcrumbs";
+
 import config from "../../config";
 import "./Form.css";  
+import Breadcrumbs1 from "./Breadcrumbs1";
 
 const Dashboard = () => {
   const [tabIndex, setTabIndex] = useState(0);
@@ -195,12 +196,17 @@ const [selectedConsignment, setSelectedConsignment] = useState(null);
 //     const driverId = event.target.value;
 //     setSelectedDrivers({ ...selectedDrivers, [routeId]: driverId });
 // };
-const handleDriverSelectChange = (event, newValue, routeId) => {
-    setSelectedDrivers({
-        ...selectedDrivers,
-        [routeId]: newValue,
-    });
+const handleDriverSelectChange = (event, newValue, routeID) => {
+    setSelectedDrivers((prevSelectedDrivers) => ({
+        ...prevSelectedDrivers,
+        [routeID]: newValue, // Store selected driver for the route
+    }));
+
+    if (newValue) {
+        handleAssignDriver(newValue.driver_id, routeID); // Call API to assign driver
+    }
 };
+
 
   const fetchDrivers = async () => {
     try {
@@ -224,7 +230,7 @@ const handleDriverSelectChange = (event, newValue, routeId) => {
   return (
     <>
       <NavBar />
-      <Breadcrumbs />
+      <Breadcrumbs1 />
       <Paper sx={{ border: "1px solid #ddd", margin: "auto" }}>
         {/* Tabs for Drivers, Vehicles, and Fleet Details */}
         <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -248,15 +254,15 @@ const handleDriverSelectChange = (event, newValue, routeId) => {
           <TableContainer component={Paper} sx={{ maxHeight: 300, overflowY: "auto" }}>
             <Table sx={{ minWidth: 650 }}>
               <TableHead sx={{ position: "sticky", top: 0, backgroundColor: "#156272", zIndex: 1 }}>
-                <TableRow sx={{ backgroundColor: "#156272", color: "white" }}>
+                <TableRow sx={{ backgroundColor: "#156272", color: "white" , borderRight:"1px solid red"}}>
                   {tabIndex === 0 && (
                     <>
-                      <TableCell sx={{ color: "white" }}>SNo</TableCell>
-                      <TableCell sx={{ color: "white" }}>Driver Name</TableCell>
-                      <TableCell sx={{ color: "white" }}>Email</TableCell>
-                      <TableCell sx={{ color: "white" }}>Date of Joining</TableCell>
-                      <TableCell sx={{ color: "white" }}>Vehicle Status</TableCell>
-                      <TableCell sx={{ color: "white" }}>Route Status</TableCell>
+                      <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>SNo</TableCell>
+                      <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>Driver Name</TableCell>
+                      <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>Email</TableCell>
+                      <TableCell sx={{ color: "white" ,borderRight: "1px solid #bbb"}}>Date of Joining</TableCell>
+                      <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>Vehicle Status</TableCell>
+                      <TableCell sx={{ color: "white" ,borderRight: "1px solid #bbb"}}>Route Status</TableCell>
                     </>
                   )}
                   {tabIndex === 1 && (
@@ -283,6 +289,7 @@ const handleDriverSelectChange = (event, newValue, routeId) => {
                         <TableCell sx={{ color: "white" }}>Carbon Emission</TableCell>
                         <TableCell sx={{ color: "white" }}>Created Date</TableCell>
                         <TableCell sx={{ color: "white" }}>Summary</TableCell>
+                        <TableCell sx={{ color: "white" }}>Driver Status</TableCell>
                         <TableCell sx={{ color: "white" }}>Assign Driver</TableCell>
                     </>
                     )}
@@ -324,7 +331,12 @@ const handleDriverSelectChange = (event, newValue, routeId) => {
                    {tabIndex === 2 && (
                     <>
                         <TableCell>{index + 1}</TableCell>
-                        <TableCell>{item.routeID}</TableCell>
+                        
+                        <TableCell>
+                        <Tooltip title={item.routeID || "N/A"} arrow>
+                            <span>{item.routeID ? item.routeID.slice(-5) : "N/A"}</span>
+                        </Tooltip>
+                        </TableCell>
                         <TableCell>
                         <Tooltip title={item.vehicle_id || "N/A"} arrow>
                             <span>{item.vehicle_id ? item.vehicle_id.slice(-5) : "N/A"}</span>
@@ -344,6 +356,7 @@ const handleDriverSelectChange = (event, newValue, routeId) => {
                             {item.summaryAdded ? "Summary Added" : "Add Summary"}
                         </Button>
                         </TableCell>
+                        <TableCell>{selectedDrivers[item.routeID] ? "Driver Assigned" : item.status}</TableCell>
                         <TableCell>
                                     <Autocomplete
                                         options={availableDrivers.filter((driver) => driver.route_status === "Not Assigned")}

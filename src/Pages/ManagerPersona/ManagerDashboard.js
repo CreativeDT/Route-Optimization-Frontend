@@ -26,7 +26,7 @@ const ManagerDashboard = () => {
         alt: "Route Planning",
         label: "Route Planning",
         description:" Plan the most efficient routes with real-time traffic updates and optimized paths. Optimize routes for cost savings.",
-        path: "/route-planning",
+        path: "/managersuggestroutes",
       },
       
     {
@@ -34,7 +34,7 @@ const ManagerDashboard = () => {
       alt: "Route Tracking",
       label: "Route Tracking",
       description: "Track your vehicles and shipments in real-time with advanced GPS technology. Monitor your fleet in real-time.",
-      path: "/route-tracking",
+      path: "/manager_route-tracking",
     },
     
     {
@@ -42,7 +42,7 @@ const ManagerDashboard = () => {
       alt: "Analytics",
       label: "Analytics",
       description: "Gain insights into your operations with detailed analytics and reports. Analyze fuel consumption, driver performance, delivery times.",
-      path: "/analytics",
+      path: "/manager_analytics",
     },
    
     {

@@ -7,23 +7,27 @@
   background-color: #f0f0f0; /* Example background color */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
   position: relative; /* Important for positioning the dropdown */
+  width:100%;
 }
 
 .navbar-left {
   display: flex;
   align-items: center;
+  flex-grow: 1; /* Allow it to take available space */
 }
 
 .logo {
   height: 35px; /* Adjust logo height as needed */
   cursor: pointer; /* Make logo clickable */
-  margin-right: 49rem;
+  max-width: 150px; 
+  object-fit: contain; 
 }
 
 .navbar-right {
   display: flex;
   align-items: center;
   gap: 20px;  /* Space out the icons and profile */
+  max-width: 100%;margin:0px 25px 0px 0px;
 }
 
 .icon {
@@ -44,6 +48,11 @@
   display: flex;
   align-items: center;
   gap: 5px;
+  flex-shrink: 1; 
+  white-space: nowrap;
+  overflow: hidden; 
+  text-overflow: ellipsis; /* Add ellipsis for long text */
+  max-width: 150px;
 }
 
 .profile-dropdown {
@@ -104,3 +113,19 @@
 .home-button {
     cursor: pointer;
 }
+@media (max-width: 768px) {
+  .logo {
+    height: 25px; /* Reduce size on smaller screens */
+    max-width: 100px;
+  }
+}
+@media (max-width: 768px) {
+  .profile-header {
+    max-width: 100px; /* Reduce the width for smaller screens */
+  }
+
+  .profile-header span {
+    font-size: 12px; /* Smaller font size for mobile */
+  }
+}
+

@@ -71,7 +71,7 @@ const Login = () => {
          console.log("Calling login function with:", userData);
         // Redirect based on user role
         if (userRole === "driver") {
-          navigate("/driverdashboard");
+          navigate("/driverfleetdetails");
         } else if (userRole === "manager") {
           navigate("/managerdashboard");
         } else {

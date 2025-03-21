@@ -4,7 +4,7 @@ import { useLocation,useNavigate } from 'react-router-dom';
 import './Breadcrumbs.css'
 
 
-const Breadcrumbs = ({ homeLabel = "Home" }) => {
+const Breadcrumbs1 = ({ homeLabel = "Home" }) => {
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -19,11 +19,11 @@ const Breadcrumbs = ({ homeLabel = "Home" }) => {
 
             // Customize display names for specific routes (Important!)
             switch (segment) {
-                case 'route-planning':
-                    displayName = 'Route Planning';
+                case 'Fleetdetails':
+                    displayName = 'Fleetdetails';
                     break;
-                case 'route-tracking':
-                    displayName = 'Route Tracking';
+                case 'ManagerAdministration':
+                    displayName = 'ManagerAdministration';
                     break;
                 case 'analytics':
                     displayName = 'Analytics';
@@ -56,7 +56,7 @@ const Breadcrumbs = ({ homeLabel = "Home" }) => {
             <MuiBreadcrumbs className="breadcrumbs" aria-label="breadcrumb">
                 
                 <Typography 
-                    onClick={() => navigate("/dashboard")}
+                    onClick={() => navigate("/managerdashboard")}
                     style={{ cursor: 'pointer', color: 'inherit',textDecoration:'none' }}
                 >
                     {homeLabel}
@@ -67,4 +67,4 @@ const Breadcrumbs = ({ homeLabel = "Home" }) => {
     );
 };
 
-export default Breadcrumbs;
+export default Breadcrumbs1;

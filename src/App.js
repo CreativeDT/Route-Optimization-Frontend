@@ -15,6 +15,8 @@ import DriverFleetDetails from './Pages/DriverPersona/DriverFleetDetails ';
 import Nearbyconsignments from './Pages/DriverPersona/Nearbyconsignments';
 import ManagerDashboard from './Pages/ManagerPersona/ManagerDashboard';
 import ManagerAdministration from './Pages/ManagerPersona/ManagerAdministration';
+import ManagerSuggestRoutes from './Pages/ManagerPersona/ManagerSuggestRoutes';
+
 
 
 
@@ -42,6 +44,7 @@ const App = () => {
         <Route path="/nearbyconsignments" element={<Nearbyconsignments />} />
         <Route path="/managerdashboard"  element={<ManagerDashboard />} />
         <Route path="/manageradministration" element={<ManagerAdministration />}/>
+        <Route path="/managersuggestroutes" element={<ManagerSuggestRoutes />} />
         
      
       </Routes>
