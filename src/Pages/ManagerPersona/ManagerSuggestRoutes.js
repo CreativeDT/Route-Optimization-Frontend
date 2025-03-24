@@ -49,7 +49,7 @@ import React, {
   import IconButton from "@mui/material/IconButton";
   import blueicon from "../../Assets/images/blue.png";
   import { CircularProgress } from "@mui/material";
-  import Breadcrumbs from "../Breadcrumbs/Breadcrumbs";
+
   import config from "../../config";
   //import { ExpandMore, Close } from "@mui/icons-material";
   import debounce from "lodash.debounce";
@@ -57,6 +57,7 @@ import React, {
   import Select from "react-select";
   
   import "../../App.css";
+import Breadcrumbs1 from "./Breadcrumbs1";
   const ManagerSuggestRoutes = () => {
     // const [startDate, setStartDate] = useState(null);
     // const [endDate, setEndDate] = useState(null);
@@ -1322,7 +1323,7 @@ import React, {
           </Box>
         </Box>
         <NavBar />
-        <Breadcrumbs />
+        <Breadcrumbs1 />
   
         {/* <Container fluid className="mt-5 px-5 " > */}
         <Box

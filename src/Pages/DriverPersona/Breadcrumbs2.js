@@ -4,7 +4,7 @@ import { useLocation,useNavigate } from 'react-router-dom';
 import './Breadcrumbs.css'
 
 
-const Breadcrumbs1 = ({ homeLabel = "Home" }) => {
+const Breadcrumbs2 = ({ homeLabel = "Home" }) => {
     const location = useLocation();
     const navigate = useNavigate();
 
@@ -19,21 +19,16 @@ const Breadcrumbs1 = ({ homeLabel = "Home" }) => {
 
             // Customize display names for specific routes (Important!)
             switch (segment) {
-                case 'Fleetdetails':
-                    displayName = 'Fleetdetails';
+                case 'driverfleetdetails':
+                    displayName = 'Driver Fleetdetails';
                     break;
-                case 'ManagerAdministration':
-                    displayName = 'ManagerAdministration';
+                case 'driverroutetracking':
+                    displayName = 'Driver Route Tracking';
                     break;
-                case 'analytics':
-                    displayName = 'Analytics';
+                case 'driveranalytics':
+                    displayName = 'DriverAnalytics';
                     break;
-                case 'Manager Suggest Routes':
-                        displayName = 'Manager Suggest Routes';
-                        break;
-                case 'Manager Route Tracking':
-                            displayName = 'Manager Route Tracking';
-                            break;        
+                
                         
                 // Add more cases as needed for other routes
                 default:
@@ -63,7 +58,7 @@ const Breadcrumbs1 = ({ homeLabel = "Home" }) => {
             <MuiBreadcrumbs className="breadcrumbs" aria-label="breadcrumb">
                 
                 <Typography 
-                    onClick={() => navigate("/managerdashboard")}
+                    onClick={() => navigate("/driverdashboard")}
                     style={{ cursor: 'pointer', color: 'inherit',textDecoration:'none' }}
                 >
                     {homeLabel}
@@ -74,4 +69,4 @@ const Breadcrumbs1 = ({ homeLabel = "Home" }) => {
     );
 };
 
-export default Breadcrumbs1;
+export default Breadcrumbs2;

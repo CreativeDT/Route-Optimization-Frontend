@@ -2,7 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Grid, Card, CardContent, Typography } from "@mui/material";
 
-import Breadcrumbs from "../Breadcrumbs/Breadcrumbs";
+
 import backgroundImage from "../../Assets/images/61758.jpg";
 import adminIcon from '../../Assets/images/admin.png';
 import '.././Dashboard.css';
@@ -13,6 +13,7 @@ import AnalyticsIcon from "../../Assets/images/analysis.png";
 import userIcon from '../../Assets/images/user_details.png';
 import vehicleIcon from '../../Assets/images/vehicle_detail.png';
 import NavBar from "../../Components/NavBar";
+import Breadcrumbs2 from "./Breadcrumbs2";
 // Import video
 //import GlobeVideo from '../Assets/videos/globe.mp4';
 
@@ -32,11 +33,11 @@ const DriverDashboard = () => {
        
         
       ,
-      path: "/route-tracking",
+      path: "/driverroutetracking",
     },
     {
       image: RouteIcon,
-      alt: "Fleet etails",
+      alt: "Fleet details",
       label: "Fleet Details",
       description:
      
@@ -50,8 +51,8 @@ const DriverDashboard = () => {
     },
     {
       image: AnalyticsIcon,
-      alt: "Fleet Status",
-      label: "Fleet Status",
+      alt: "Analytics",
+      label: "Analytics",
       description:  
      
        
@@ -59,40 +60,16 @@ const DriverDashboard = () => {
          
       
       ,
-      path: "/driverfleetstatus",
+      path: "/driveranalytics",
     },
     
-    {
-      image: adminIcon,
-      alt: "Nearby Consignments",
-      label: "Nearby Consignments",
-      description:  
-      
-        
-         " Manage user access and permissions. Add, edit and deactivate user accounts."
-           
-   
-      ,
-      path: "/nearbyconsignments",
-    },
-    {
-      image: adminIcon,
-      alt: "Nearby ParkingLots",
-      label: "Nearby ParkingLots",
-      description:  
-       
-     
-        "  Manage user access and permissions. Add, edit and deactivate user accounts."
-           
     
-      ,
-      path: "/userlist",
-    },
   ];
 
   return (
     <div className="dashboard-container" style={{  minHeight: "100vh", position: "relative" }}>
-     
+     <NavBar />
+     <Breadcrumbs2 />
 
       {/* Background Image */}
       <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: -1 }}>

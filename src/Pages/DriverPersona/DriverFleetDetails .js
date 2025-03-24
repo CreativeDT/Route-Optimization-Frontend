@@ -17,8 +17,9 @@ import axios from "axios";
 import { AuthContext } from "../../Context/AuthContext";
 import "./Table.css"; 
 import NavBar from "../../Components/NavBar";
-import Breadcrumbs from "../Breadcrumbs/Breadcrumbs";
+
 import config from "../../config";
+import Breadcrumbs2 from "./Breadcrumbs2";
 
 const DriverFleetDetails = () => {
   const [consignments, setConsignments] = useState([]);
@@ -119,7 +120,7 @@ const DriverFleetDetails = () => {
   return (
     <>
       <NavBar />
-      <Breadcrumbs />
+      <Breadcrumbs2 />
       <Container fullWidth>
         <Typography variant="h6">Driver Fleet Details</Typography>
         {loading ? (

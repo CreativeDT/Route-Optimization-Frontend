@@ -2,17 +2,19 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-    Typography, CircularProgress, Box, Tabs, Tab, Tooltip, Button, Dialog,
+    Typography, CircularProgress, Box, Tabs, Tab, Tooltip, Button, Dialog,TablePagination,
     DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem,TextField, Autocomplete
 } from "@mui/material";
 import { NavLink } from "react-router-dom";
 import NavBar from "../../Components/NavBar";
 
 import config from "../../config";
-import "./Form.css";  
+import "./../Form.css";  
 import Breadcrumbs1 from "./Breadcrumbs1";
 
 const Dashboard = () => {
+    const [page, setPage] = useState(0);
+    const [rowsPerPage, setRowsPerPage] = useState(10);
   const [tabIndex, setTabIndex] = useState(0);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -160,53 +162,55 @@ const [selectedConsignment, setSelectedConsignment] = useState(null);
 //     fetchDrivers();
 //     setOpenAssignDialog(true);
 //   };
-  const handleAssignDriver =  async (driverId, routeId)=>{
+const handleAssignDriver = async (driverId, routeId) => {
     if (!driverId || !routeId) {
         alert("Please select a driver.");
         return;
     }
-  
+
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("No token found. Please log in.");
-        return;
-      }
-  
-      const response = await axios.post(
-        `${config.API_BASE_URL}/assignDriver`,
-        {
-            driver_id: driverId,
-            route_id: routeId,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
+        const token = localStorage.getItem("token");
+        if (!token) {
+            console.error("No token found. Please log in.");
+            return;
         }
-      );
-  
-      alert(response.data.detail || "Driver assigned successfully.");
-     
-      fetchData(); // Refresh the fleet details table
+
+        // Modify API endpoint to correct one
+        const response = await axios.post(
+            `${config.API_BASE_URL}/assignDriver`, 
+            { driver_id: driverId, route_id: routeId },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        
+        //  Update the selectedDrivers state immediately after success
+          setSelectedDrivers((prev) => ({
+            ...prev,
+            [routeId]: availableDrivers.find((d) => d.driver_id === driverId),
+          }));
+        console.log("API Response:", response.data);
+        alert("Driver assigned successfully.");
+        
+        // Fetch updated data so UI reflects changes
+        fetchData();
     } catch (error) {
-      console.error("Error assigning driver:", error);
-      setError("Failed to assign driver.");
+        console.error("Error assigning driver:", error.response?.data || error.message);
     }
-  };
+};
+
 //   const handleDriverSelectChange = (event, routeId) => {
 //     const driverId = event.target.value;
 //     setSelectedDrivers({ ...selectedDrivers, [routeId]: driverId });
 // };
-const handleDriverSelectChange = (event, newValue, routeID) => {
-    setSelectedDrivers((prevSelectedDrivers) => ({
-        ...prevSelectedDrivers,
-        [routeID]: newValue, // Store selected driver for the route
-    }));
-
+const handleDriverSelectChange = (event, newValue, routeId) => {
     if (newValue) {
-        handleAssignDriver(newValue.driver_id, routeID); // Call API to assign driver
+        setSelectedDrivers((prev) => ({
+            ...prev,
+            [routeId]: newValue // Store selected driver
+        }));
+
+        handleAssignDriver(newValue.id, routeId);
     }
 };
-
 
   const fetchDrivers = async () => {
     try {
@@ -227,17 +231,28 @@ const handleDriverSelectChange = (event, newValue, routeID) => {
     }
   };
   
+    // Handle Pagination Changes
+    const handleChangePage = (event, newPage) => setPage(newPage);
+    const handleChangeRowsPerPage = (event) => {
+      setRowsPerPage(parseInt(event.target.value, 10));
+      setPage(0);
+    };
+   // Reset pagination when tabIndex changes
+   useEffect(() => {
+    setPage(0); // Reset to first page when switching tabs
+  }, [tabIndex]);
+    
   return (
     <>
       <NavBar />
       <Breadcrumbs1 />
-      <Paper sx={{ border: "1px solid #ddd", margin: "auto" }}>
+      <Paper sx={{ border: "1px solid  #e0e0e0", margin: "auto",padding:2 }}>
         {/* Tabs for Drivers, Vehicles, and Fleet Details */}
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <Typography variant="h6" sx={{ color: "#156272" }} gutterBottom>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between",marginBottom: 2 }}> 
+          <Typography variant="h5" sx={{ color: "#156272" }} gutterBottom>
             Manager Dashboard
           </Typography>
-          <Tabs value={tabIndex} onChange={(e, newValue) => setTabIndex(newValue)}>
+          <Tabs value={tabIndex} onChange={(e, newValue) => setTabIndex(newValue)} sx={{borderRadius:"4px"}}>
             <Tab label="Drivers" />
             <Tab label="Vehicles" />
             <Tab label="Fleet Details" />
@@ -251,10 +266,10 @@ const handleDriverSelectChange = (event, newValue, routeID) => {
         ) : data.length === 0 ? (
           <Typography>No data found.</Typography>
         ) : (
-          <TableContainer component={Paper} sx={{ maxHeight: 300, overflowY: "auto" }}>
-            <Table sx={{ minWidth: 650 }}>
-              <TableHead sx={{ position: "sticky", top: 0, backgroundColor: "#156272", zIndex: 1 }}>
-                <TableRow sx={{ backgroundColor: "#156272", color: "white" , borderRight:"1px solid red"}}>
+          <TableContainer component={Paper} sx={{ maxHeight:"60vh", overflowY: "auto" , boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
+            <Table sx={{ minWidth: 650 ,borderCollapse: "collapse" }}>
+              <TableHead sx={{ position: "sticky", top: 0, backgroundColor: "#5e87b0 ", zIndex: 1 }}>
+                <TableRow>
                   {tabIndex === 0 && (
                     <>
                       <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>SNo</TableCell>
@@ -267,30 +282,30 @@ const handleDriverSelectChange = (event, newValue, routeID) => {
                   )}
                   {tabIndex === 1 && (
                     <>
-                      <TableCell sx={{ color: "white" }}>SNo</TableCell>
-                      <TableCell sx={{ color: "white" }}>Vehicle Id</TableCell>
-                      <TableCell sx={{ color: "white" }}>Vehicle Name</TableCell>
-                      <TableCell sx={{ color: "white" }}>Fuel Type</TableCell>
-                      <TableCell sx={{ color: "white" }}>ExhaustCo2</TableCell>
-                      <TableCell sx={{ color: "white" }}>Mileage</TableCell>
-                      <TableCell sx={{ color: "white" }}>Vehicle Capacity</TableCell>
-                      <TableCell sx={{ color: "white" }}>Vehicle Status</TableCell>
-                      <TableCell sx={{ color: "white" }}>Assigned Driver</TableCell>
+                      <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>SNo</TableCell>
+                      <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Vehicle Id</TableCell>
+                      <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Vehicle Name</TableCell>
+                      <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Fuel Type</TableCell>
+                      <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>ExhaustCo2</TableCell>
+                      <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Mileage</TableCell>
+                      <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Vehicle Capacity</TableCell>
+                      <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Vehicle Status</TableCell>
+                      <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Assigned Driver</TableCell>
                     </>
                   )}
                   {tabIndex === 2 && (
                     <>
-                        <TableCell sx={{ color: "white" }}>SNo</TableCell>
-                        <TableCell sx={{ color: "white" }}>Route ID</TableCell>
-                        <TableCell sx={{ color: "white" }}>Vehicle ID</TableCell>
-                        <TableCell sx={{ color: "white" }}>Origin</TableCell>
-                        <TableCell sx={{ color: "white" }}>Destination</TableCell>
-                        <TableCell sx={{ color: "white" }}>Status</TableCell>
-                        <TableCell sx={{ color: "white" }}>Carbon Emission</TableCell>
-                        <TableCell sx={{ color: "white" }}>Created Date</TableCell>
-                        <TableCell sx={{ color: "white" }}>Summary</TableCell>
-                        <TableCell sx={{ color: "white" }}>Driver Status</TableCell>
-                        <TableCell sx={{ color: "white" }}>Assign Driver</TableCell>
+                        <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>SNo</TableCell>
+                        <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Route ID</TableCell>
+                        <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Vehicle ID</TableCell>
+                        <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Origin</TableCell>
+                        <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Destination</TableCell>
+                        <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Status</TableCell>
+                        <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Carbon Emission</TableCell>
+                        <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Created Date</TableCell>
+                        <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Summary</TableCell>
+                        <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Driver Status</TableCell>
+                        <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Assign Driver</TableCell>
                     </>
                     )}
 
@@ -298,11 +313,13 @@ const handleDriverSelectChange = (event, newValue, routeID) => {
               </TableHead>
               {Array.isArray(data) && data.length > 0 ? (
               <TableBody>
-                {data.map((item, index) => (
+                {data
+                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                .map((item, index) => (
                   <TableRow key={item.id || index}>
                     {tabIndex === 0 && (
                       <>
-                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                         <TableCell>{item.driver_name}</TableCell>
                         <TableCell>{item.email}</TableCell>
                         <TableCell>{item.joining_date}</TableCell>
@@ -312,7 +329,7 @@ const handleDriverSelectChange = (event, newValue, routeID) => {
                     )}
                     {tabIndex === 1 && (
                       <>
-                        <TableCell>{index + 1}</TableCell>
+                         <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                         <TableCell>
                         <Tooltip title={item.VehicleID || "No ID available"} arrow>
                             <span>{item.VehicleID ? item.VehicleID.slice(-5) : "N/A"}</span>
@@ -330,7 +347,7 @@ const handleDriverSelectChange = (event, newValue, routeID) => {
                     )}
                    {tabIndex === 2 && (
                     <>
-                        <TableCell>{index + 1}</TableCell>
+                        <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                         
                         <TableCell>
                         <Tooltip title={item.routeID || "N/A"} arrow>
@@ -343,31 +360,59 @@ const handleDriverSelectChange = (event, newValue, routeID) => {
                         </Tooltip>
                         </TableCell>
                         
-                        <TableCell>{item.origin}</TableCell>
-                        <TableCell>{item.destination}</TableCell>
+                        <TableCell
+                         sx={{ 
+                            minWidth: "80px", // Ensures a minimum width
+                            maxWidth: "15vw", // Sets max width relative to viewport
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis"
+                          }}>
+                            <Tooltip title={item.origin || "N/A"} arrow>
+                              <span>{item.origin}</span>
+                            </Tooltip>
+                        </TableCell>
+                        <TableCell  sx={{minWidth: "80px", 
+                        maxWidth: "15vw", 
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis"
+                    }}>
+                        <Tooltip title={item.destination || "N/A"} arrow>
+                        <span>{item.destination}</span>
+                        </Tooltip>
+                    </TableCell>
                         <TableCell>{item.status}</TableCell>
                         <TableCell>{item.carbon_emission || "N/A"}</TableCell>
                         <TableCell>{new Date(item.creationDate).toLocaleDateString()}</TableCell>
                         <TableCell>
-                        <Button
+                        <Button sx={{fontSize:"12px"}}
                             onClick={() => handleOpenSummary(item)}
                             color={item.summaryAdded ? "secondary" : "primary"}
                         >
                             {item.summaryAdded ? "Summary Added" : "Add Summary"}
                         </Button>
                         </TableCell>
-                        <TableCell>{selectedDrivers[item.routeID] ? "Driver Assigned" : item.status}</TableCell>
+                        <TableCell> {selectedDrivers[item.routeID] ? "Driver Assigned" : item.status}</TableCell>
                         <TableCell>
-                                    <Autocomplete
-                                        options={availableDrivers.filter((driver) => driver.route_status === "Not Assigned")}
-                                        getOptionLabel={(option) => option.driver_name || ""}
-                                        value={selectedDrivers[item.routeID] || null}
-                                        onChange={(event, newValue) => handleDriverSelectChange(event, newValue, item.routeID)}
-                                        renderInput={(params) => (
-                                            <TextField {...params} label="Select Driver" variant="outlined" />
-                                        )}
-                                    />
-                                </TableCell>
+                       <Autocomplete
+                            options={availableDrivers.filter((driver) => driver.route_status === "Not Assigned")}
+                            getOptionLabel={(option) => option.driver_name || ""}
+                            value={selectedDrivers[item.routeID] || null}
+                            onChange={(event, newValue) => {
+                                handleAssignDriver(newValue?.driver_id, item.routeID);
+                            }}
+                            renderInput={(params) => (
+                                <TextField 
+                                    {...params} 
+                                    label={selectedDrivers[item.routeID] ? "Reassign Driver" : "Select Driver"} 
+                                    variant="outlined" 
+                                />
+                            )}
+                        />
+
+                    </TableCell>
+
                     </>
                     )}
 
@@ -379,8 +424,20 @@ const handleDriverSelectChange = (event, newValue, routeID) => {
               )}
             </Table>
           </TableContainer>
+          
          )}
-      </Paper>
+         </Paper>
+           {/* Pagination */}
+      <TablePagination
+        rowsPerPageOptions={[5, 10, 25]}
+        component="div"
+        count={data.length}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+      
       <Dialog open={open} onClose={() => setOpen(false)}>
       <DialogTitle>
             {selectedConsignment?.summaryAdded ? "View/Edit Summary" : "Add Consignment Summary"}

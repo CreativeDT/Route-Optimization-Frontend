@@ -13,6 +13,7 @@ import AnalyticsIcon from "../../Assets/images/analysis.png";
 import userIcon from '../../Assets/images/user_details.png';
 import vehicleIcon from '../../Assets/images/vehicle_detail.png';
 import NavBar from "../../Components/NavBar";
+import Breadcrumbs1 from "./Breadcrumbs1";
 // Import video
 //import GlobeVideo from '../Assets/videos/globe.mp4';
 
@@ -34,7 +35,7 @@ const ManagerDashboard = () => {
       alt: "Route Tracking",
       label: "Route Tracking",
       description: "Track your vehicles and shipments in real-time with advanced GPS technology. Monitor your fleet in real-time.",
-      path: "/manager_route-tracking",
+      path: "/managerroutetracking",
     },
     
     {
@@ -42,7 +43,7 @@ const ManagerDashboard = () => {
       alt: "Analytics",
       label: "Analytics",
       description: "Gain insights into your operations with detailed analytics and reports. Analyze fuel consumption, driver performance, delivery times.",
-      path: "/manager_analytics",
+      path: "/manageranalytics",
     },
    
     {
@@ -56,7 +57,8 @@ const ManagerDashboard = () => {
 
   return (
     <div className="dashboard-container" style={{  minHeight: "100vh", position: "relative" }}>
-     
+       <NavBar />
+       <Breadcrumbs1 />
 
       {/* Background Image */}
       <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: -1 }}>

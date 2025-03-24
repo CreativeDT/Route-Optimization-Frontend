@@ -30,7 +30,7 @@ import NavBar from "../../Components/NavBar";
 import Breadcrumbs from "../Breadcrumbs/Breadcrumbs";
 import config from "../../config";
 import { useNavigate } from 'react-router-dom';
-import "./Form.css";  
+import "./../Form.css";  
  
 const UserList = () => {
   const navigate = useNavigate();
@@ -336,9 +336,9 @@ const handleChangeRowsPerPage = (event) => {
     <>
       <NavBar />
       <Breadcrumbs />
-      <Paper sx={{border:"1px solid #ddd", margin: "auto" }}>
-      <Box sx={{ display: "flex", alignItems: "center" ,justifyContent: "space-between"  }}>
-            <Typography variant="h6" sx={{color:"#156272"}} gutterBottom className="title">Admin Dashboard</Typography>
+      <Paper sx={{border:"1px solid  #e0e0e0", margin: "auto" ,padding:2 }}>
+      <Box sx={{ display: "flex", alignItems: "center" ,justifyContent: "space-between" ,marginBottom: 2 }}>
+            <Typography variant="h5" sx={{color:"#156272"}} gutterBottom className="title">Admin Dashboard</Typography>
             <Box  className="nav-links"> 
             <Typography   gutterBottom component={NavLink} to="/userlist" className="nav-link">
            Users
@@ -351,7 +351,26 @@ const handleChangeRowsPerPage = (event) => {
 
           <Box className="filter-container">
           {/* Filter Tabs */}
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<Add />}
+            onClick={() => handleOpenDialog()}
+          >
+            Create User
+          </Button>
+         
        
+        {/* Search Bar & Add Button */}
+        <Box sx={{display:'flex'}}>
+          <TextField className="search-add-container"
+            placeholder="Search"
+            size="small"
+           
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+         
+        
           <Tabs
             value={filter}
             onChange={(e, newValue) => setFilter(newValue)}
@@ -362,7 +381,7 @@ const handleChangeRowsPerPage = (event) => {
                 backgroundColor: filter === "All" ? "#388e3c" : "transparent", // Change the background color of active tab
                 color: filter === "All" ? "white" : "#1976d2", // Change text color for active tab
                 border:"1px solid #ddd",padding:"5px 15px",
-                 borderRadius:"5px"
+                 
               }}
              />
             
@@ -376,7 +395,7 @@ const handleChangeRowsPerPage = (event) => {
                 backgroundColor: filter === "manager" ? "#388e3c" : "transparent", // Change the background color of active tab
                 color: filter === "manager" ? "white" : "#1976d2", // Change text color for active tab
                 border:"1px solid #ddd",padding:"5px 15px",
-                 borderRadius:"5px"
+                 
               }}
             />
             <Tab
@@ -389,32 +408,14 @@ const handleChangeRowsPerPage = (event) => {
                 backgroundColor: filter === "driver" ? "#388e3c" : "transparent", // Change the background color of active tab
                 color: filter === "driver" ? "white" : "#1976d2", // Change text color for active tab
                 border:"1px solid #ddd",padding:"5px 15px",
-                borderRadius:"5px"
+                
               }}
             />
-          </Tabs>
-       
-        {/* Search Bar & Add Button */}
-        <Box className="search-add-container">
-          <TextField
-            placeholder="Search"
-            size="small"
-           
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<Add />}
-            onClick={() => handleOpenDialog()}
-          >
-            Create User
-          </Button>
-          </Box>
+          </Tabs>  </Box>
           </Box>
             
 
-        <TableContainer component={Paper}  sx={{ maxHeight: 300, overflowY: "auto", "&::-webkit-scrollbar": {
+        <TableContainer component={Paper}  sx={{ maxHeight: "60vh", overflowY: "auto", "&::-webkit-scrollbar": {
       width: "6px",  // Width of the scrollbar
       height: "6px",
     },
@@ -430,14 +431,14 @@ const handleChangeRowsPerPage = (event) => {
       background: "#555", // Scrollbar color on hover
     }, }} >
           <Table sx={{ minWidth: 650, borderCollapse: "collapse" }}>
-            <TableHead sx={{ position: "sticky", top: 0, backgroundColor:"#156272", zIndex: 1 ,"& th": { padding: "4px" } }}>
-              <TableRow sx={{ backgroundColor: "#156272", color: "white" ,"& th": { padding: "4px" } }}>
-                <TableCell sx={{ color: "white" }}>SNo</TableCell>
-                <TableCell sx={{ color: "white" }}>User Name</TableCell>
-                <TableCell sx={{ color: "white" }}>Role</TableCell>
-                <TableCell sx={{ color: "white" }}>Email</TableCell>
-                <TableCell sx={{ color: "white" }}>Status</TableCell>
-                <TableCell sx={{ color: "white" }}>Action</TableCell>
+            <TableHead sx={{ position: "sticky", top: 0, backgroundColor:"#5e87b0 ", zIndex: 1 ,"& th": { padding: "4px" } }}>
+              <TableRow >
+                <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb"}}>SNo</TableCell>
+                <TableCell sx={{ color: "white", borderRight: "1px solid #bbb" }}>User Name</TableCell>
+                <TableCell sx={{ color: "white", borderRight: "1px solid #bbb" }}>Role</TableCell>
+                <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb"}}>Email</TableCell>
+                <TableCell sx={{ color: "white", borderRight: "1px solid #bbb" }}>Status</TableCell>
+                <TableCell sx={{ color: "white", borderRight: "1px solid #bbb" }}>Action</TableCell>
               </TableRow>
             </TableHead>
             <TableBody  sx={{ "& td, & th": { padding: "4px" } }} >
@@ -505,8 +506,8 @@ const handleChangeRowsPerPage = (event) => {
               type="text"
               value={newUser.name}
               onChange={(e) => {
-                const value = e.target.value;
-                if (/^[A-Za-z\s]*$/.test(value)) { // Allow only letters and spaces
+                const value = e.target.value.trim(); // Trim leading and trailing whitespace
+                if (/^[A-Za-z0-9\s]*$/.test(value)) {
                   setNewUser({ ...newUser, name: value });
                 }
               }}

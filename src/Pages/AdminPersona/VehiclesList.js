@@ -26,9 +26,15 @@ const VehiclesList = () => {
      const [activeTab, setActiveTab] = useState(1);
     const [rowsPerPage, setRowsPerPage] = useState(10);
     const [editingVehicle, setEditingVehicle] = useState(null);
+    const [capacityError, setCapacityError] = useState("");
+    
+    const getVehicleType = (capacity) => {
+        if (capacity === "") return ""; // No selection if empty
+        return capacity > 15000 ? "Heavy-duty trucks" : "Light-duty trucks";
+    };
     const [newVehicle, setNewVehicle] = useState({
-        VehicleType: "Heavy-duty trucks",
-        FuelType: "Diesel",
+        VehicleType: "",
+        FuelType: "",
         ExhaustCO2: "",
         Mileage: "",
         VehicleCapacity: "",
@@ -308,7 +314,7 @@ const handleChangeRowsPerPage = (event) => {
                     </Box>
                     </Box>
 
-              <TableContainer component={Paper}  sx={{ maxHeight: 300, overflowY: "auto", "&::-webkit-scrollbar": {
+              <TableContainer component={Paper}  sx={{ maxHeight: "65vh", overflowY: "auto",  boxShadow: "0 2px 4px rgba(0,0,0,0.1)" ,"&::-webkit-scrollbar": {
                     width: "6px",  // Width of the scrollbar
                     height: "6px",
                   },
@@ -323,17 +329,17 @@ const handleChangeRowsPerPage = (event) => {
                   "&::-webkit-scrollbar-thumb:hover": {
                     background: "#555", // Scrollbar color on hover
                   }, }} >
-                        <Table sx={{ minWidth: 650, borderCollapse: "collapse" }}>
-                          <TableHead sx={{ position: "sticky", top: 0, backgroundColor: "#156272", zIndex: 1 }}>
-                            <TableRow sx={{   backgroundColor: "#156272",color: "white" ,"& th": { padding: "4px" } }}>
-                                <TableCell sx={{ color: "white" }}>SNo</TableCell>
-                                <TableCell sx={{ color: "white" }}>Vehicle Type</TableCell>
-                                <TableCell sx={{ color: "white" }}>Fuel Type</TableCell>
-                                <TableCell sx={{ color: "white" }}>Mileage</TableCell>
-                                <TableCell sx={{ color: "white" }}>Capacity</TableCell>
-                                <TableCell sx={{ color: "white" }}>CO2 Emissions</TableCell>
-                                <TableCell sx={{ color: "white" }}>Status</TableCell>
-                                <TableCell sx={{ color: "white" }}>Action</TableCell>
+                        <Table  sx={{ minWidth: 650 ,borderCollapse: "collapse" }}>
+                          <TableHead sx={{ position: "sticky", top: 0, backgroundColor: "#5e87b0 ", zIndex: 1 }}>
+                            <TableRow >
+                                <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>SNo</TableCell>
+                                <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>Vehicle Type</TableCell>
+                                <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>Fuel Type</TableCell>
+                                <TableCell sx={{ color: "white" ,borderRight: "1px solid #bbb"}}>Mileage</TableCell>
+                                <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>Capacity</TableCell>
+                                <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>CO2 Emissions</TableCell>
+                                <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>Status</TableCell>
+                                <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>Action</TableCell>
                             </TableRow>
                         </TableHead>
                         <TableBody  sx={{ "& td, & th": { padding: "4px" } }} >
@@ -376,8 +382,7 @@ const handleChangeRowsPerPage = (event) => {
                         <InputLabel>Vehicle Type</InputLabel>
                         <Select
                             value={newVehicle.VehicleType}
-                            onChange={(e) => setNewVehicle({ ...newVehicle, VehicleType: e.target.value })}
-                            label="Vehicle Type"
+                            disabled // Prevent manual selection
                         >
                             <MenuItem value="Heavy-duty trucks">Heavy-duty trucks</MenuItem>
                             <MenuItem value="Light-duty trucks">Light-duty trucks</MenuItem>
@@ -426,20 +431,32 @@ const handleChangeRowsPerPage = (event) => {
         }}
     />
 
-    <TextField
-        fullWidth
-        label="Vehicle Capacity (kg)"
-        variant="outlined"
-            type="text"
-        sx={{ mt: 2 }}
-        value={newVehicle.VehicleCapacity}
-        onChange={(e) => {
-            const value = e.target.value;
-            if (/^\d*\.?\d*$/.test(value)) {
-              setNewVehicle({ ...newVehicle, VehicleCapacity: value });
-            }
-          }}
-    />
+<TextField
+    fullWidth
+    label="Vehicle Capacity (kg)"
+    variant="outlined"
+    type="number"
+    sx={{ mt: 2 }}
+    value={newVehicle.VehicleCapacity}
+    onChange={(e) => {
+        const value = e.target.value;
+        if (/^\d*\.?\d*$/.test(value)) {
+            const numericValue = value === "" ? "" : parseFloat(value);
+            setNewVehicle({
+                ...newVehicle,
+                VehicleCapacity: numericValue,
+                VehicleType: getVehicleType(numericValue),
+            });
+        }
+    }}
+    helperText={
+        <span style={{ minHeight: "20px", display: "inline-block" }}>
+            Light-duty trucks ≤ 15000, Heavy-duty trucks > 15000
+        </span>
+    } 
+    FormHelperTextProps={{ sx: { minHeight: "20px" } }} // Ensures fixed space for helper text
+/>
+
 
     <TextField
         fullWidth

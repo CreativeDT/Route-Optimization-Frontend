@@ -8,7 +8,7 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-
+  const navigate = useNavigate();
   // Retrieve the token and user data from localStorage on component mount
   // useEffect(() => {
   //   const token = localStorage.getItem('token');
@@ -20,6 +20,9 @@ export const AuthProvider = ({ children }) => {
   // }, []);
 
   useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+       // Token exists, retrieve and parse user data
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
         try {
@@ -28,20 +31,24 @@ export const AuthProvider = ({ children }) => {
         } catch (error) {
             console.error("Error parsing user data from localStorage:", error);
             localStorage.removeItem('user'); // Clear corrupted data
+            localStorage.removeItem('token'); // Clear token too, if user data is corrupted
+          }
         }
-    }
-}, []);
-
+      }
+    }, []);
+  // Login function: save user data and token to localStorage
+  
   const login = (userData) => {
     setUser(userData);
     localStorage.setItem('token', userData.token);
-    // localStorage.setItem('user', JSON.stringify(userData)); // Save user data
+     localStorage.setItem('user', JSON.stringify(userData)); // Save user data
   };
-
+ // Logout function: remove user data and token from localStorage
   const logout = () => {
     setUser(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    navigate('/login');  
   };
 
 

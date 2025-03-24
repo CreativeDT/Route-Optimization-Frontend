@@ -20,7 +20,9 @@ import UseWebSocket from '../../WebSockets/UseWebSockets';  // Import WebSocket 
 import config from '../../config'; // Import your config file
 import debounce from "lodash.debounce";
 import NavBar from '../../Components/NavBar';
-import Breadcrumbs1 from './Breadcrumbs1';
+
+
+import Breadcrumbs2 from './Breadcrumbs2';
 const redIcon = new L.Icon({
     iconUrl: redIconImage,
     iconSize: [20, 20],
@@ -217,7 +219,7 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
     );
 });
 
-const ManagerRouteTracking = () => {
+const DriverRouteTracking = () => {
     const [consignments, setConsignments] = useState([]);
     const [selectedRoutes, setSelectedRoutes] = useState([]);
     const [selectedConsignments, setSelectedConsignments] = useState([]);
@@ -277,7 +279,6 @@ const ManagerRouteTracking = () => {
             const consignmentsWithStatusText = response.data.consignments.map(
               (consignment) => {
               const isAssigned = consignment.driver_id !== null && consignment.driver_id !== undefined; // Check if driver_id exists
-              const driverName = isAssigned ? consignment.driver_name : null; // If assigned, get driver name
               console.log("Consignment ID:", consignment.consignment_id, "Driver ID:", consignment.driver_id, "isAssigned:", isAssigned);
               return {
                 ...consignment,
@@ -285,7 +286,7 @@ const ManagerRouteTracking = () => {
                     consignment.status === 'started'
                         ? 'Started'
                         : 'Not Started',
-                assignedText: isAssigned ? `Assigned to ${driverName}`: 'Not Assigned',
+                assignedText: isAssigned ? 'Assigned' : 'Not Assigned',
                 assignedColor: isAssigned ? 'green' : 'red', // Set color based on assignment
             };
         }
@@ -358,7 +359,7 @@ const ManagerRouteTracking = () => {
       }}
       >
         <NavBar  />
-        <Breadcrumbs1 />
+        <Breadcrumbs2/>
 
      
 
@@ -557,4 +558,4 @@ const ManagerRouteTracking = () => {
     );
 };
 
-export default ManagerRouteTracking;
+export default DriverRouteTracking;

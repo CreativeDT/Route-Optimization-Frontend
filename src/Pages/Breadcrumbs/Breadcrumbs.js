@@ -37,7 +37,7 @@ const Breadcrumbs = ({ homeLabel = "Home" }) => {
                   <Typography
                     key={index}
                     onClick={() => navigate(currentPath)}
-                    style={{ cursor: 'pointer', color: 'inherit', textDecoration: 'underline' }}
+                    style={{ cursor: 'pointer', color: 'inherit', }}
                 >
                     {displayName}
                 </Typography>

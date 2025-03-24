@@ -1,6 +1,6 @@
 // src/App.js
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import {  Router, Routes, Route } from 'react-router-dom';
 import Login from './Pages/Login';
 import Signup from './Pages/SignUp'; 
 import Dashboard from './Pages/Dashboard'; 
@@ -16,6 +16,10 @@ import Nearbyconsignments from './Pages/DriverPersona/Nearbyconsignments';
 import ManagerDashboard from './Pages/ManagerPersona/ManagerDashboard';
 import ManagerAdministration from './Pages/ManagerPersona/ManagerAdministration';
 import ManagerSuggestRoutes from './Pages/ManagerPersona/ManagerSuggestRoutes';
+import ManagerRouteTracking from './Pages/ManagerPersona/ManagerRouteTracking';
+import ManagerAnalytics from './Pages/ManagerPersona/ManagerAnalytics';
+import DriverRouteTracking from './Pages/DriverPersona/DriverRouteTracking';
+import DriverAnalytics from './Pages/DriverPersona/DriverAnalytics';
 
 
 
@@ -28,7 +32,7 @@ import ManagerSuggestRoutes from './Pages/ManagerPersona/ManagerSuggestRoutes';
 
 const App = () => {
   return (
-    <Router>
+
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
@@ -45,11 +49,15 @@ const App = () => {
         <Route path="/managerdashboard"  element={<ManagerDashboard />} />
         <Route path="/manageradministration" element={<ManagerAdministration />}/>
         <Route path="/managersuggestroutes" element={<ManagerSuggestRoutes />} />
+        <Route path="/managerroutetracking"  element={<ManagerRouteTracking />} />
+        <Route path="/manageranalytics"  element={<ManagerAnalytics />} />
+        <Route path="/driverroutetracking" element={<DriverRouteTracking />} />
+        <Route path ="/driveranalytics" element={<DriverAnalytics />} />
         
      
       </Routes>
     
-    </Router>
+
   );
 };
 

@@ -31,7 +31,10 @@ v/* UserList.css */
     display: flex;
    border-radius: 5px;
     font-size: 1rem;
-    border:1px solid #ddd;padding:3px;border-radius: 2px;
+    border:1px solid #dcdcdc;
+    /* padding:3px; */
+    /* background-color: #dcdcdc !important; */
+    color: #666666 !important;
   }
   
   .nav-link {
@@ -48,9 +51,11 @@ v/* UserList.css */
   
  
   .nav-link.active {
-    color: #ddd; 
-    font-weight: bold;border-radius: 3px;
-    background-color: #388e3c; 
+    color: #388e3c; 
+    font-weight: 600;
+    /* border-radius: 3px; */
+    background-color: #d1e0d9; 
+    /* border:1px solid #388e3c; */
    }
 
    /* UserList.css */
@@ -109,9 +114,30 @@ v/* UserList.css */
 
   .MuiTableCell-root {
     padding: 9px 8px !important;
-    font-size: 14px; 
+     color:#000000a1;font-size: 12px !important;
   } 
-  .MuiTableRow-root {
-    padding: 9px 8px !important;
+   .MuiTableRow-root {
+    padding: 9px 8px !important;color:#000000a1!important;font-size: 12px !important;
    
   } 
+
+  .MuiTableCell-body{
+    color: #000000a1 !important;
+    font-size: 12px!important;
+}
+
+.MuiTab-root.Mui-selected {
+    background-color: #EDF4FD !important;
+    color: #0c6bcf !important;
+    font-weight: 700 !important;border:1px solid #dcdcdc;
+}
+.MuiTab-root{
+    background-color: #dcdcdc !important;
+    color: #666666 !important;
+    font-weight: 500 !important;border:1px solid #dcdcdc;
+}
+
+.MuiButtonBase-root{
+  min-height: 39px!important;
+ 
+}
