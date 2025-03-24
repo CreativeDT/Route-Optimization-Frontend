@@ -298,13 +298,14 @@ const handleDriverSelectChange = (event, newValue, routeId) => {
                         <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>SNo</TableCell>
                         <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Route ID</TableCell>
                         <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Vehicle ID</TableCell>
+                       
                         <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Origin</TableCell>
                         <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Destination</TableCell>
                         <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Status</TableCell>
                         <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Carbon Emission</TableCell>
                         <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Created Date</TableCell>
                         <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Summary</TableCell>
-                        <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Driver Status</TableCell>
+                        <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Driver</TableCell>
                         <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Assign Driver</TableCell>
                     </>
                     )}
@@ -393,7 +394,7 @@ const handleDriverSelectChange = (event, newValue, routeId) => {
                             {item.summaryAdded ? "Summary Added" : "Add Summary"}
                         </Button>
                         </TableCell>
-                        <TableCell> {selectedDrivers[item.routeID] ? "Driver Assigned" : item.status}</TableCell>
+                        <TableCell> {item.driver}</TableCell>
                         <TableCell>
                        <Autocomplete
                             options={availableDrivers.filter((driver) => driver.route_status === "Not Assigned")}

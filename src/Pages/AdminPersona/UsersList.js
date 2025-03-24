@@ -337,7 +337,7 @@ const handleChangeRowsPerPage = (event) => {
       <NavBar />
       <Breadcrumbs />
       <Paper sx={{border:"1px solid  #e0e0e0", margin: "auto" ,padding:2 }}>
-      <Box sx={{ display: "flex", alignItems: "center" ,justifyContent: "space-between" ,marginBottom: 2 }}>
+      <Box sx={{ display: "flex", alignItems: "center" ,justifyContent: "space-between" ,marginBottom: 0 }}>
             <Typography variant="h5" sx={{color:"#156272"}} gutterBottom className="title">Admin Dashboard</Typography>
             <Box  className="nav-links"> 
             <Typography   gutterBottom component={NavLink} to="/userlist" className="nav-link">
