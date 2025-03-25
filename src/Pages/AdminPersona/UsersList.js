@@ -362,7 +362,7 @@ const handleChangeRowsPerPage = (event) => {
          
        
         {/* Search Bar & Add Button */}
-        <Box sx={{display:'flex'}}>
+        <Box sx={{display:'flex',gap:1}}>
           <TextField className="search-add-container"
             placeholder="Search"
             size="small"
@@ -378,9 +378,12 @@ const handleChangeRowsPerPage = (event) => {
             >
             <Tab label={`All (${users.length})`} value="All"  className="tab"
               sx={{
-                backgroundColor: filter === "All" ? "#388e3c" : "transparent", // Change the background color of active tab
+                backgroundColor: filter === "All" ? "#388e3c" : "#dcdcdc4a!important", // Change the background color of active tab
                 color: filter === "All" ? "white" : "#1976d2", // Change text color for active tab
-                border:"1px solid #ddd",padding:"5px 15px",
+                border:"1px solid #dcdcdc",padding:"5px 15px",
+                "&.MuiTab-root": { 
+                  minHeight: "39px !important",
+                },
                  
               }}
              />
@@ -392,9 +395,12 @@ const handleChangeRowsPerPage = (event) => {
               className="tab"
               value="manager"
               sx={{
-                backgroundColor: filter === "manager" ? "#388e3c" : "transparent", // Change the background color of active tab
+                backgroundColor: filter === "manager" ? "#388e3c" : "#dcdcdc4a!important", // Change the background color of active tab
                 color: filter === "manager" ? "white" : "#1976d2", // Change text color for active tab
-                border:"1px solid #ddd",padding:"5px 15px",
+                border:"1px solid #dcdcdc",padding:"5px 15px",
+                "&.MuiTab-root": { 
+                  minHeight: "39px !important",
+                },
                  
               }}
             />
@@ -405,10 +411,13 @@ const handleChangeRowsPerPage = (event) => {
               value="driver"
               className="tab"
               sx={{
-                backgroundColor: filter === "driver" ? "#388e3c" : "transparent", // Change the background color of active tab
+                backgroundColor: filter === "driver" ? "#388e3c" : "#dcdcdc4a!important", // Change the background color of active tab
                 color: filter === "driver" ? "white" : "#1976d2", // Change text color for active tab
-                border:"1px solid #ddd",padding:"5px 15px",
-                
+                border:"1px solid #dcdcdc",padding:"5px 15px",
+                "&.MuiTab-root": { 
+                  minHeight: "39px !important",
+                },
+                 
               }}
             />
           </Tabs>  </Box>

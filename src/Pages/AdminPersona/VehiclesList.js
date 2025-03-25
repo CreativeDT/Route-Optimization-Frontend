@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import { NavLink } from "react-router-dom";
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-    Typography, Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle,
+    Typography, Button, TextField, Dialog, DialogActions, DialogContent, DialogTitle,Tooltip,
     Select, MenuItem, FormControl, InputLabel, IconButton, Snackbar, Alert,TablePagination, Tabs,
     Tab,
     Box,
@@ -333,6 +333,7 @@ const handleChangeRowsPerPage = (event) => {
                           <TableHead sx={{ position: "sticky", top: 0, backgroundColor: "#5e87b0 ", zIndex: 1 }}>
                             <TableRow >
                                 <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>SNo</TableCell>
+                                <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>Vehicle ID</TableCell>
                                 <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>Vehicle Type</TableCell>
                                 <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>Fuel Type</TableCell>
                                 <TableCell sx={{ color: "white" ,borderRight: "1px solid #bbb"}}>Mileage</TableCell>
@@ -348,6 +349,11 @@ const handleChangeRowsPerPage = (event) => {
                             .map((vehicle, index) => (
                                 <TableRow key={vehicle.VehicleID}>
                                      <TableCell>{page * rowsPerPage + index + 1.}</TableCell>
+                                      <TableCell>
+                                         <Tooltip title={vehicle.VehicleID || "N/A"} arrow>
+                                         <span>{vehicle.VehicleID ? vehicle.VehicleID.slice(-5) : "N/A"}</span>
+                                        </Tooltip>
+                                     </TableCell> 
                                     <TableCell>{vehicle.VehicleType}</TableCell>
                                     <TableCell>{vehicle.FuelType}</TableCell>
                                     <TableCell>{vehicle.Mileage} km/l</TableCell>
@@ -451,7 +457,7 @@ const handleChangeRowsPerPage = (event) => {
     }}
     helperText={
         <span style={{ minHeight: "20px", display: "inline-block" }}>
-            Light-duty trucks ≤ 15000, Heavy-duty trucks > 15000
+            Light-duty trucks ≤ 15000, Heavy-duty trucks &gt; 15000
         </span>
     } 
     FormHelperTextProps={{ sx: { minHeight: "20px" } }} // Ensures fixed space for helper text

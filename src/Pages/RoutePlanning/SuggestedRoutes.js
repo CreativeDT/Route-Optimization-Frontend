@@ -727,24 +727,23 @@ const SuggestRoutes = () => {
   //     });
   // };
 
-  const inputRefs = useRef({}); // Use an object to store multiple refs
+  const inputRefs = useRef({}); // Store refs for inputs
 
   const handleStopDemandChange = (index, field, value) => {
-    setSelectedStops((prevStops) =>
-      prevStops.map((stop, i) =>
-        i === index ? { ...stop, [field]: value } : stop
-      )
-    );
-
-    // Retain focus for the specific input field
-    setTimeout(() => {
-      const inputEl = inputRefs.current[`${index}-${field}`];
-      if (inputEl && document.activeElement !== inputEl) {
-        inputEl.focus();
-      }
-    }, 0);
-  };
-
+    setSelectedStops((prevStops) => {
+      const updatedStops = [...prevStops];
+      updatedStops[index] = { ...updatedStops[index], [field]: value };
+      return updatedStops;
+    });
+  
+      // Retain focus without using setSelectionRange
+  requestAnimationFrame(() => {
+    const inputEl = inputRefs.current[`${index}-${field}`];
+    if (inputEl) {
+      inputEl.focus();
+    }
+  });
+};
   const preloadedDemandRef = useRef(null);
 
 //   const handlePreloadedDemandChange = (e) => {
@@ -1505,12 +1504,7 @@ const isSubmitDisabled = useMemo(() => {
                                 </Grid2> */}
                 <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
                   {/* <Typography variant="subtitle1">Destination</Typography> */}
-                <SearchBox sx={{
-                  "& .mbx09a18d42--SearchIcon svg": {
-                    width: "14px",
-                    height: "14px",color:"#ddd",
-                  },
-                }}
+                <SearchBox 
                                   accessToken={config.MAPBOX_ACCESS_TOKEN} // Use token from config
                     value={selectedDestination?.name || ""}
                     // onRetrieve={(res) => setSelectedDestination(res.features[0]?.place_name)}
@@ -1554,6 +1548,7 @@ const isSubmitDisabled = useMemo(() => {
                     }}
                     options={{ language: "en", country: "us" }}
                     placeholder="Destination"
+                    
                   />
                 </Grid2>
               </Grid2>
@@ -1646,8 +1641,9 @@ const isSubmitDisabled = useMemo(() => {
                   }}
  
                 />
-              </Grid2>
 
+              </Grid2>
+ 
               {selectedStops.map((stop, index) => (
                 <Box
                   key={index}
@@ -1660,6 +1656,7 @@ const isSubmitDisabled = useMemo(() => {
                 >
                   <Box sx={{display:"flex",position:"relative"}}>
                   <Typography style={{ color: "black", fontSize: "12px",fontWeight:"600" }}>
+                  
                     {stop.label || "Unknown Stop"}
                     
                   </Typography>
@@ -1709,7 +1706,7 @@ const isSubmitDisabled = useMemo(() => {
                         inputRef={(el) =>
                           (inputRefs.current[`${index}-drop_demand`] = el)
                         }
-                        label="Drop Demand"
+                        label="Drop Demand kgs"
                         type="number"
                         value={stop.drop_demand || 0}
                         onChange={(e) => {
@@ -1722,6 +1719,11 @@ const isSubmitDisabled = useMemo(() => {
                         sx={{"& .MuiFormLabel-root": {
                                 fontSize: "10px", // Adjust input text size
                               },
+                              "& .MuiOutlinedInput-root": { 
+                                "& fieldset": { 
+                                  borderColor: "#ccc!important"
+                                }
+                                   } ,
                           
                             "& .MuiInputBase-input": {
                               fontSize: "12px", // Reduce input text size
@@ -1751,6 +1753,11 @@ const isSubmitDisabled = useMemo(() => {
                         sx={{ height: "20px","& .MuiFormLabel-root": {
                           fontSize: "10px", // Adjust input text size
                         },
+                        "& .MuiOutlinedInput-root": { 
+                          "& fieldset": { 
+                            borderColor: "#ccc!important"
+                          }
+                             } ,
                     
                       "& .MuiInputBase-input": {
                         fontSize: "12px", // Reduce input text size
@@ -1782,6 +1789,11 @@ const isSubmitDisabled = useMemo(() => {
                         sx={{ height: "20px","& .MuiFormLabel-root": {
                           fontSize: "10px", // Adjust input text size
                         },
+                        "& .MuiOutlinedInput-root": { 
+                          "& fieldset": { 
+                            borderColor: "#ccc!important"
+                          }
+                             } ,
                     
                       "& .MuiInputBase-input": {
                         fontSize: "12px", // Reduce input text size
@@ -1808,15 +1820,16 @@ const isSubmitDisabled = useMemo(() => {
               </Typography>
               <div
                 style={{
-                  width: "100%",
-                  display: "flex",justifyContent:"center",
-                  gap: ".5rem",
-                  marginBottom: "1rem",
-                  fontSize: "10px",
-                }}
-              >
-                {/* {" "} */}
-                {/* Added gap between date pickers */}
+              width: "100%",
+              display: "flex",
+              gap: ".5rem",
+              marginBottom: "1rem",
+              fontSize: "10px",
+              flexDirection: "row", // Ensures items are placed in a row
+              alignItems: "center", // Align items properly
+            }}
+                        >
+                
                 <DatePicker
                   selected={startDate}
                   // onChange={(date) => {
@@ -1833,7 +1846,7 @@ const isSubmitDisabled = useMemo(() => {
                       variant="outlined"
                       size="small"
                       fullWidth
-                    
+                      
                       InputProps={{
                         endAdornment: (
                           <InputAdornment position="end">
@@ -1843,11 +1856,15 @@ const isSubmitDisabled = useMemo(() => {
                           </InputAdornment>
                         ),
                       }}
-                      sx={{
+                      sx={{ 
                         borderRadius: "8px",
-                        "& .MuiInputLabel-root": {},
-                        "& .MuiInputBase-input": { fontSize: "0.65rem" },
-                        //   padding: "0 1rem",
+                        "& .MuiInputLabel-root": {flex:0.5,paddingRight:"0px!important"},
+                        "& .MuiInputBase-input": { fontSize: "0.65rem",paddingRight:"0px!important"},
+                         "& .MuiOutlinedInput-root": { 
+                            "& fieldset": { 
+                              borderColor: "#ccc!important"
+                            }
+                               }       
                       }}
                     />
                   }
@@ -1918,7 +1935,7 @@ const isSubmitDisabled = useMemo(() => {
                     sx={{
                       borderRadius: "8px",
                       "& .MuiInputLabel-root": {
-                        // Add any label styles here if needed
+                       flex:0.5
                       },
                       "& .MuiInputBase-input": {
                         fontSize: "0.65rem",
@@ -1926,6 +1943,11 @@ const isSubmitDisabled = useMemo(() => {
                         backgroundColor: "#dfdfdf",
                         fontWeight: "bold",
                       },
+                      "& .MuiOutlinedInput-root": { 
+                            "& fieldset": { 
+                              borderColor: "#ccc!important"
+                            }
+                               }     
                       //  padding: "0 1rem",
                     }}
                   />
@@ -1947,6 +1969,11 @@ const isSubmitDisabled = useMemo(() => {
                   // padding: "0 1rem",
                   marginBottom: "1rem",
                   "& .MuiInputBase-input": { padding: "16px" },
+                  "& .MuiOutlinedInput-root": { 
+                            "& fieldset": { 
+                              borderColor: "#ccc!important"
+                            }
+                               }     
                 }}
               />
 
@@ -2017,6 +2044,7 @@ const isSubmitDisabled = useMemo(() => {
     }}
   />
 </StyledFormControl>
+
                             {/* <FormControl fullWidth margin="dense" sx={{ width: "80%", padding: "0 1rem", marginBottom: "1rem" }}>
       <InputLabel sx={{ padding: "0 1.2rem" }}>Available Vehicles</InputLabel>
       <Select
@@ -2244,6 +2272,7 @@ const isSubmitDisabled = useMemo(() => {
                   backgroundColor: "#fafafa",
                 }}
               >
+                <Box>
                 <Typography
                   variant="h6"
                   sx={{ mb: 1 }}
@@ -2251,6 +2280,70 @@ const isSubmitDisabled = useMemo(() => {
                 >
                   Suggested Routes
                 </Typography>
+                {/* <StyledFormControl
+  fullWidth
+  margin="dense"
+  className="select-container"
+  sx={{ width: "100%", marginBottom: "1rem" }}
+>
+  <Select
+    options={uniqueVehicleOptions.map(vehicle => ({
+      value: vehicle.value,
+      label: `${vehicle.label} → ID: ${vehicle.value.slice(-5)}`, // Include vehicle_id in label
+      vehicle_id: vehicle.vehicle_id, // Add vehicle_id for further use
+    }))}
+   
+    options={data.map((item, index) => (
+      availableDrivers.filter((driver) => driver.route_status === "Not Assigned")}
+    value={selectedVehicle}
+    onChange={handleVehicleSelection}
+     placeholder="Search Available Vehicles..."
+    //  isDisabled={!origin || !destination} // Prevent selection without required fields
+    //  isSearchable={!!origin && !!destination} // Disable search when origin/destination are missing
+    isSearchable
+    menuPlacement="top" 
+    styles={{
+      control: (base) => ({
+        ...base,
+        height: "20px",
+        fontSize: "12px", 
+      }),
+      menu: (base) => ({
+        ...base,
+        marginTop: "-4px",fontSize: "12px", 
+        zIndex: 9999, // Ensures dropdown appears above other elements
+      }),
+      menuList: (base) => ({
+        ...base,
+        paddingTop: "0px",  
+        paddingBottom: "0px", 
+        fontSize: "12px", 
+      }),
+      option: (base) => ({
+        ...base,
+        fontSize: "12px",
+         padding: "8px 12px", // Adjust padding if needed
+      }),
+    
+    }}
+  />
+</StyledFormControl>
+                                    <Autocomplete
+                                            options={availableDrivers.filter((driver) => driver.route_status === "Not Assigned")}
+                                            getOptionLabel={(option) => option.driver_name || ""}
+                                            value={selectedDrivers[item.routeID] || null}
+                                            onChange={(event, newValue) => {
+                                                handleAssignDriver(newValue?.driver_id, item.routeID);
+                                            }}
+                                            renderInput={(params) => (
+                                                <TextField 
+                                                    {...params} 
+                                                    label={selectedDrivers[item.routeID] ? "Reassign Driver" : "Select Driver"} 
+                                                    variant="outlined" 
+                                                />
+                                            )}
+                                        /> */}
+                </Box>
 
                 <TableContainer component={Paper}sx={{ maxHeight: 250, overflowY: "auto", "&::-webkit-scrollbar": {
                  width: "6px",  // Width of the scrollbar

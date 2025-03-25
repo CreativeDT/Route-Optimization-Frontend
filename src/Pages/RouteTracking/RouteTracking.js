@@ -20,6 +20,7 @@ import Breadcrumbs from '../Breadcrumbs/Breadcrumbs'; // Import your Breadcrumbs
 import config from '../../config'; // Import your config file
 import debounce from "lodash.debounce";
 import NavBar from '../../Components/NavBar';
+  // const [filter, setFilter] = useState("All");
 const redIcon = new L.Icon({
     iconUrl: redIconImage,
     iconSize: [20, 20],
@@ -69,6 +70,11 @@ const getVehicleIcon = (status) => {
     }
 };
 const defaultCenter = [41.8781, -87.6298]; // Default center (Chicago)
+// const filteredUsers = users.filter(
+//   (user) =>
+//     (filter === "All" || user.role.includes(filter.toLowerCase())) &&
+//     user.name.toLowerCase().includes(searchTerm.toLowerCase())
+// );
 
 
 const waypointIcon = new L.Icon({
@@ -373,6 +379,55 @@ const RouteTracking = () => {
     
           }}
         >
+           {/* <Tabs
+            value={filter}
+            onChange={(e, newValue) => setFilter(newValue)}
+           
+            >
+            <Tab label={`All (${users.length})`} value="All"  className="tab"
+              sx={{
+                backgroundColor: filter === "All" ? "#388e3c" : "transparent", // Change the background color of active tab
+                color: filter === "All" ? "white" : "#1976d2", // Change text color for active tab
+                border:"1px solid #ddd",padding:"5px 15px",
+                 
+              }}
+             />
+              <Tab label={`Completed (${users.length})`} value="Completed"  className="tab"
+              sx={{
+                backgroundColor: filter === "Completed" ? "#388e3c" : "transparent", // Change the background color of active tab
+                color: filter === "Completed" ? "white" : "#1976d2", // Change text color for active tab
+                border:"1px solid #ddd",padding:"5px 15px",
+                 
+              }}
+             />
+            
+            <Tab
+              label={`Started (${
+                users.filter((u) => u.role === "Started").length
+              })`}
+              className="tab"
+              value="Started"
+              sx={{
+                backgroundColor: filter === "Started" ? "#388e3c" : "transparent", // Change the background color of active tab
+                color: filter === "Started" ? "white" : "#1976d2", // Change text color for active tab
+                border:"1px solid #ddd",padding:"5px 15px",
+                 
+              }}
+            />
+            <Tab
+              label={`Not Started (${
+                users.filter((u) => u.role === "Not Started").length
+              })`}
+              value="Not Started"
+              className="tab"
+              sx={{
+                backgroundColor: filter === "Not Started" ? "#388e3c" : "transparent", // Change the background color of active tab
+                color: filter === "Not Started" ? "white" : "#1976d2", // Change text color for active tab
+                border:"1px solid #ddd",padding:"5px 15px",
+                
+              }}
+            />
+          </Tabs>  */}
           {/* Left Column: Consignments and Route Details */}
           <Grid
             item

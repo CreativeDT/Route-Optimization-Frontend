@@ -7,7 +7,7 @@ import {
 } from "@mui/material";
 import { NavLink } from "react-router-dom";
 import NavBar from "../../Components/NavBar";
-
+import SearchIcon from "@mui/icons-material/Search";
 import config from "../../config";
 import "./../Form.css";  
 import Breadcrumbs1 from "./Breadcrumbs1";
@@ -27,6 +27,8 @@ const [selectedDrivers, setSelectedDrivers] = useState({}); // Store selected dr
 const [selectedRoute, setSelectedRoute] = useState("");
 const [isManager, setIsManager] = useState(false);
 const [consignments, setConsignments] = useState([]);
+const [searchQuery, setSearchQuery] = useState("");
+
 const [selectedConsignment, setSelectedConsignment] = useState(null);
   const [summary, setSummary] = useState({
     delayFactor: "",
@@ -241,7 +243,18 @@ const handleDriverSelectChange = (event, newValue, routeId) => {
    useEffect(() => {
     setPage(0); // Reset to first page when switching tabs
   }, [tabIndex]);
-    
+    //Search field
+    const handleSearchChange = (event) => {
+      setSearchQuery(event.target.value);
+    };
+const filteredData = data.filter((item) => {
+  const searchValue = searchQuery.toLowerCase();
+  return Object.values(item).some(
+    (value) => value && value.toString().toLowerCase().includes(searchValue)
+  );
+});
+
+
   return (
     <>
       <NavBar />
@@ -252,6 +265,15 @@ const handleDriverSelectChange = (event, newValue, routeId) => {
           <Typography variant="h5" sx={{ color: "#156272" }} gutterBottom>
             Manager Dashboard
           </Typography>
+          {/* <TextField
+  label="Search"
+  variant="outlined"
+  value={searchQuery}
+  onChange={(e) => setSearchQuery(e.target.value)}
+  fullWidth
+  sx={{ marginBottom: 2 }}
+/> */}
+
           <Tabs value={tabIndex} onChange={(e, newValue) => setTabIndex(newValue)} sx={{borderRadius:"4px"}}>
             <Tab label="Drivers" />
             <Tab label="Vehicles" />
@@ -278,6 +300,7 @@ const handleDriverSelectChange = (event, newValue, routeId) => {
                       <TableCell sx={{ color: "white" ,borderRight: "1px solid #bbb"}}>Date of Joining</TableCell>
                       <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>Vehicle Status</TableCell>
                       <TableCell sx={{ color: "white" ,borderRight: "1px solid #bbb"}}>Route Status</TableCell>
+                      <TableCell sx={{ color: "white" ,borderRight: "1px solid #bbb"}}>Driver Availability</TableCell>
                     </>
                   )}
                   {tabIndex === 1 && (
@@ -326,6 +349,19 @@ const handleDriverSelectChange = (event, newValue, routeId) => {
                         <TableCell>{item.joining_date}</TableCell>
                         <TableCell>{item.vehicle_status}</TableCell>
                         <TableCell>{item.route_status}</TableCell>
+                        <TableCell 
+                          sx={{
+                            color: item.route_status === "Not Assigned" && item.vehicle_status === "Not Assigned" 
+                            ? "green !important"
+                            : "red !important",
+                            fontWeight: "bold"
+                          }}
+                        >
+                          {item.route_status === "Not Assigned" && item.vehicle_status === "Not Assigned" 
+                            ? "Available" 
+                            : "Unavailable"}
+                        </TableCell>
+
                       </>
                     )}
                     {tabIndex === 1 && (
@@ -387,14 +423,34 @@ const handleDriverSelectChange = (event, newValue, routeId) => {
                         <TableCell>{item.carbon_emission || "N/A"}</TableCell>
                         <TableCell>{new Date(item.creationDate).toLocaleDateString()}</TableCell>
                         <TableCell>
+                          <Button
+                            sx={{ fontSize: "12px" }}
+                            onClick={() => handleOpenSummary(item)}
+                            color={item.summaryAdded ? "secondary" : "primary"}
+                            disabled={item.status !== "completed"} // Disable for "not started" & "started"
+                          >
+                            {item.summaryAdded ? "Summary Added" : "Add Summary"}
+                          </Button>
+                        </TableCell>
+
+                        {/* <TableCell>
                         <Button sx={{fontSize:"12px"}}
                             onClick={() => handleOpenSummary(item)}
                             color={item.summaryAdded ? "secondary" : "primary"}
                         >
                             {item.summaryAdded ? "Summary Added" : "Add Summary"}
                         </Button>
-                        </TableCell>
-                        <TableCell> {item.driver}</TableCell>
+                        </TableCell> */}
+                       <TableCell
+                        sx={{
+                          backgroundColor: item.driver_id ? "#bde2bd" : "#e9a7a78c", // Green if assigned, Red if not
+                          color: "white", // Ensure text remains visible
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {item.driver}
+                      </TableCell>
+
                         <TableCell>
                        <Autocomplete
                             options={availableDrivers.filter((driver) => driver.route_status === "Not Assigned")}
