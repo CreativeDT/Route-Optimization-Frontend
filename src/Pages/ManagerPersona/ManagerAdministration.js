@@ -267,14 +267,14 @@ const filteredData = data.filter((item) => {
           <Typography variant="h5" sx={{ color: "#156272" }} gutterBottom>
             Manager Dashboard
           </Typography>
-          {/* <TextField
+          <TextField
   label="Search"
   variant="outlined"
   value={searchQuery}
   onChange={(e) => setSearchQuery(e.target.value)}
-  fullWidth
-  sx={{ marginBottom: 2 }}
-/> */}
+  smallWidth
+  sx={{ marginBottom: 2 , }}
+/>
 
           <Tabs value={tabIndex} onChange={(e, newValue) => setTabIndex(newValue)} sx={{borderRadius:"4px",border:"1px solid #dcdcdc"}}>
             <Tab label="Drivers" sx={{border:"1px solid #dcdcdc"}} />
@@ -339,7 +339,7 @@ const filteredData = data.filter((item) => {
               </TableHead>
               {Array.isArray(data) && data.length > 0 ? (
               <TableBody>
-                {data
+                {filteredData
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((item, index) => (
                   <TableRow key={item.id || index}>
