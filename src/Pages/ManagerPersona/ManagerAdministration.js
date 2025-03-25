@@ -3,8 +3,10 @@ import axios from "axios";
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
     Typography, CircularProgress, Box, Tabs, Tab, Tooltip, Button, Dialog,TablePagination,
-    DialogTitle, DialogContent, DialogActions, FormControl, InputLabel, Select, MenuItem,TextField, Autocomplete
+    DialogTitle, DialogContent, DialogActions, InputLabel, Select, MenuItem,TextField, Autocomplete
 } from "@mui/material";
+import { FormControl } from "@mui/material";
+
 import { NavLink } from "react-router-dom";
 import NavBar from "../../Components/NavBar";
 import SearchIcon from "@mui/icons-material/Search";
@@ -274,10 +276,10 @@ const filteredData = data.filter((item) => {
   sx={{ marginBottom: 2 }}
 /> */}
 
-          <Tabs value={tabIndex} onChange={(e, newValue) => setTabIndex(newValue)} sx={{borderRadius:"4px"}}>
-            <Tab label="Drivers" />
-            <Tab label="Vehicles" />
-            <Tab label="Fleet Details" />
+          <Tabs value={tabIndex} onChange={(e, newValue) => setTabIndex(newValue)} sx={{borderRadius:"4px",border:"1px solid #dcdcdc"}}>
+            <Tab label="Drivers" sx={{border:"1px solid #dcdcdc"}} />
+            <Tab label="Vehicles"  sx={{border:"1px solid #dcdcdc"}}/>
+            <Tab label="Fleet Details"  sx={{border:"1px solid #dcdcdc"}} />
           </Tabs>
         </Box>
 
@@ -352,8 +354,8 @@ const filteredData = data.filter((item) => {
                         <TableCell 
                           sx={{
                             color: item.route_status === "Not Assigned" && item.vehicle_status === "Not Assigned" 
-                            ? "green !important"
-                            : "red !important",
+                            ? "#7ade7a !important"
+                            : "#cf6473 !important",
                             fontWeight: "bold"
                           }}
                         >
@@ -452,12 +454,18 @@ const filteredData = data.filter((item) => {
                       </TableCell>
 
                         <TableCell>
-                       <Autocomplete
+                       {/* <Autocomplete
                             options={availableDrivers.filter((driver) => driver.route_status === "Not Assigned")}
                             getOptionLabel={(option) => option.driver_name || ""}
                             value={selectedDrivers[item.routeID] || null}
                             onChange={(event, newValue) => {
                                 handleAssignDriver(newValue?.driver_id, item.routeID);
+                            }}
+                            sx={{fontSize:"10px",
+                             
+                              "&.MuiAutocomplete-root": { 
+                                fontSize: "10px !important",
+                              },
                             }}
                             renderInput={(params) => (
                                 <TextField 
@@ -466,9 +474,48 @@ const filteredData = data.filter((item) => {
                                     variant="outlined" 
                                 />
                             )}
-                        />
+                        /> */}
+                        <Autocomplete
+  options={availableDrivers.filter((driver) => driver.route_status === "Not Assigned")}
+  getOptionLabel={(option) => option.driver_name || ""}
+  value={selectedDrivers[item.routeID] || null}
+  onChange={(event, newValue) => {
+    handleAssignDriver(newValue?.driver_id, item.routeID);
+  }}
+  sx={{
+    fontSize: "10px",
+    "& .MuiInputBase-root": {
+      fontSize: "10px", // Font size for the input field
+    },
+    "& .MuiAutocomplete-listbox": {
+      fontSize: "10px", // Font size for dropdown list items
+    },
+    "& .MuiAutocomplete-endAdornment":{
+      right:"2px !important",
+    }
+  }}
+  renderInput={(params) => (
+    <TextField
+      {...params}
+      label={selectedDrivers[item.routeID] ? "Reassign Driver" : "Select Driver"}
+      variant="outlined"
+      InputLabelProps={{
+        sx: { fontSize: "10px" }, // Reduce font size of label
+      }}
+      inputProps={{
+        ...params.inputProps,
+        sx: { fontSize: "10px" }, // Reduce font size inside input field
+      }}
+    />
+  )}
+  componentsProps={{
+    paper: { sx: { fontSize: "10px" } }, // Reduce font size in dropdown list
+  }}
+/>
 
-                    </TableCell>
+
+                    </TableCell> 
+                   
 
                     </>
                     )}

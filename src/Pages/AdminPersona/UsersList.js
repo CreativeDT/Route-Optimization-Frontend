@@ -37,6 +37,8 @@ const UserList = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sortOrder, setSortOrder] = useState("asc"); // "asc" or "desc"
+const [sortField, setSortField] = useState("name"); // Default sorting field
 
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("All");
@@ -59,6 +61,18 @@ const UserList = () => {
     message: "",
     severity: "success",
   });
+  const sortedUsers = [...users].sort((a, b) => {
+    if (!a[sortField] || !b[sortField]) return 0; // Handle missing values
+    return sortOrder === "asc"
+      ? a[sortField].localeCompare(b[sortField])
+      : b[sortField].localeCompare(a[sortField]);
+  });
+  const handleSort = (field) => {
+    setSortOrder(sortField === field && sortOrder === "asc" ? "desc" : "asc");
+    setSortField(field);
+  };
+  
+  
   const token = localStorage.getItem("token");
   console.log("Token before fetchUsers:", token);
    
@@ -442,8 +456,15 @@ const handleChangeRowsPerPage = (event) => {
           <Table sx={{ minWidth: 650, borderCollapse: "collapse" }}>
             <TableHead sx={{ position: "sticky", top: 0, backgroundColor:"#5e87b0 ", zIndex: 1 ,"& th": { padding: "4px" } }}>
               <TableRow >
-                <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb"}}>SNo</TableCell>
+                <TableCell  sx={{ color: "white" , borderRight: "1px solid #bbb"}}>SNo</TableCell>
                 <TableCell sx={{ color: "white", borderRight: "1px solid #bbb" }}>User Name</TableCell>
+                {/* <TableCell 
+      sx={{ color: "white", borderRight: "1px solid #bbb", cursor: "pointer" }}
+      onClick={() => handleSort("name")}
+    >
+      User Name {sortField === "name" && (sortOrder === "asc" ? "▲" : "▼")}
+    </TableCell>
+                */}
                 <TableCell sx={{ color: "white", borderRight: "1px solid #bbb" }}>Role</TableCell>
                 <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb"}}>Email</TableCell>
                 <TableCell sx={{ color: "white", borderRight: "1px solid #bbb" }}>Status</TableCell>
@@ -452,6 +473,7 @@ const handleChangeRowsPerPage = (event) => {
             </TableHead>
             <TableBody  sx={{ "& td, & th": { padding: "4px" } }} >
               {filteredUsers
+                .reverse()
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) // Apply pagination
                   .map((user, index) => (
                 <TableRow key={user.id}>

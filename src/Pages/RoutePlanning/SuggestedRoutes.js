@@ -2280,7 +2280,7 @@ const isSubmitDisabled = useMemo(() => {
                 >
                   Suggested Routes
                 </Typography>
-                {/* <StyledFormControl
+                <StyledFormControl
   fullWidth
   margin="dense"
   className="select-container"
@@ -2293,8 +2293,7 @@ const isSubmitDisabled = useMemo(() => {
       vehicle_id: vehicle.vehicle_id, // Add vehicle_id for further use
     }))}
    
-    options={data.map((item, index) => (
-      availableDrivers.filter((driver) => driver.route_status === "Not Assigned")}
+   
     value={selectedVehicle}
     onChange={handleVehicleSelection}
      placeholder="Search Available Vehicles..."
@@ -2328,21 +2327,7 @@ const isSubmitDisabled = useMemo(() => {
     }}
   />
 </StyledFormControl>
-                                    <Autocomplete
-                                            options={availableDrivers.filter((driver) => driver.route_status === "Not Assigned")}
-                                            getOptionLabel={(option) => option.driver_name || ""}
-                                            value={selectedDrivers[item.routeID] || null}
-                                            onChange={(event, newValue) => {
-                                                handleAssignDriver(newValue?.driver_id, item.routeID);
-                                            }}
-                                            renderInput={(params) => (
-                                                <TextField 
-                                                    {...params} 
-                                                    label={selectedDrivers[item.routeID] ? "Reassign Driver" : "Select Driver"} 
-                                                    variant="outlined" 
-                                                />
-                                            )}
-                                        /> */}
+                                   
                 </Box>
 
                 <TableContainer component={Paper}sx={{ maxHeight: 250, overflowY: "auto", "&::-webkit-scrollbar": {

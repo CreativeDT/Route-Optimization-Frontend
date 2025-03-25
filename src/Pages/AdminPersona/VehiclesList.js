@@ -239,7 +239,7 @@ const handleChangeRowsPerPage = (event) => {
             <Breadcrumbs />
              <Paper sx={{border:"1px solid #ddd", margin: "auto" }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' ,mt:1}}>
-          <Typography variant="h6" component="div">
+          <Typography variant="h5" component="div">
            Admin Dashboard !!
           </Typography>
           <Box  className="nav-links"> 
@@ -261,42 +261,11 @@ const handleChangeRowsPerPage = (event) => {
               
                 {/* <Box sx={{ display: "flex", gap: 2, alignItems: "center"}}> */}
                  <Box className="filter-container">
-                    <Box>
-  <Button 
-    variant={filter === "All" ? "contained" : "outlined"} 
-    onClick={() => setFilter("All")}
-    sx={{
-        backgroundColor: filter === "All" ? "#388e3c" : "transparent", // Change background color
-        color: filter === "All" ? "white" : "primary.main", // Change text color
-        border:"1px solid #ddd",
-    }}
-  >
-    All ({allCount})
-  </Button>
-  <Button 
-    variant={filter === "Diesel" ? "contained" : "outlined"} 
-    onClick={() => setFilter("Diesel")}
 
-    sx={{
-        backgroundColor: filter === "Diesel" ? "#388e3c" : "transparent", // Change background color
-        color: filter === "Diesel" ? "white" : "primary.main", // Change text color
-        border:"1px solid #ddd",
-    }}
-  >
-    Diesel ({dieselCount})
-  </Button>
-  <Button 
-    variant={filter === "Gasoline" ? "contained" : "outlined"} 
-    onClick={() => setFilter("Gasoline")}
-    sx={{
-        backgroundColor: filter === "Gasoline" ? "#388e3c" : "transparent", // Change background color
-        color: filter === "Gasoline" ? "white" : "primary.main", // Change text color
-        border:"1px solid #ddd",
-    }}
-  >
-    Gasoline ({gasolineCount})
-  </Button>
-</Box>
+                 <Button variant="contained" color="primary" startIcon={<Add />} onClick={() => handleOpenDialog()}>
+                        Add Vehicle
+                    </Button>
+                    
 
          <Box className="search-add-container">
                     
@@ -308,9 +277,57 @@ const handleChangeRowsPerPage = (event) => {
                       
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                    <Button variant="contained" color="primary" startIcon={<Add />} onClick={() => handleOpenDialog()}>
+                    <Box>
+  <Button 
+    variant={filter === "All" ? "contained" : "outlined"} 
+    onClick={() => setFilter("All")}
+    sx={{
+        backgroundColor: filter === "All" ? "#EDF4FD " : "#dcdcdc4a!important", // Change the background color of active tab
+        color: filter === "All" ?  "#1976d2": "#666666"  , // Change text color for active tab
+        border:"1px solid #dcdcdc",padding:"5px 15px",
+        "&.MuiTab-root": { 
+          minHeight: "39px !important",
+        },
+         
+      }}
+  >
+    All ({allCount})
+  </Button>
+  <Button 
+    variant={filter === "Diesel" ? "contained" : "outlined"} 
+    onClick={() => setFilter("Diesel")}
+
+    sx={{
+        backgroundColor: filter === "Diesel" ? "#EDF4FD " : "#dcdcdc4a!important", // Change the background color of active tab
+        color: filter === "Diesel" ? "#1976d2" : "#666666", // Change text color for active tab
+        border:"1px solid #dcdcdc",padding:"5px 15px",
+        "&.MuiTab-root": { 
+          minHeight: "39px !important",
+        },
+         
+      }}
+  >
+    Diesel ({dieselCount})
+  </Button>
+  <Button 
+    variant={filter === "Gasoline" ? "contained" : "outlined"} 
+    onClick={() => setFilter("Gasoline")}
+    sx={{
+        backgroundColor: filter === "Gasoline" ? "#EDF4FD " : "#dcdcdc4a!important", // Change the background color of active tab
+        color: filter === "Gasoline" ?  "#1976d2" : "#666666", // Change text color for active tab
+        border:"1px solid #dcdcdc",padding:"5px 15px",
+        "&.MuiTab-root": { 
+          minHeight: "39px !important",
+        },
+         
+      }}
+  >
+    Gasoline ({gasolineCount})
+  </Button>
+</Box>
+                    {/* <Button variant="contained" color="primary" startIcon={<Add />} onClick={() => handleOpenDialog()}>
                         Add Vehicle
-                    </Button>
+                    </Button> */}
                     </Box>
                     </Box>
 
@@ -345,6 +362,7 @@ const handleChangeRowsPerPage = (event) => {
                         </TableHead>
                         <TableBody  sx={{ "& td, & th": { padding: "4px" } }} >
                             {filteredVehicles
+                              .reverse()
                              .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage) // Apply pagination
                             .map((vehicle, index) => (
                                 <TableRow key={vehicle.VehicleID}>
