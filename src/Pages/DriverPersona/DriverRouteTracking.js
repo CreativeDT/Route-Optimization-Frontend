@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { Box, Typography, Card, CardContent, Grid, List, ListItem, ListItemText, Paper, Checkbox,TextField } from '@mui/material';
-import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap, Tooltip } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap, Tooltip ,Circle } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import 'leaflet/dist/leaflet.css';
 
@@ -16,13 +16,11 @@ import vehicleicon1 from '../../Assets/images/vehicle1.png';
 import ambericon from '../../Assets/images/Amber.png';
 import REDicon from '../../Assets/images/redicon.png';
 import UseWebSocket from '../../WebSockets/UseWebSockets';  // Import WebSocket Hook
-
+import Breadcrumbs from '../Breadcrumbs/Breadcrumbs'; // Import your Breadcrumbs component
 import config from '../../config'; // Import your config file
 import debounce from "lodash.debounce";
 import NavBar from '../../Components/NavBar';
-
-
-import Breadcrumbs2 from './Breadcrumbs2';
+  // const [filter, setFilter] = useState("All");
 const redIcon = new L.Icon({
     iconUrl: redIconImage,
     iconSize: [20, 20],
@@ -72,6 +70,11 @@ const getVehicleIcon = (status) => {
     }
 };
 const defaultCenter = [41.8781, -87.6298]; // Default center (Chicago)
+// const filteredUsers = users.filter(
+//   (user) =>
+//     (filter === "All" || user.role.includes(filter.toLowerCase())) &&
+//     user.name.toLowerCase().includes(searchTerm.toLowerCase())
+// );
 
 
 const waypointIcon = new L.Icon({
@@ -219,18 +222,79 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
     );
 });
 
-const DriverRouteTracking = () => {
+const RouteTracking = () => {
     const [consignments, setConsignments] = useState([]);
     const [selectedRoutes, setSelectedRoutes] = useState([]);
     const [selectedConsignments, setSelectedConsignments] = useState([]);
     const [shouldConnectWebSocket, setShouldConnectWebSocket] = useState(false);
+    const [geoFences, setGeoFences] = useState([]);
     // const { vehiclePosition } = UseWebSocket("ws://localhost:8000/ws"); // Get WebSocket Data
     const { vehiclePositions } = UseWebSocket(config.WEBSOCKET_URL, shouldConnectWebSocket);
 
+    useEffect(() => {
+      console.log("Selected Routes:", selectedRoutes); // Debugging log
+      
+      if (!selectedRoutes.length) {
+        console.warn("No route selected, skipping geofence fetch.");
+        return;
+      }
+    
+      const fetchGeoFences = async () => {
+        try {
+          const routeID = selectedRoutes[0]?.routeID;
+          if (!routeID) return;
+      
+          const response = await axios.get(
+            `${config.API_BASE_URL}/geofence/getGeofences?routeID=${routeID}`
+          );
+      
+          console.log("Full API Response:", response.data);
+    
+          if (response.data && Array.isArray(response.data.data) && response.data.data.length > 0) {
+            setGeoFences(response.data.data);
+          } else {
+            console.warn("No geofences found, attempting to create...");
+            await createGeoFences(routeID); // Call function to create geofences
+          }
+        } catch (error) {
+          console.error("Error fetching geofences:", error);
+          setGeoFences([]);
+        }
+      };
+    
+      const createGeoFences = async (routeID) => {
+        try {
+          const createResponse = await axios.post(`${config.API_BASE_URL}/geofence/createGeofences`, {
+            routeID: routeID, 
+            // Add other required fields like geofence coordinates
+          });
+    
+          console.log("Geofences Created Successfully:", createResponse.data);
+    
+          // Fetch geofences again after creating
+          fetchGeoFences();
+        } catch (error) {
+          console.error("Error creating geofences:", error);
+        }
+      };
+    
+      fetchGeoFences();
+    }, [selectedRoutes]); 
+    
+    useEffect(() => {
+      console.log("Updated GeoFences State:", geoFences);
+    }, [geoFences]);
 
-
-
-
+    const getGeofenceCenter = (coordinates) => {
+      let latSum = 0, lngSum = 0;
+      coordinates.forEach(coord => {
+        latSum += coord[1]; // Latitude
+        lngSum += coord[0]; // Longitude
+      });
+      return [latSum / coordinates.length, lngSum / coordinates.length];
+    };
+    
+    
     const fetchRouteData = useCallback(async (routeID) => {
         try {
             const token = localStorage.getItem('token');
@@ -312,6 +376,7 @@ const DriverRouteTracking = () => {
     // }, [vehiclePosition]);
 
     const handleConsignmentSelection = async (consignment) => {
+      console.log("Selected consignment:", consignment);
         const isSelected = selectedConsignments.includes(consignment.routeID);
         let updatedSelectedConsignments;
         if (isSelected) {
@@ -331,6 +396,7 @@ const DriverRouteTracking = () => {
             routes.push(route);
         }
         setSelectedRoutes(routes);
+        console.log("selectedRoutes:",selectedRoutes)
 
         // Check if any selected consignment is started
         const shouldConnect = updatedSelectedConsignments.some(id => {
@@ -347,7 +413,12 @@ const DriverRouteTracking = () => {
             .toLowerCase()
             .includes(searchQuery.toLowerCase())
     );
+  
+    
+ 
 
+   
+    
     return (
       <Box
       sx={{
@@ -359,7 +430,7 @@ const DriverRouteTracking = () => {
       }}
       >
         <NavBar  />
-        <Breadcrumbs2/>
+        <Breadcrumbs />
 
      
 
@@ -376,6 +447,55 @@ const DriverRouteTracking = () => {
     
           }}
         >
+           {/* <Tabs
+            value={filter}
+            onChange={(e, newValue) => setFilter(newValue)}
+           
+            >
+            <Tab label={`All (${users.length})`} value="All"  className="tab"
+              sx={{
+                backgroundColor: filter === "All" ? "#388e3c" : "transparent", // Change the background color of active tab
+                color: filter === "All" ? "white" : "#1976d2", // Change text color for active tab
+                border:"1px solid #ddd",padding:"5px 15px",
+                 
+              }}
+             />
+              <Tab label={`Completed (${users.length})`} value="Completed"  className="tab"
+              sx={{
+                backgroundColor: filter === "Completed" ? "#388e3c" : "transparent", // Change the background color of active tab
+                color: filter === "Completed" ? "white" : "#1976d2", // Change text color for active tab
+                border:"1px solid #ddd",padding:"5px 15px",
+                 
+              }}
+             />
+            
+            <Tab
+              label={`Started (${
+                users.filter((u) => u.role === "Started").length
+              })`}
+              className="tab"
+              value="Started"
+              sx={{
+                backgroundColor: filter === "Started" ? "#388e3c" : "transparent", // Change the background color of active tab
+                color: filter === "Started" ? "white" : "#1976d2", // Change text color for active tab
+                border:"1px solid #ddd",padding:"5px 15px",
+                 
+              }}
+            />
+            <Tab
+              label={`Not Started (${
+                users.filter((u) => u.role === "Not Started").length
+              })`}
+              value="Not Started"
+              className="tab"
+              sx={{
+                backgroundColor: filter === "Not Started" ? "#388e3c" : "transparent", // Change the background color of active tab
+                color: filter === "Not Started" ? "white" : "#1976d2", // Change text color for active tab
+                border:"1px solid #ddd",padding:"5px 15px",
+                
+              }}
+            />
+          </Tabs>  */}
           {/* Left Column: Consignments and Route Details */}
           <Grid
             item
@@ -550,7 +670,47 @@ const DriverRouteTracking = () => {
                     multipleRoutes={selectedRoutes.length > 1}
                   />
                 ))}
+          {geoFences.length > 0 &&
+  geoFences.map((fence, index) => {
+    // Check if route_waypoints exist before looping
+    if (!fence.route_waypoints || fence.route_waypoints.length === 0) {
+      console.warn("No waypoints found for fence:", fence);
+      return null; // Skip rendering this fence if no waypoints exist
+    }
+
+    return fence.route_waypoints.map((stop, stopIndex) => {
+      if (stop.coordinates && stop.coordinates.length === 2) {
+        return (
+          <Circle
+            key={`${index}-${stopIndex}`}
+            center={[stop.coordinates[1], stop.coordinates[0]]} // Ensure [lat, long]
+            radius={500} // Adjust the radius as needed
+            pathOptions={{ color: "red", fillColor: "red", fillOpacity: 0.3 }}
+          />
+        );
+      } else {
+        console.warn(`Invalid stop coordinates at index ${stopIndex}:`, stop);
+        return null; // Skip invalid stops
+      }
+    });
+  })}
+
+
               </MapContainer>
+              {/* <div>
+  <h3>GeoFences Data</h3>
+  {geoFences.length === 0 ? <p>No Geofences Found</p> : (
+    <ul>
+      {geoFences.map((fence, index) => (
+        <li key={index}>
+          <strong>ID:</strong> {fence.geofence_id} | 
+          <strong> Coordinates:</strong> {JSON.stringify(fence.geofence_coordinates)}
+        </li>
+      ))}
+    </ul>
+  )}
+</div> */}
+
             </Box>
           </Grid>
         </Grid>
@@ -558,4 +718,4 @@ const DriverRouteTracking = () => {
     );
 };
 
-export default DriverRouteTracking;
+export default RouteTracking;

@@ -2,16 +2,36 @@ import React ,{useEffect ,useState} from 'react';
 import Navbar from '../../Components/NavBar';
 import Breadcrumbs from '../Breadcrumbs/Breadcrumbs';
 import config from '../../config';
+import axios from 'axios';
 
 const Analytics = () => {
   const [userId, setUserId] = useState(null);
+  const [loading, setLoading] = useState(true); // Loading state
+  const [error, setError] = useState(null); // Error state
 
   useEffect(() => {
-    // Fetch user ID from localStorage (or API if needed)
-    const storedUserId = localStorage.getItem("user_id"); // Ensure this key matches how it's stored
-    if (storedUserId) {
-      setUserId(storedUserId);
-    }
+    const fetchUserDetails = async () => {
+      try {
+        const response = await axios.get(`${config.API_BASE_URL}${config.USER_DETAILS_API}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`, // If authentication is required
+          },
+        });
+
+        if (response.data && response.data.user_id) {
+          setUserId(response.data.user_id);
+        } else {
+          throw new Error("User ID not found in response");
+        }
+      } catch (err) {
+        console.error("Error fetching user details:", err);
+        setError("Failed to load user details.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserDetails();
   }, []);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '95vh', overflow: 'hidden' }}>
