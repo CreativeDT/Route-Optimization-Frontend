@@ -4,6 +4,15 @@ import Breadcrumbs from '../Breadcrumbs/Breadcrumbs';
 import config from '../../config';
 
 const Analytics = () => {
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+    // Fetch user ID from localStorage (or API if needed)
+    const storedUserId = localStorage.getItem("user_id"); // Ensure this key matches how it's stored
+    if (storedUserId) {
+      setUserId(storedUserId);
+    }
+  }, []);
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '95vh', overflow: 'hidden' }}>
       <Navbar />
@@ -34,7 +43,8 @@ const Analytics = () => {
               title="FleetDashboard" 
               width="100%" 
               height="100%" 
-              src={config.POWER_BI_URL}
+              src={`${config.POWER_BI_URL}${userId}'`} 
+             
               style={{ border: 'none', borderRadius: '8px' }}
             ></iframe>
           </div>
