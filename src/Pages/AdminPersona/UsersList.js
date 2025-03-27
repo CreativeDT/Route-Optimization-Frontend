@@ -546,23 +546,47 @@ const handleChangeRowsPerPage = (event) => {
         <Dialog open={openDialog} onClose={handleCloseDialog}>
           <DialogTitle>{editingUser ? "Edit User" : "Create User"}</DialogTitle>
           <DialogContent>
+          <TextField
+  label={
+    <span>
+      Name <span style={{ color: "red" }}>*</span>
+    </span>
+  }
+  fullWidth
+  sx={{ mt: 2 }}
+  type="text"
+  placeholder="e.g.John Doe"
+  value={newUser.name}
+  onChange={(e) => {
+    let value = e.target.value;
+
+    // Prevent leading spaces
+    if (value.startsWith(" ")) {
+      setNewUser({ ...newUser, name: newUser.name }); // Keep the previous value
+      return;
+    }
+
+    // Allow alphabets, numbers, and spaces (not at the beginning)
+    if (/^[A-Za-z0-9\s]*$/.test(value)) {
+      setNewUser({ ...newUser, name: value });
+    }
+  }}
+  error={newUser.name.length > 15 || newUser.name.startsWith(" ")}
+  helperText={
+    newUser.name.startsWith(" ")
+      ? "Name cannot start with a space"
+      : newUser.name.length > 15
+      ? "Max 15 characters allowed"
+      : ""
+  }
+/>
+
             <TextField
-              label="Name"
-              fullWidth
-              sx={{ mt: 2 }}
-              type="text"
-              value={newUser.name}
-              onChange={(e) => {
-                const value = e.target.value.trim(); // Trim leading and trailing whitespace
-                if (/^[A-Za-z0-9\s]*$/.test(value)) {
-                  setNewUser({ ...newUser, name: value });
-                }
-              }}
-              error={newUser.name.length > 15} // Show error only if length exceeds 15
-              helperText={newUser.name.length > 15 ? "Max 15 characters allowed" : ""} // Show helper text only when exceeded
-                        />
-            <TextField
-              label="Email"
+              label={
+                <span>
+                  Email <span style={{ color: "red" }}>*</span>
+                </span>
+              }
               fullWidth
               sx={{ mt: 2 }}
               value={newUser.email}
@@ -577,7 +601,11 @@ const handleChangeRowsPerPage = (event) => {
               }
             />
             <TextField
-              label="Password"
+              label={
+                <span>
+                  Password <span style={{ color: "red" }}>*</span>
+                </span>
+              }
               fullWidth
               sx={{ mt: 2 }}
               type={showPassword ? "text" : "password"}

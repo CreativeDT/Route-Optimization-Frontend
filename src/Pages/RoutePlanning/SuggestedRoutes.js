@@ -1760,14 +1760,26 @@ const isSubmitDisabled = useMemo(() => {
                         }
                         label="Drop Demand kgs"
                         type="text"
-                        value={stop.drop_demand || ""}
+                        value={stop.drop_demand }
                         onChange={(e) => {
-                          const value = e.target.value.replace(/[^0-9]/g, "");
+                          let value = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
                           handleStopDemandChange(index, "drop_demand", value);
                         }}
+                        onFocus={(e) => {
+                          if (e.target.value === "0") {
+                            handleStopDemandChange(index, "drop_demand", ""); // Clear 0 when editing starts
+                          }
+                        }}
+                        // onBlur={(e) => {
+                        //   if (e.target.value === "") {
+                        //     handleStopDemandChange(index, "drop_demand", "0"); // Restore 0 if empty
+                        //   }
+                        // }}
+                       
                         size="small"
                         fullWidth
                         margin="dense"
+                       
                         sx={{"& .MuiFormLabel-root": {
                                 fontSize: "10px", // Adjust input text size
                               },
@@ -1779,11 +1791,13 @@ const isSubmitDisabled = useMemo(() => {
                           
                             "& .MuiInputBase-input": {
                               fontSize: "12px", // Reduce input text size
-                            }
+                            },
+                            //   "& .MuiInputLabel-root":{
+                            //   top:"-8px!important",
+                            
+                            // }
                         }}
-                        onBlur={() => {
-                          
-                        }}
+                        
                       />
                     </Grid2>
 
@@ -1793,12 +1807,22 @@ const isSubmitDisabled = useMemo(() => {
                           (inputRefs.current[`${index}-pickup_demand`] = el)
                         }
                         label="Pickup Demand kgs"
-                        type="number"
-                        value={stop.pickup_demand || 0}
+                        type="text"
+                        value={stop.pickup_demand }
                         onChange={(e) => {
-                          const value = Math.max(0, Number(e.target.value)); // Ensure value is not negative
+                          let value = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
                           handleStopDemandChange(index, "pickup_demand", value);
                         }}
+                        onFocus={(e) => {
+                          if (e.target.value === "0") {
+                            handleStopDemandChange(index, "pickup_demand", ""); // Clear 0 when editing starts
+                          }
+                        }}
+                        // onBlur={(e) => {
+                        //   if (e.target.value === "") {
+                        //     handleStopDemandChange(index, "pickup_demand", "0"); // Restore 0 if empty
+                        //   }
+                        // }}
                         size="small"
                         fullWidth
                         margin="dense"
@@ -1814,44 +1838,54 @@ const isSubmitDisabled = useMemo(() => {
                       "& .MuiInputBase-input": {
                         fontSize: "12px", // Reduce input text size
                       },
-                    }}
-                    onBlur={() => {
+                      // "& .MuiInputLabel-root":{
+                      //   top:"-8px!important",
                       
+                      // }
                     }}
+                    
                       />
                     </Grid2>
-                    <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
-                      <StyledTextField
-                        inputRef={(el) =>
-                          (inputRefs.current[`${index}-priority`] = el)
-                        }
-                        label="Priority"
-                        type="number"
-                        value={stop.priority || 3}
-                        onChange={(e) => {
-                          const value = Math.max(
-                            0,
-                            Math.min(Number(e.target.value), 3)
-                          );
-                          handleStopDemandChange(index, "priority", value);
-                        }}
-                        size="small"
-                        fullWidth
-                        margin="dense"
-                        sx={{ height: "20px","& .MuiFormLabel-root": {
-                          fontSize: "10px", // Adjust input text size
-                        },
-                        "& .MuiOutlinedInput-root": { 
-                          "& fieldset": { 
-                            borderColor: "#ccc!important"
-                          }
-                             } ,
                     
-                      "& .MuiInputBase-input": {
-                        fontSize: "12px", // Reduce input text size
-                      },
-                    }}
-                      />
+                    <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
+                    <StyledTextField
+  inputRef={(el) => (inputRefs.current[`${index}-priority`] = el)}
+  label="Priority"
+  type="text"
+  value={stop.priority}
+  placeholder=" (0-3)"
+  onChange={(e) => {
+    let value = e.target.value.replace(/[^0-3]/g, ""); // Allow only 0-3
+
+    // Ensure the value stays within the valid range
+    if (value === "" || /^[0-3]$/.test(value)) {
+      handleStopDemandChange(index, "priority", value);
+    }
+  }}
+  // onBlur={(e) => {
+  //   if (e.target.value === "") {
+  //     handleStopDemandChange(index, "priority", "0"); // Default to 0 if empty
+  //   }
+  // }}
+  size="small"
+  fullWidth
+  margin="dense"
+  sx={{
+    height: "20px",
+    "& .MuiFormLabel-root": {
+      fontSize: "10px",
+    },
+    "& .MuiOutlinedInput-root": {
+      "& fieldset": {
+        borderColor: "#ccc!important",
+      },
+    },
+    "& .MuiInputBase-input": {
+      fontSize: "12px",
+    },
+  }}
+/>
+
                     </Grid2>
                   </Grid2>
                 </Box>

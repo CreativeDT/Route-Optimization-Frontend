@@ -1,7 +1,7 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { Typography, TextField, Button, Box, Paper, Link, MenuItem, Container } from "@mui/material";
+import { Typography, TextField,  IconButton, InputAdornment,Button, Box, Paper, Link, MenuItem, Container } from "@mui/material";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 import { motion } from "framer-motion";
@@ -9,16 +9,54 @@ import { AuthContext } from "../Context/AuthContext";
 import "./Login.css"; // Import the CSS for background animation
 import logo from "../Assets/images/CSG Logo_PNG.png";
 import config from "../config";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+
+
 
 const theme = createTheme();
 
+
+const SESSION_TIMEOUT = 5 * 60 * 1000; // 5 minutes
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [userRole, setUserRole] = useState("admin");
   const [error, setError] = useState("");
+  const [sessionExpired, setSessionExpired] = useState(false);
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext);
+  const { login, logout } = useContext(AuthContext);
+  const [showPassword, setShowPassword] = useState(false);
+
+const handleTogglePassword = () => {
+  setShowPassword(!showPassword);
+};
+  let timeoutRef = null;
+  useEffect(() => {
+    const resetTimer = () => {
+      if (timeoutRef) clearTimeout(timeoutRef);
+      timeoutRef = setTimeout(() => {
+        handleSessionTimeout();
+      }, SESSION_TIMEOUT);
+    };
+
+    const handleSessionTimeout = () => {
+      setSessionExpired(true);
+      logout(); // Clear authentication
+      navigate("/"); // Redirect to login page
+    };
+
+    resetTimer(); // Initialize timer on login
+     // Listen for user activity to reset the timer
+     window.addEventListener("mousemove", resetTimer);
+     window.addEventListener("keydown", resetTimer);
+ 
+     return () => {
+       clearTimeout(timeoutRef);
+       window.removeEventListener("mousemove", resetTimer);
+       window.removeEventListener("keydown", resetTimer);
+     };
+   }, [navigate, logout]);
+
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -65,6 +103,9 @@ const Login = () => {
         // Set authentication token for future requests
         axios.defaults.headers.common["Authorization"] = `Bearer ${access_token}`;
 
+        login(userData); // Set auth context
+        setSessionExpired(false); // Reset session expiration state
+
          // Update AuthContext
          console.log("Calling login function with:",userData);
          login(userData); 
@@ -80,7 +121,7 @@ const Login = () => {
       }
     } catch (err) {
       console.error("Login Error:", err.response?.data || err.message);
-      setError(err.response?.data?.detail || "Invalid username, password, or role");
+      setError( "Invalid username, password, or role");
     }
   };
 
@@ -96,6 +137,11 @@ const Login = () => {
           sx={{ position: "relative" }}
         >
           <Paper elevation={3} className="login-box">
+          {sessionExpired && (
+              <Typography color="error" variant="body2" sx={{ textAlign: "center", mb: 2 }}>
+                Session expired due to inactivity. Please log in again.
+              </Typography>
+            )}
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
@@ -121,16 +167,31 @@ const Login = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
               />
-              <TextField
-                margin="dense"
-                required
-                fullWidth
-                size="small"
-                label="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+            <TextField
+  margin="dense"
+  required
+  fullWidth
+  size="small"
+  label="Password"
+  type={showPassword ? "text" : "password"}
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+  InputProps={{
+    endAdornment: (
+      <InputAdornment position="end">
+        <IconButton onClick={handleTogglePassword} edge="end" sx={{ 
+        "& .MuiSvgIcon-root ": { 
+                        
+                       fontSize:"12px!important"
+                          
+                             } ,
+                     }}>
+          {showPassword ? <VisibilityOff /> : <Visibility />}
+        </IconButton>
+      </InputAdornment>
+    ),
+  }}
+/>
               <TextField
                 margin="dense"
                 required

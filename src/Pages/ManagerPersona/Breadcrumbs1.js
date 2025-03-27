@@ -28,10 +28,10 @@ const Breadcrumbs1 = ({ homeLabel = "Home" }) => {
                 case 'analytics':
                     displayName = 'Analytics';
                     break;
-                case 'Manager Suggest Routes':
+                case 'Managersuggestroutes':
                         displayName = 'Manager Suggest Routes';
                         break;
-                case 'Manager Route Tracking':
+                case 'Managerroutetracking':
                             displayName = 'Manager Route Tracking';
                             break;        
                         

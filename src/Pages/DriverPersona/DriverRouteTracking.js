@@ -16,10 +16,11 @@ import vehicleicon1 from '../../Assets/images/vehicle1.png';
 import ambericon from '../../Assets/images/Amber.png';
 import REDicon from '../../Assets/images/redicon.png';
 import UseWebSocket from '../../WebSockets/UseWebSockets';  // Import WebSocket Hook
-import Breadcrumbs from '../Breadcrumbs/Breadcrumbs'; // Import your Breadcrumbs component
+
 import config from '../../config'; // Import your config file
 import debounce from "lodash.debounce";
 import NavBar from '../../Components/NavBar';
+import Breadcrumbs2 from './Breadcrumbs2';
   // const [filter, setFilter] = useState("All");
 const redIcon = new L.Icon({
     iconUrl: redIconImage,
@@ -430,7 +431,7 @@ const RouteTracking = () => {
       }}
       >
         <NavBar  />
-        <Breadcrumbs />
+        <Breadcrumbs2 />
 
      
 

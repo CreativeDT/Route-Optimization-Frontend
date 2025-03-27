@@ -20,6 +20,7 @@ import Breadcrumbs from '../Breadcrumbs/Breadcrumbs'; // Import your Breadcrumbs
 import config from '../../config'; // Import your config file
 import debounce from "lodash.debounce";
 import NavBar from '../../Components/NavBar';
+import Breadcrumbs1 from './Breadcrumbs1';
   // const [filter, setFilter] = useState("All");
 const redIcon = new L.Icon({
     iconUrl: redIconImage,
@@ -428,7 +429,7 @@ const RouteTracking = () => {
       }}
       >
         <NavBar  />
-        <Breadcrumbs />
+        <Breadcrumbs1 />
 
      
 

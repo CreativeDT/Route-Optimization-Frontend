@@ -20,10 +20,10 @@ const Breadcrumbs2 = ({ homeLabel = "Home" }) => {
             // Customize display names for specific routes (Important!)
             switch (segment) {
                 case 'driverfleetdetails':
-                    displayName = 'Driver Fleetdetails';
+                    displayName = 'DriverFleetdetails';
                     break;
                 case 'driverroutetracking':
-                    displayName = 'Driver Route Tracking';
+                    displayName = 'DriverRouteTracking';
                     break;
                 case 'driveranalytics':
                     displayName = 'DriverAnalytics';

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-    Typography, CircularProgress, Box, Tabs, Tab, Tooltip, Button, Dialog,TablePagination,
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,Alert ,
+    Typography, CircularProgress, Box, Tabs, Tab, Tooltip, Button, Dialog,TablePagination,Snackbar,
     DialogTitle, DialogContent, DialogActions, InputLabel, Select, MenuItem,TextField, Autocomplete
 } from "@mui/material";
 import { FormControl } from "@mui/material";
@@ -30,6 +30,42 @@ const [selectedRoute, setSelectedRoute] = useState("");
 const [isManager, setIsManager] = useState(false);
 const [consignments, setConsignments] = useState([]);
 const [searchQuery, setSearchQuery] = useState("");
+
+const [confirmReassign, setConfirmReassign] = useState(false);
+const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+
+const handleDriverChange = (newValue, routeID) => {
+  if (newValue) {
+    const isReassigning = !!selectedDrivers[routeID]; // Check if a driver was already assigned
+
+    // Update the assigned driver for this route
+    setSelectedDrivers((prev) => ({ ...prev, [routeID]: newValue.driver_name }));
+
+    handleAssignDriver(newValue.driver_id, routeID); // API call to assign driver
+
+    // Show success snackbar (removes any alerts)
+    setSnackbar({
+      open: true,
+      message: isReassigning ? "Driver reassigned successfully!" : "Driver assigned successfully!",
+      severity: "success",
+    });
+  }
+};
+
+const assignDriver = (newDriver, routeID, successMessage) => {
+  if (newDriver) {
+    handleAssignDriver(newDriver.driver_id, routeID);
+    
+    // Reset dropdown selection
+    setSelectedDrivers((prev) => ({ ...prev, [routeID]: null }));
+
+    // Show success snackbar
+    setSnackbar({ open: true, message: successMessage, severity: "success" });
+  }
+};
+
+
+
 
 const [selectedConsignment, setSelectedConsignment] = useState(null);
   const [summary, setSummary] = useState({
@@ -192,7 +228,7 @@ const handleAssignDriver = async (driverId, routeId) => {
             [routeId]: availableDrivers.find((d) => d.driver_id === driverId),
           }));
         console.log("API Response:", response.data);
-        alert("Driver assigned successfully.");
+        // alert("Driver assigned successfully.");
         
         // Fetch updated data so UI reflects changes
         fetchData();
@@ -443,7 +479,7 @@ const filteredData = data.filter((item) => {
                             {item.summaryAdded ? "Summary Added" : "Add Summary"}
                         </Button>
                         </TableCell> */}
-                       <TableCell
+                       {/* <TableCell
                         sx={{
                           backgroundColor: item.driver_id ? "#bde2bd" : "#e9a7a78c", // Green if assigned, Red if not
                           color: "white", // Ensure text remains visible
@@ -451,6 +487,15 @@ const filteredData = data.filter((item) => {
                         }}
                       >
                         {item.driver}
+                      </TableCell> */}
+                       <TableCell
+                        sx={{
+                          backgroundColor: item.driver_id ? "#bde2bd" : "#e9a7a78c", // Green if assigned, Red if not
+                          color: "white", // Ensure text remains visible
+                          fontWeight: "bold",
+                        }}
+                      >
+                       {item.driver || "Not Assigned"}
                       </TableCell>
 
                         <TableCell>
@@ -475,7 +520,7 @@ const filteredData = data.filter((item) => {
                                 />
                             )}
                         /> */}
-                        <Autocomplete
+                        {/* <Autocomplete
   options={availableDrivers.filter((driver) => driver.route_status === "Not Assigned")}
   getOptionLabel={(option) => option.driver_name || ""}
   value={selectedDrivers[item.routeID] || null}
@@ -511,10 +556,45 @@ const filteredData = data.filter((item) => {
   componentsProps={{
     paper: { sx: { fontSize: "10px" } }, // Reduce font size in dropdown list
   }}
-/>
+/> */}
 
+<Autocomplete
+        options={availableDrivers.filter((driver) => driver.route_status === "Not Assigned")}
+        getOptionLabel={(option) => option.driver_name || ""}
+        value={null} // Always keep dropdown empty after selection
+        onChange={(event, newValue) => handleDriverChange(newValue, item.routeID)}
+        sx={{
+          fontSize: "10px",
+          "& .MuiInputBase-root": { fontSize: "10px" },
+          "& .MuiAutocomplete-listbox": { fontSize: "10px" },
+          "& .MuiAutocomplete-endAdornment": { right: "2px !important" },
+        }}
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            label={selectedDrivers[item.routeID] ? "Reassign Driver" : "Select Driver"}
+            variant="outlined"
+            InputLabelProps={{ sx: { fontSize: "10px" } }}
+            inputProps={{ ...params.inputProps, sx: { fontSize: "10px" } }}
+          />
+        )}
+        componentsProps={{ paper: { sx: { fontSize: "10px" } } }}
+      />
+    </TableCell>
 
-                    </TableCell> 
+    {/* Snackbar for success messages */}
+    <Snackbar
+      open={snackbar.open}
+      autoHideDuration={3000}
+      onClose={() => setSnackbar({ ...snackbar, open: false })}
+      anchorOrigin={{ vertical: "top", horizontal: "right" }}
+    >
+      <Alert onClose={() => setSnackbar({ ...snackbar, open: false })} severity={snackbar.severity} sx={{ width: "100%" }}>
+        {snackbar.message}
+      </Alert>
+    </Snackbar>
+ 
+                  
                    
 
                     </>
@@ -541,7 +621,31 @@ const filteredData = data.filter((item) => {
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
-      
+       {/* Confirmation Dialog for Reassignment */}
+    <Dialog open={confirmReassign} onClose={() => setConfirmReassign(false)}>
+      <DialogTitle>Reassign Driver</DialogTitle>
+      <DialogContent>
+        Are you sure you want to reassign the driver?
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={() => setConfirmReassign(false)} color="secondary">
+          Cancel
+        </Button>
+        <Button
+          onClick={() => {
+            assignDriver(selectedRoute.newDriver, selectedRoute.routeID);
+            setConfirmReassign(false);
+          }}
+          color="primary"
+        >
+          Yes, Reassign
+        </Button>
+      </DialogActions>
+    </Dialog>
+ 
+
+
+
       <Dialog open={open} onClose={() => setOpen(false)}>
       <DialogTitle>
             {selectedConsignment?.summaryAdded ? "View/Edit Summary" : "Add Consignment Summary"}
