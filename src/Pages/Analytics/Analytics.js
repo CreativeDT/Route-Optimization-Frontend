@@ -10,16 +10,20 @@ const Analytics = () => {
   const [error, setError] = useState(null); // Error state
 
   useEffect(() => {
+    console.log("Fetching user details...");  // Debugging line
+  
     const fetchUserDetails = async () => {
       try {
-        const response = await axios.get(`${config.API_BASE_URL}${config.USER_DETAILS_API}`, {
+        const response = await axios.get(`${config.API_BASE_URL}/current_user`, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("auth_token")}`, // If authentication is required
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
           },
         });
-
-        if (response.data && response.data.user_id) {
-          setUserId(response.data.user_id);
+  
+        console.log("User API Response:", response.data); // Debugging
+  
+        if (response.data?.user?.user_id) {
+          setUserId(response.data.user.user_id);
         } else {
           throw new Error("User ID not found in response");
         }
@@ -30,9 +34,10 @@ const Analytics = () => {
         setLoading(false);
       }
     };
-
+  
     fetchUserDetails();
   }, []);
+  
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '95vh', overflow: 'hidden' }}>
       <Navbar />

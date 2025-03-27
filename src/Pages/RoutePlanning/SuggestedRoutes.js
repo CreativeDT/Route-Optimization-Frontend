@@ -2096,7 +2096,7 @@ const isSubmitDisabled = useMemo(() => {
     }}
   />
 </StyledFormControl>
-<FormControl fullWidth>
+{/* <FormControl fullWidth>
       <InputLabel>Select Driver</InputLabel>
       {loading ? (
         <p>Loading drivers...</p>
@@ -2115,7 +2115,7 @@ const isSubmitDisabled = useMemo(() => {
           )}
         </Select>
       )}
-    </FormControl>
+    </FormControl> */}
 
                             {/* <FormControl fullWidth margin="dense" sx={{ width: "80%", padding: "0 1rem", marginBottom: "1rem" }}>
       <InputLabel sx={{ padding: "0 1.2rem" }}>Available Vehicles</InputLabel>
