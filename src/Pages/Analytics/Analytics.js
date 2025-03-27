@@ -12,16 +12,22 @@ const Analytics = () => {
   useEffect(() => {
     console.log("Fetching user details...");  // Debugging line
   
+    console.log("Auth Token from localStorage:", localStorage.getItem("token"));
+
+    
+  
     const fetchUserDetails = async () => {
       try {
-        const response = await axios.get(`${config.API_BASE_URL}/current_user`, {
+        const token = localStorage.getItem("token"); // Ensure correct key
+        
+        const response = await axios.get("http://127.0.0.1:8000/current_user", {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            Authorization: `Bearer ${token}`,
           },
         });
-  
-        console.log("User API Response:", response.data); // Debugging
-  
+    
+        console.log("User API Response:", response.data);
+    
         if (response.data?.user?.user_id) {
           setUserId(response.data.user.user_id);
         } else {
@@ -29,11 +35,19 @@ const Analytics = () => {
         }
       } catch (err) {
         console.error("Error fetching user details:", err);
-        setError("Failed to load user details.");
+    
+        // Redirect to login if unauthorized
+        if (err.response?.status === 401) {
+          console.error("Unauthorized! Redirecting to login...");
+          window.location.href = "/login";
+        } else {
+          setError("Failed to load user details.");
+        }
       } finally {
         setLoading(false);
       }
     };
+    
   
     fetchUserDetails();
   }, []);
@@ -64,14 +78,17 @@ const Analytics = () => {
             height: 'calc(100vh - 160px)', // Adjusted height to fit the screen
             overflow: 'hidden'
           }}>
-            <iframe 
-              title="FleetDashboard" 
-              width="100%" 
-              height="100%" 
-              src={`${config.POWER_BI_URL}${userId}'`} 
-             
-              style={{ border: 'none', borderRadius: '8px' }}
-            ></iframe>
+          {userId ? (
+  <iframe 
+    title="FleetDashboard" 
+    width="100%" 
+    height="100%" 
+    src={`${config.POWER_BI_URL}${userId}`}  // Remove extra `'`
+    style={{ border: 'none', borderRadius: '8px' }}
+  ></iframe>
+) : (
+  <p>Loading dashboard...</p>
+)}
           </div>
         </div>
       </div>
