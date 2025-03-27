@@ -264,11 +264,8 @@ const RouteTracking = () => {
     
       const createGeoFences = async (routeID) => {
         try {
-          const createResponse = await axios.post(`${config.API_BASE_URL}/geofence/create`, {
-            routeID: routeID, 
-            // Add other required fields like geofence coordinates
-          });
-    
+          const createResponse = await axios.post(`${config.API_BASE_URL}//geofence/createGeofencesrouteID=${routeID}`
+          );
           console.log("Geofences Created Successfully:", createResponse.data);
     
           // Fetch geofences again after creating
