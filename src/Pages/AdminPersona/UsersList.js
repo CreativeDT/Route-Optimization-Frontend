@@ -434,6 +434,22 @@ const handleChangeRowsPerPage = (event) => {
                  
               }}
             />
+             <Tab
+              label={`Consignments (${
+                users.filter((u) => u.role === "admin").length
+              })`}
+              value="admin"
+              className="tab"
+              sx={{
+                backgroundColor: filter === "driver" ? "#388e3c" : "#dcdcdc4a!important", // Change the background color of active tab
+                color: filter === "driver" ? "white" : "#1976d2", // Change text color for active tab
+                border:"1px solid #dcdcdc",padding:"5px 15px",
+                "&.MuiTab-root": { 
+                  minHeight: "39px !important",
+                },
+                 
+              }}
+            />
           </Tabs>  </Box>
           </Box>
             

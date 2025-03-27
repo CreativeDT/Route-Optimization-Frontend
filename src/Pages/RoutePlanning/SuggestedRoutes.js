@@ -91,6 +91,12 @@ const SuggestRoutes = () => {
   const[label,setLabel] =useState([]);
   const [stopsError, setStopsError] = useState("");
   const [searchValue, setSearchValue] = useState("");
+  const [drivers, setDrivers] = useState([]);
+  const [selectedDriver, setSelectedDriver] = useState("");
+  const [geofences, setGeofences] = useState([]);
+  const [availableDrivers, setAvailableDrivers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -1283,6 +1289,52 @@ const isSubmitDisabled = useMemo(() => {
     }
   };
 
+  const fetchDrivers = async () => {
+    try {
+      setLoading(true);
+      setError("");
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("No token found. Please log in.");
+        setLoading(false);
+        return;
+      }
+
+      const response = await axios.get(`${config.API_BASE_URL}/getDrivers`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      console.log("API Response:", response.data);
+
+      if (response.data.drivers && Array.isArray(response.data.drivers)) {
+        setAvailableDrivers([...response.data.drivers]); // Spread operator to force state update
+        console.log("Updated availableDrivers:", response.data.drivers);
+      } else {
+        setAvailableDrivers([]);
+        setError("Invalid API Response Structure");
+      }
+    } catch (error) {
+      console.error("Error fetching drivers:", error);
+      setError("Failed to load drivers.");
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    fetchDrivers();
+  }, []); // Run once when component mounts
+
+  useEffect(() => {
+    console.log("Drivers Updated:", availableDrivers);
+  }, [availableDrivers]); // Log when availableDrivers updates
+
+  const handleChange = (event) => {
+    setSelectedDriver(event.target.value);
+    console.log("Selected Driver:", event.target.value);
+  };
+
+
   return (
     <div>
       <Box
@@ -1707,10 +1759,10 @@ const isSubmitDisabled = useMemo(() => {
                           (inputRefs.current[`${index}-drop_demand`] = el)
                         }
                         label="Drop Demand kgs"
-                        type="number"
-                        value={stop.drop_demand || 0}
+                        type="text"
+                        value={stop.drop_demand || ""}
                         onChange={(e) => {
-                          const value = Math.max(0, Number(e.target.value)); // Ensure value is not negative
+                          const value = e.target.value.replace(/[^0-9]/g, "");
                           handleStopDemandChange(index, "drop_demand", value);
                         }}
                         size="small"
@@ -2044,6 +2096,26 @@ const isSubmitDisabled = useMemo(() => {
     }}
   />
 </StyledFormControl>
+<FormControl fullWidth>
+      <InputLabel>Select Driver</InputLabel>
+      {loading ? (
+        <p>Loading drivers...</p>
+      ) : error ? (
+        <p style={{ color: "red" }}>{error}</p>
+      ) : (
+        <Select value={selectedDriver} onChange={handleChange}>
+          {availableDrivers.length > 0 ? (
+            availableDrivers.map((driver) => (
+              <MenuItem key={driver.driver_id} value={driver.driver_id}>
+                {driver.driver_name}
+              </MenuItem>
+            ))
+          ) : (
+            <MenuItem disabled>No Drivers Found</MenuItem>
+          )}
+        </Select>
+      )}
+    </FormControl>
 
                             {/* <FormControl fullWidth margin="dense" sx={{ width: "80%", padding: "0 1rem", marginBottom: "1rem" }}>
       <InputLabel sx={{ padding: "0 1.2rem" }}>Available Vehicles</InputLabel>
@@ -2272,7 +2344,7 @@ const isSubmitDisabled = useMemo(() => {
                   backgroundColor: "#fafafa",
                 }}
               >
-                <Box>
+                <Box sx={{display:"flex"}}>
                 <Typography
                   variant="h6"
                   sx={{ mb: 1 }}
@@ -2280,53 +2352,7 @@ const isSubmitDisabled = useMemo(() => {
                 >
                   Suggested Routes
                 </Typography>
-                <StyledFormControl
-  fullWidth
-  margin="dense"
-  className="select-container"
-  sx={{ width: "100%", marginBottom: "1rem" }}
->
-  <Select
-    options={uniqueVehicleOptions.map(vehicle => ({
-      value: vehicle.value,
-      label: `${vehicle.label} → ID: ${vehicle.value.slice(-5)}`, // Include vehicle_id in label
-      vehicle_id: vehicle.vehicle_id, // Add vehicle_id for further use
-    }))}
-   
-   
-    value={selectedVehicle}
-    onChange={handleVehicleSelection}
-     placeholder="Search Available Vehicles..."
-    //  isDisabled={!origin || !destination} // Prevent selection without required fields
-    //  isSearchable={!!origin && !!destination} // Disable search when origin/destination are missing
-    isSearchable
-    menuPlacement="top" 
-    styles={{
-      control: (base) => ({
-        ...base,
-        height: "20px",
-        fontSize: "12px", 
-      }),
-      menu: (base) => ({
-        ...base,
-        marginTop: "-4px",fontSize: "12px", 
-        zIndex: 9999, // Ensures dropdown appears above other elements
-      }),
-      menuList: (base) => ({
-        ...base,
-        paddingTop: "0px",  
-        paddingBottom: "0px", 
-        fontSize: "12px", 
-      }),
-      option: (base) => ({
-        ...base,
-        fontSize: "12px",
-         padding: "8px 12px", // Adjust padding if needed
-      }),
-    
-    }}
-  />
-</StyledFormControl>
+               
                                    
                 </Box>
 
