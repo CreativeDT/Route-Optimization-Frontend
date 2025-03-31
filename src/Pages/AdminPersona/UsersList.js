@@ -169,7 +169,7 @@ const [sortField, setSortField] = useState("name"); // Default sorting field
       password: newUser.password,
       user_role: newUser.role.toLowerCase(),
       email: newUser.email,
-      // status: newUser.status ? "active" : "inactive",
+    // status: newUser.status ? "active" : "inactive",
     };
  
     const userPayload1 = {
@@ -434,7 +434,7 @@ const handleChangeRowsPerPage = (event) => {
                  
               }}
             />
-             <Tab
+             {/* <Tab
               label={`Consignments (${
                 users.filter((u) => u.role === "admin").length
               })`}
@@ -449,7 +449,7 @@ const handleChangeRowsPerPage = (event) => {
                 },
                  
               }}
-            />
+            /> */}
           </Tabs>  </Box>
           </Box>
             

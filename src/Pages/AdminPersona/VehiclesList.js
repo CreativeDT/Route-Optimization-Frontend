@@ -208,20 +208,34 @@ const allCount = vehicles.length;
 //         );
 //     });
 
+// const filteredVehicles = vehicles.filter(vehicle => {
+//     const searchTermLower = searchTerm.toLowerCase();
+
+//     // Apply fuel type filter
+//     const fuelTypeMatch = filter === "All" || vehicle.FuelType === filter;
+
+//     // Apply search term filter
+//     const searchMatch =
+//         (vehicle.VehicleType && vehicle.VehicleType.toLowerCase().includes(searchTermLower)) ||
+//         (vehicle.LicenseNo && vehicle.LicenseNo.toLowerCase().includes(searchTermLower)) ||
+//         (vehicle.FuelType && vehicle.FuelType.toLowerCase().includes(searchTermLower));
+
+//     return fuelTypeMatch && searchMatch; // ✅ Both conditions must be true
+// });
 const filteredVehicles = vehicles.filter(vehicle => {
     const searchTermLower = searchTerm.toLowerCase();
 
     // Apply fuel type filter
-    const fuelTypeMatch = filter === "All" || vehicle.FuelType === filter;
+    const fuelTypeMatch = filter === "All" || vehicle.FuelType.toLowerCase() === filter.toLowerCase();
 
-    // Apply search term filter
-    const searchMatch =
-        (vehicle.VehicleType && vehicle.VehicleType.toLowerCase().includes(searchTermLower)) ||
-        (vehicle.LicenseNo && vehicle.LicenseNo.toLowerCase().includes(searchTermLower)) ||
-        (vehicle.FuelType && vehicle.FuelType.toLowerCase().includes(searchTermLower));
+    // Apply search term filter across all fields
+    const searchMatch = Object.values(vehicle).some(value =>
+        String(value).toLowerCase().includes(searchTermLower)
+    );
 
-    return fuelTypeMatch && searchMatch; // ✅ Both conditions must be true
+    return fuelTypeMatch && searchMatch;
 });
+
 
     // Pagination handlers
   const handleChangePage = (event, newPage) => {
@@ -498,7 +512,7 @@ const handleChangeRowsPerPage = (event) => {
                             label="Vehicle Status"
                         >
                             <MenuItem value="In Transit">In Transit</MenuItem>
-                            <MenuItem value="Rested">Rested</MenuItem>
+                            <MenuItem value="Rested">Available</MenuItem>
                         </Select>
                     </FormControl>
                 </DialogContent>

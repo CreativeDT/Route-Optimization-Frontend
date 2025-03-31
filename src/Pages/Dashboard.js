@@ -20,14 +20,14 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   const iconData = [
-    {
-      image: RouteIcon,
-      alt: "Route Planning",
-      label: "Route Planning",
-      description:
-       "Plan the most efficient routes with real-time traffic updates and optimized paths. Optimize routes for cost savings.",
-      path: "/route-planning",
-    },
+    // {
+    //   image: RouteIcon,
+    //   alt: "Route Planning",
+    //   label: "Route Planning",
+    //   description:
+    //    "Plan the most efficient routes with real-time traffic updates and optimized paths. Optimize routes for cost savings.",
+    //   path: "/route-planning",
+    // },
     {
       image: TrackingIcon,
       alt: "Route Tracking",
@@ -52,6 +52,14 @@ const Dashboard = () => {
       "Manage user access and permissions. Add, edit and deactivate user accounts.",
       path: "/userlist",
     },
+    // {
+    //   image: adminIcon,
+    //   alt: "Admin",
+    //   label: "Administration",
+    //   description:  
+    //   "Manage user access and permissions. Add, edit and deactivate user accounts.",
+    //   path: "/adminadministration",
+    // },
   ];
 
   return (

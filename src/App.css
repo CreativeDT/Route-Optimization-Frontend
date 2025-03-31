@@ -39,3 +39,45 @@ html, body {
     --unit: 14px;
 }
 .MuiGrid-item{padding-top:0px!important;padding-left:0px!important}
+
+.notifications-box {
+  position: absolute;
+  right: 0;
+  top: 40px;
+  width: 300px;
+  max-height: 250px; /* Limit height */
+  min-height: 100px; /* Ensure visibility */
+  overflow-y: auto; /* Enable scrolling */
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  padding: 10px;
+  z-index: 1000;
+}
+
+.notifications-content {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.notification-item {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+.notification-item:last-child {
+  border-bottom: none;
+}
+
+.no-notifications {
+  text-align: center;
+  padding: 10px;
+  color: #888;
+}
+
+.icon {
+  font-size: 24px;
+  cursor: pointer;
+}

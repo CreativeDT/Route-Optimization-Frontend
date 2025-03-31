@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import {
-    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,Alert ,
+    Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,Alert ,DialogContentText,
     Typography, CircularProgress, Box, Tabs, Tab, Tooltip, Button, Dialog,TablePagination,Snackbar,
     DialogTitle, DialogContent, DialogActions, InputLabel, Select, MenuItem,TextField, Autocomplete
 } from "@mui/material";
@@ -24,15 +24,22 @@ const Dashboard = () => {
   const [open, setOpen] = useState(false);
 
 const [availableDrivers, setAvailableDrivers] = useState([]);
-// const [selectedDriver, setSelectedDriver] = useState("");
-const [selectedDrivers, setSelectedDrivers] = useState({}); // Store selected driver IDs per route
+ const [selectedDriver, setSelectedDriver] = useState("");
+const [selectedDrivers, setSelectedDrivers] = useState(() => {
+  const storedDrivers = localStorage.getItem("selectedDrivers");
+  return storedDrivers ? JSON.parse(storedDrivers) : {};
+}); // Store selected driver IDs per route
 const [selectedRoute, setSelectedRoute] = useState("");
 const [isManager, setIsManager] = useState(false);
 const [consignments, setConsignments] = useState([]);
 const [searchQuery, setSearchQuery] = useState("");
+const [isReassigning, setIsReassigning] = useState(false); // Track if it's a reassignment
 
 const [confirmReassign, setConfirmReassign] = useState(false);
 const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
+const [openDialog, setOpenDialog] = React.useState(false);
+
+const [selectedRouteID, setSelectedRouteID] = React.useState(null);
 
 const handleDriverChange = (newValue, routeID) => {
   if (newValue) {
@@ -50,6 +57,35 @@ const handleDriverChange = (newValue, routeID) => {
       severity: "success",
     });
   }
+};
+const handleConfirmAssignment = async () => {
+  setOpenDialog(false);
+  if (selectedDriver && selectedRouteID) {
+    try {
+      await handleAssignDriver(selectedDriver.driver_id, selectedRouteID);
+      setSelectedDrivers((prev) => ({
+        ...prev,
+        [selectedRouteID]: selectedDriver.driver_name,
+      }));
+      setSnackbar({
+        open: true,
+        message: "Driver assigned successfully!",
+        severity: "success",
+        
+      });
+      setIsReassigning(false); // Reset reassigning flag
+    } catch (error) {
+      console.error("Error assigning driver:", error);
+      setSnackbar({
+        open: true,
+        message: "Failed to assign driver.",
+        severity: "error"});
+      }finally {
+ setSelectedDriver(null);
+ setSelectedRouteID(null);
+ }
+}
+
 };
 
 const assignDriver = (newDriver, routeID, successMessage) => {
@@ -74,14 +110,25 @@ const [selectedConsignment, setSelectedConsignment] = useState(null);
     accidentFactor: "",
     stockMismatchFactor: ""
   });
-  useEffect(() => {
-    fetchData();
-  }, [tabIndex]); // Fetch data when tab changes
-  useEffect(() => {
-    if (tabIndex === 2) {
-        fetchDrivers();
-    }
+//   useEffect(() => {
+//     fetchData();
+//   }, [tabIndex]); // Fetch data when tab changes
+
+  
+//   useEffect(() => {
+//     if (tabIndex === 2) {
+//         fetchDrivers();
+//     }
+// }, [tabIndex]);
+
+
+useEffect(() => {
+  fetchData();
+ if (tabIndex === 2) {
+    fetchDrivers();
+  }
 }, [tabIndex]);
+
   const fetchData = async () => {
     setLoading(true);
     setError("");
@@ -223,19 +270,46 @@ const handleAssignDriver = async (driverId, routeId) => {
         );
         
         //  Update the selectedDrivers state immediately after success
-          setSelectedDrivers((prev) => ({
-            ...prev,
-            [routeId]: availableDrivers.find((d) => d.driver_id === driverId),
-          }));
+          // setSelectedDrivers((prev) => ({
+          //   ...prev,
+          //   [routeId]: availableDrivers.find((d) => d.driver_id === driverId),
+          // }));
+          const assignedDriver = availableDrivers.find((d) => d.driver_id === driverId);
+                   if (assignedDriver) {
+                  //  setSelectedDrivers((prev) => ({
+                  // ...prev,
+                  // [routeId]: assignedDriver.driver_name, // Store driver_name here
+                  //     }));}
+                  const newSelectedDrivers = {
+                    ...selectedDrivers,
+                    [routeId]: assignedDriver.driver_name,
+                };
+                setSelectedDrivers(newSelectedDrivers);
+                localStorage.setItem("selectedDrivers", JSON.stringify(newSelectedDrivers)); // Update localStorage
+            }
         console.log("API Response:", response.data);
         // alert("Driver assigned successfully.");
-        
+         // Show success snackbar
+
+         setSnackbar({
+           open: true,
+
+           message: isReassigning
+             ? "Driver reassigned successfully!"
+             : "Driver assigned successfully!",
+
+           severity: "success",
+         });
         // Fetch updated data so UI reflects changes
         fetchData();
     } catch (error) {
         console.error("Error assigning driver:", error.response?.data || error.message);
-    }
-};
+        setSnackbar({ open: true, message: "Failed to assign driver.", severity: "error" });
+
+        }
+
+    };
+  
 
 //   const handleDriverSelectChange = (event, routeId) => {
 //     const driverId = event.target.value;
@@ -243,14 +317,22 @@ const handleAssignDriver = async (driverId, routeId) => {
 // };
 const handleDriverSelectChange = (event, newValue, routeId) => {
     if (newValue) {
-        setSelectedDrivers((prev) => ({
-            ...prev,
-            [routeId]: newValue // Store selected driver
-        }));
+        // setSelectedDrivers((prev) => ({
+        //     ...prev,
+        //     [routeId]: newValue // Store selected driver
+        // }));
+        setIsReassigning(!!selectedDrivers[routeId]);
+          setSelectedDriver(newValue);
+          setSelectedRouteID(routeId);
+          if (selectedDrivers[routeId]) {
+          setOpenDialog(true); // Show confirmation dialog for reassignment
+          } else {
+          handleConfirmAssignment(); // Assign directly if it's the first time
+          }
+          }
+          };
 
-        handleAssignDriver(newValue.id, routeId);
-    }
-};
+        
 
   const fetchDrivers = async () => {
     try {
@@ -299,24 +381,52 @@ const filteredData = data.filter((item) => {
       <Breadcrumbs1 />
       <Paper sx={{ border: "1px solid  #e0e0e0", margin: "auto",padding:2 }}>
         {/* Tabs for Drivers, Vehicles, and Fleet Details */}
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between",marginBottom: 2 }}> 
+        <Box className="filter-container"> 
           <Typography variant="h5" sx={{ color: "#156272" }} gutterBottom>
             Manager Dashboard
           </Typography>
-          <TextField
+         
+          <Box sx={{display:'flex',gap:1}}>
+                   <TextField className="search-add-container"
+          
   label="Search"
   variant="outlined"
   value={searchQuery}
   onChange={(e) => setSearchQuery(e.target.value)}
   smallWidth
-  sx={{ marginBottom: 2 , }}
+  
 />
 
           <Tabs value={tabIndex} onChange={(e, newValue) => setTabIndex(newValue)} sx={{borderRadius:"4px",border:"1px solid #dcdcdc"}}>
-            <Tab label="Drivers" sx={{border:"1px solid #dcdcdc"}} />
-            <Tab label="Vehicles"  sx={{border:"1px solid #dcdcdc"}}/>
-            <Tab label="Fleet Details"  sx={{border:"1px solid #dcdcdc"}} />
+            <Tab label="Drivers" sx={{
+                backgroundColor: tabIndex === "Drivers" ? "#388e3c" : "#dcdcdc4a!important", // Change the background color of active tab
+                color: tabIndex === "Drivers" ? "white" : "#1976d2", // Change text color for active tab
+                border:"1px solid #dcdcdc",padding:"5px 15px",
+                "&.MuiTab-root": { 
+                  minHeight: "39px !important",
+                },
+                 
+              }} />
+            <Tab label="Vehicles"   sx={{
+                backgroundColor: tabIndex === "Vehicles" ? "#388e3c" : "#dcdcdc4a!important", // Change the background color of active tab
+                color: tabIndex === "Vehicles" ? "white" : "#1976d2", // Change text color for active tab
+                border:"1px solid #dcdcdc",padding:"5px 15px",
+                "&.MuiTab-root": { 
+                  minHeight: "39px !important",
+                },
+                 
+              }}/>
+            <Tab label="Routes"  sx={{
+                backgroundColor: tabIndex === "Routes" ? "#388e3c" : "#dcdcdc4a!important", // Change the background color of active tab
+                color: tabIndex === "Routes" ? "white" : "#1976d2", // Change text color for active tab
+                border:"1px solid #dcdcdc",padding:"5px 15px",
+                "&.MuiTab-root": { 
+                  minHeight: "39px !important",
+                },
+                 
+              }}/>
           </Tabs>
+        </Box>
         </Box>
 
         {loading ? (
@@ -336,8 +446,8 @@ const filteredData = data.filter((item) => {
                       <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>Driver Name</TableCell>
                       <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>Email</TableCell>
                       <TableCell sx={{ color: "white" ,borderRight: "1px solid #bbb"}}>Date of Joining</TableCell>
-                      <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>Vehicle Status</TableCell>
-                      <TableCell sx={{ color: "white" ,borderRight: "1px solid #bbb"}}>Route Status</TableCell>
+                      {/* <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>Vehicle Status</TableCell> */}
+                      {/* <TableCell sx={{ color: "white" ,borderRight: "1px solid #bbb"}}>Route Status</TableCell> */}
                       <TableCell sx={{ color: "white" ,borderRight: "1px solid #bbb"}}>Driver Availability</TableCell>
                     </>
                   )}
@@ -385,8 +495,8 @@ const filteredData = data.filter((item) => {
                         <TableCell>{item.driver_name}</TableCell>
                         <TableCell>{item.email}</TableCell>
                         <TableCell>{item.joining_date}</TableCell>
-                        <TableCell>{item.vehicle_status}</TableCell>
-                        <TableCell>{item.route_status}</TableCell>
+                        {/* <TableCell>{item.vehicle_status}</TableCell> */}
+                        {/* <TableCell>{item.route_status}</TableCell> */}
                         <TableCell 
                           sx={{
                             color: item.route_status === "Not Assigned" && item.vehicle_status === "Not Assigned" 
@@ -488,7 +598,7 @@ const filteredData = data.filter((item) => {
                       >
                         {item.driver}
                       </TableCell> */}
-                       <TableCell
+                       {/* <TableCell
                         sx={{
                           backgroundColor: item.driver_id ? "#bde2bd" : "#e9a7a78c", // Green if assigned, Red if not
                           color: "white", // Ensure text remains visible
@@ -496,7 +606,19 @@ const filteredData = data.filter((item) => {
                         }}
                       >
                        {item.driver || "Not Assigned"}
-                      </TableCell>
+                      </TableCell> */}
+                     <TableCell
+  sx={{
+    backgroundColor: item.driver_id ? "#bde2bd" : "#e9a7a78c", // Green if assigned, Red if not
+    color: "white", // Ensure text remains visible
+    fontWeight: "bold",
+    opacity: item.status === "completed" ? 0.5 : 1, // Dim the cell if reassignment is disabled
+  }}
+>
+{/* {selectedDrivers[item.routeID] || "Not Assigned"} */}
+{item.driver}
+</TableCell>
+
 
                         <TableCell>
                        {/* <Autocomplete
@@ -559,27 +681,31 @@ const filteredData = data.filter((item) => {
 /> */}
 
 <Autocomplete
-        options={availableDrivers.filter((driver) => driver.route_status === "Not Assigned")}
-        getOptionLabel={(option) => option.driver_name || ""}
-        value={null} // Always keep dropdown empty after selection
-        onChange={(event, newValue) => handleDriverChange(newValue, item.routeID)}
-        sx={{
-          fontSize: "10px",
-          "& .MuiInputBase-root": { fontSize: "10px" },
-          "& .MuiAutocomplete-listbox": { fontSize: "10px" },
-          "& .MuiAutocomplete-endAdornment": { right: "2px !important" },
-        }}
-        renderInput={(params) => (
-          <TextField
-            {...params}
-            label={selectedDrivers[item.routeID] ? "Reassign Driver" : "Select Driver"}
-            variant="outlined"
-            InputLabelProps={{ sx: { fontSize: "10px" } }}
-            inputProps={{ ...params.inputProps, sx: { fontSize: "10px" } }}
-          />
-        )}
-        componentsProps={{ paper: { sx: { fontSize: "10px" } } }}
-      />
+  options={availableDrivers.filter((driver) => driver.route_status === "Not Assigned")}
+  getOptionLabel={(option) => option.driver_name || ""}
+  value={null} // Keeps dropdown empty after selection
+  onChange={(event, newValue) => {
+    handleDriverSelectChange(event, newValue, item.routeID);
+ }}
+  disabled={item.status === "completed"} 
+  sx={{
+    fontSize: "10px",
+    "& .MuiInputBase-root": { fontSize: "10px" },
+    "& .MuiAutocomplete-listbox": { fontSize: "10px" },
+    "& .MuiAutocomplete-endAdornment": { right: "2px !important" },
+  }}
+  renderInput={(params) => (
+    <TextField
+      {...params}
+      label={selectedDrivers[item.routeID] ? "Reassign Driver" : "Select Driver"}
+      variant="outlined"
+      InputLabelProps={{ sx: { fontSize: "10px" } }}
+      inputProps={{ ...params.inputProps, sx: { fontSize: "10px" } }}
+    />
+  )}
+  componentsProps={{ paper: { sx: { fontSize: "10px" } } }}
+/>
+
     </TableCell>
 
     {/* Snackbar for success messages */}
@@ -643,6 +769,21 @@ const filteredData = data.filter((item) => {
       </DialogActions>
     </Dialog>
  
+    <Dialog
+  open={openDialog}
+  onClose={() => setOpenDialog(false)}
+>
+  <DialogTitle>Confirm Driver Reassignment</DialogTitle>
+  <DialogContent>
+    <DialogContentText>
+      Are you sure you want to assign {selectedDriver?.driver_name} to this route?
+    </DialogContentText>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
+    <Button onClick={handleConfirmAssignment} color="primary">Confirm</Button>
+  </DialogActions>
+</Dialog>
 
 
 

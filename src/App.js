@@ -20,6 +20,7 @@ import ManagerRouteTracking from './Pages/ManagerPersona/ManagerRouteTracking';
 import ManagerAnalytics from './Pages/ManagerPersona/ManagerAnalytics';
 import DriverRouteTracking from './Pages/DriverPersona/DriverRouteTracking';
 import DriverAnalytics from './Pages/DriverPersona/DriverAnalytics';
+import AdminAdministration from './Pages/AdminPersona/AdminAdministartion';
 
 
 
@@ -53,6 +54,7 @@ const App = () => {
         <Route path="/manageranalytics"  element={<ManagerAnalytics />} />
         <Route path="/driverroutetracking" element={<DriverRouteTracking />} />
         <Route path ="/driveranalytics" element={<DriverAnalytics />} />
+        <Route path ="/adminadministration" element={<AdminAdministration />} />
         
      
       </Routes>

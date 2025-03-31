@@ -1272,7 +1272,7 @@ import Breadcrumbs1 from "./Breadcrumbs1";
               mapInstance.setView(initialCenter, 4);
             }
   
-            navigate("/route-tracking"); // Replace '/route-tracking' with your actual route path
+            navigate("/managerroutetracking"); // Replace '/route-tracking' with your actual route path
           }, 4000);
         } else {
           alert("Failed to save the route. Please try again.");
@@ -1991,7 +1991,7 @@ import Breadcrumbs1 from "./Breadcrumbs1";
       //  isDisabled={!origin || !destination} // Prevent selection without required fields
       //  isSearchable={!!origin && !!destination} // Disable search when origin/destination are missing
       isSearchable
-      menuPlacement="top" 
+      // menuPlacement="top" 
       styles={{
         control: (base) => ({
           ...base,

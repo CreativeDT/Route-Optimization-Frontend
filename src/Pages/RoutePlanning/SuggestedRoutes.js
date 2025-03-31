@@ -1276,7 +1276,7 @@ const isSubmitDisabled = useMemo(() => {
             mapInstance.setView(initialCenter, 4);
           }
 
-          navigate("/route-tracking"); // Replace '/route-tracking' with your actual route path
+          navigate("/managerroutetracking"); // Replace '/route-tracking' with your actual route path
         }, 4000);
       } else {
         alert("Failed to save the route. Please try again.");

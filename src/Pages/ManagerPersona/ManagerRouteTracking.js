@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Box, Typography, Card, CardContent, Grid, List, ListItem, ListItemText, Paper, Checkbox,TextField } from '@mui/material';
+import { Box, Typography, Card, CardContent, Grid, List, ListItem, ListItemText, Paper, Tab,Tabs,Checkbox,TextField } from '@mui/material';
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap, Tooltip ,Circle } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import 'leaflet/dist/leaflet.css';
@@ -16,11 +16,12 @@ import vehicleicon1 from '../../Assets/images/vehicle1.png';
 import ambericon from '../../Assets/images/Amber.png';
 import REDicon from '../../Assets/images/redicon.png';
 import UseWebSocket from '../../WebSockets/UseWebSockets';  // Import WebSocket Hook
-import Breadcrumbs from '../Breadcrumbs/Breadcrumbs'; // Import your Breadcrumbs component
+
 import config from '../../config'; // Import your config file
 import debounce from "lodash.debounce";
 import NavBar from '../../Components/NavBar';
 import Breadcrumbs1 from './Breadcrumbs1';
+
   // const [filter, setFilter] = useState("All");
 const redIcon = new L.Icon({
     iconUrl: redIconImage,
@@ -231,7 +232,8 @@ const RouteTracking = () => {
     const [geoFences, setGeoFences] = useState([]);
     // const { vehiclePosition } = UseWebSocket("ws://localhost:8000/ws"); // Get WebSocket Data
     const { vehiclePositions } = UseWebSocket(config.WEBSOCKET_URL, shouldConnectWebSocket);
-
+    const [filter, setFilter] = useState("All"); // Added filter state
+    const [searchQuery, setSearchQuery] = useState("");
     useEffect(() => {
       console.log("Selected Routes:", selectedRoutes); // Debugging log
       
@@ -351,7 +353,8 @@ const RouteTracking = () => {
                         : 'Not Started',
                 assignedText: isAssigned ? 'Assigned' : 'Not Assigned',
                 assignedColor: isAssigned ? 'green' : 'red', // Set color based on assignment
-            };
+                driverName: consignment.driver || 'Not Assigned', // Use the driver field from the API
+              };
         }
     );
 
@@ -405,7 +408,7 @@ const RouteTracking = () => {
         setShouldConnectWebSocket(shouldConnect);
     };
 
-    const [searchQuery, setSearchQuery] = useState("");
+  
 
     const filteredConsignments = consignments.filter((consignment) =>
         `${consignment.origin} ➜ ${consignment.destination}`
@@ -413,7 +416,15 @@ const RouteTracking = () => {
             .includes(searchQuery.toLowerCase())
     );
   
-    
+     // Filter consignments based on selected tab
+     const filteredByStatus = filter === "All"
+     ? filteredConsignments
+     : filteredConsignments.filter(consignment => {
+         if (filter === "Completed") return consignment.status === "completed";
+         if (filter === "Started") return consignment.status === "started";
+         if (filter === "Not Started") return consignment.status !== "started" && consignment.status !== "completed";
+         return true;
+     });
  
 
    
@@ -446,55 +457,7 @@ const RouteTracking = () => {
     
           }}
         >
-           {/* <Tabs
-            value={filter}
-            onChange={(e, newValue) => setFilter(newValue)}
            
-            >
-            <Tab label={`All (${users.length})`} value="All"  className="tab"
-              sx={{
-                backgroundColor: filter === "All" ? "#388e3c" : "transparent", // Change the background color of active tab
-                color: filter === "All" ? "white" : "#1976d2", // Change text color for active tab
-                border:"1px solid #ddd",padding:"5px 15px",
-                 
-              }}
-             />
-              <Tab label={`Completed (${users.length})`} value="Completed"  className="tab"
-              sx={{
-                backgroundColor: filter === "Completed" ? "#388e3c" : "transparent", // Change the background color of active tab
-                color: filter === "Completed" ? "white" : "#1976d2", // Change text color for active tab
-                border:"1px solid #ddd",padding:"5px 15px",
-                 
-              }}
-             />
-            
-            <Tab
-              label={`Started (${
-                users.filter((u) => u.role === "Started").length
-              })`}
-              className="tab"
-              value="Started"
-              sx={{
-                backgroundColor: filter === "Started" ? "#388e3c" : "transparent", // Change the background color of active tab
-                color: filter === "Started" ? "white" : "#1976d2", // Change text color for active tab
-                border:"1px solid #ddd",padding:"5px 15px",
-                 
-              }}
-            />
-            <Tab
-              label={`Not Started (${
-                users.filter((u) => u.role === "Not Started").length
-              })`}
-              value="Not Started"
-              className="tab"
-              sx={{
-                backgroundColor: filter === "Not Started" ? "#388e3c" : "transparent", // Change the background color of active tab
-                color: filter === "Not Started" ? "white" : "#1976d2", // Change text color for active tab
-                border:"1px solid #ddd",padding:"5px 15px",
-                
-              }}
-            />
-          </Tabs>  */}
           {/* Left Column: Consignments and Route Details */}
           <Grid
             item
@@ -527,6 +490,29 @@ const RouteTracking = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                
               />
+              <Tabs
+                            value={filter}
+                            onChange={(e, newValue) => setFilter(newValue)}
+                        >
+                            <Tab label={`All (${consignments.length})`} value="All" 
+                             sx={{ "&.MuiButtonBase-root": { 
+                              minHeight: "30px !important",fontSize:"10px",padding:"8px 13px",border:"1px solid #beb7b7c9"
+                            },}}
+                             />
+                           
+                            <Tab label={`Started (${consignments.filter((c) => c.status === "started").length})`} value="Started" 
+                               sx={{ "&.MuiButtonBase-root": { 
+                                minHeight: "30px !important",fontSize:"10px",padding:"8px 13px",border:"1px solid #beb7b7c9,"
+                              },}}/>
+                            <Tab label={`Not Started (${consignments.filter((c) => c.status !== "started" && c.status !== "completed").length})`} value="Not Started" 
+                             sx={{ "&.MuiButtonBase-root": { 
+                              minHeight: "30px !important",fontSize:"10px",padding:"8px 13px",border:"1px solid #beb7b7c9"
+                            },}} />
+                             <Tab label={`Completed (${consignments.filter((c) => c.status === "completed").length})`} value="Completed" 
+                             sx={{ "&.MuiButtonBase-root": { 
+                              minHeight: "30px !important",fontSize:"10px",padding:"8px 13px",border:"1px solid #beb7b7c9"
+                            },}} />
+                        </Tabs>
 
               {/* Consignments List */}
               <Box sx={{ flex: "0 0 auto", height: "440px" }}>
@@ -581,12 +567,12 @@ const RouteTracking = () => {
                             >
                             Status:  {consignment.statusText}
                             </Typography>
-                            <Typography
-                              variant="body2"
-                              sx={{ fontSize: "10px" }}
-                            >
-                            Driver:  {consignment.assignedText}
-                            </Typography>
+                            <Typography variant="body2" sx={{ fontSize: "10px" }}>
+    Driver Name:{" "}
+    <span style={{ color: consignment.driverName !== "Not Assigned" ? "green" : "red" }}>
+        {consignment.driverName}
+    </span>
+</Typography>
                             </Box>
                             <Typography
                               variant="body2"

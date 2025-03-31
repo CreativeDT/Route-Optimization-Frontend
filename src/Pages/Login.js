@@ -26,7 +26,7 @@ const Login = () => {
   const navigate = useNavigate();
   const { login, logout } = useContext(AuthContext);
   const [showPassword, setShowPassword] = useState(false);
-
+  
 const handleTogglePassword = () => {
   setShowPassword(!showPassword);
 };
@@ -74,7 +74,7 @@ const handleTogglePassword = () => {
                   // Create user object
                 const userData = {
                   token: access_token,
-                  user_id: user_id,
+                  // user_id: user_id,
                   user_role: userRole,
                   username: username,
               };

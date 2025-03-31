@@ -9,7 +9,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Paper,
+  Paper,Box,
   Alert,
   Switch,
 } from "@mui/material";
@@ -121,7 +121,7 @@ const DriverFleetDetails = () => {
     <>
       <NavBar />
       <Breadcrumbs2 />
-      <Container fullWidth>
+      <Box fullWidth>
         <Typography variant="h6">Driver Fleet Details</Typography>
         {loading ? (
           <CircularProgress />
@@ -170,7 +170,7 @@ const DriverFleetDetails = () => {
         ) : (
           <Typography>No consignments found.</Typography>
         )}
-      </Container>
+      </Box>
     </>
   );
 };

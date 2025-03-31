@@ -294,13 +294,7 @@ const RouteTracking = () => {
     
     const fetchRouteData = useCallback(async (routeID) => {
         try {
-          const token = localStorage.getItem("auth_token");
-if (!token) {
-  console.error("No auth token found! Redirecting to login...");
-  // Redirect to login page (if using React Router)
-  window.location.href = "/login"; 
-}
-
+            const token = localStorage.getItem('token');
             const response = await axios.post(`${config.API_BASE_URL}/getRouteData`, {
                 routeID,
                 vehicle_id: ''

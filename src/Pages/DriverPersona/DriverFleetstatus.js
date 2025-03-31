@@ -27,7 +27,7 @@ const DriverFleetstatus = () => {
       setResult(response.data.result);
     } catch (err) {
       console.error("Error fetching status:", err);
-      setError(err.response?.data?.detail || "Failed to fetch status");
+      setError("Failed to fetch status");
     } finally {
       setLoading(false);
     }
