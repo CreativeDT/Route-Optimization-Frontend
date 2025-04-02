@@ -1494,16 +1494,7 @@ import Breadcrumbs1 from "./Breadcrumbs1";
                       placeholder="Origin"
                     />
                   </Grid2>
-                  {/* <Grid2 item xs={6} sx={{ minWidth: '30%' }}>
-                                      <StyledFormControl fullWidth margin="dense">
-                                          <InputLabel sx={{ fontSize: '0.9rem' }}>Destination</InputLabel>
-                                          <Select value={selectedDestination} onChange={(e) => setSelectedDestination(e.target.value)} label="Destination"sx={{ fontSize: '0.9rem' }}>
-                                              {destinations.map((destination, index) => (
-                                                  <MenuItem key={index} value={destination}>{destination}</MenuItem>
-                                              ))}
-                                          </Select>
-                                      </StyledFormControl>
-                                  </Grid2> */}
+                 
                   <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
                     {/* <Typography variant="subtitle1">Destination</Typography> */}
                   <SearchBox sx={{
@@ -1560,82 +1551,13 @@ import Breadcrumbs1 from "./Breadcrumbs1";
                 </Grid2>
   
                 {/* Stops Selection */}
-                {/* <StyledFormControl fullWidth className="mb-3 mt-4" sx={{ padding: '0 1rem', marginBottom: '1rem' }}>
-                                  <Typography className="text-md font-semibold mb-1" style={{ color: 'black' }}>Select Stops</Typography>
-                                  <Select1
-                                      options={stops.map((stop) => ({
-                                          value: stop,
-                                          label: stop,
-                                          drop_demand: 0,
-                                          pickup_demand: 0,
-                                          priority: 1,
-                                      }))}
-                                      onChange={handleStopsChange}
-                                      isMulti
-                                      placeholder="Select Stops"
-                                      value={selectedStops}
-                                      className="shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                      styles={{
-                                          control: (base) => ({
-                                              ...base,
-                                              width: '80%',
-                                          }),
-                                          menu: (base) => ({
-                                              ...base,
-                                              zIndex: 9999, // Ensure the dropdown appears above all content
-                                              position: 'absolute', // Prevent overlapping issues
-                                          }),
-                                          menuPortal: (base) => ({
-                                              ...base,
-                                              zIndex: 9999, // Add high z-index for the portal if needed
-                                          }),
-                                      }}
-                                      menuPortalTarget={document.body} // Render the dropdown outside the parent container
-                                  />
-                              </StyledFormControl> */}
-                {/* Render selected stops as chips */}
-                {/* <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, marginBottom: 2 }}>
-                  {selectedStops.length > 0 ? (
-          selectedStops.map((stop, index) => (
-              <Chip
-                  key={index}
-                  label={stop.label}
-                  onDelete={() => handleRemoveStop(stop)}
-                  sx={{
-                      display: 'flex',
-                      flexWrap: 'wrap',
-                     
-                      
-                      minHeight: '20px',
-                      border: '1px solid black', // Temporary to debug
-                      padding: '4px',
-                  }}
-              />
-          ))
-      ) : (
-          <Typography variant="body2" color="textSecondary">
-              No stops selected.
-          </Typography>
-      )}
-                  </Box> */}
-  
+               
                 
   
                 {/* Stops */}
                 <Grid2 item xs={6} sx={{ minWidth: "30%", marginBottom: "25px" }}>
                   {/* <Typography variant="subtitle1">Stops</Typography> */}
-  
-                  {/* {selectedStops.map((stop, index) => (
-                    <Chip
-                      key={index}
-                      label={stop.label}
-                      onDelete={() => handleRemoveStop(stop)}
-                      sx={{
-                        padding: "4px",
-                      }}
-                    />
-                  ))} */}
-                  <SearchBox
+                <SearchBox
                       accessToken={config.MAPBOX_ACCESS_TOKEN} // Use token from config
                     onRetrieve={handleRetrieveStops} // Handle stops retrieval
                     options={{ language: "en", country: "us" }}
@@ -1705,35 +1627,54 @@ import Breadcrumbs1 from "./Breadcrumbs1";
                         flexWrap: "nowrap",
                       }}
                     >
+                      
                       <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
-                        <StyledTextField
-                          inputRef={(el) =>
-                            (inputRefs.current[`${index}-drop_demand`] = el)
-                          }
-                          label="Drop Demand"
-                          type="number"
-                          value={stop.drop_demand || 0}
-                          onChange={(e) => {
-                            const value = Math.max(0, Number(e.target.value)); // Ensure value is not negative
-                            handleStopDemandChange(index, "drop_demand", value);
-                          }}
-                          size="small"
-                          fullWidth
-                          margin="dense"
-                          sx={{"& .MuiFormLabel-root": {
-                                  fontSize: "10px", // Adjust input text size
-                                },
-                            
-                              "& .MuiInputBase-input": {
-                                fontSize: "12px", // Reduce input text size
-                              }
-                          }}
-                          onBlur={() => {
-                            
-                          }}
-                        />
-                      </Grid2>
-  
+                                          <StyledTextField
+                                            inputRef={(el) =>
+                                              (inputRefs.current[`${index}-drop_demand`] = el)
+                                            }
+                                            label="Drop Demand kgs"
+                                            type="text"
+                                            value={stop.drop_demand }
+                                            onChange={(e) => {
+                                              let value = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
+                                              handleStopDemandChange(index, "drop_demand", value);
+                                            }}
+                                            onFocus={(e) => {
+                                              if (e.target.value === "0") {
+                                                handleStopDemandChange(index, "drop_demand", ""); // Clear 0 when editing starts
+                                              }
+                                            }}
+                                            // onBlur={(e) => {
+                                            //   if (e.target.value === "") {
+                                            //     handleStopDemandChange(index, "drop_demand", "0"); // Restore 0 if empty
+                                            //   }
+                                            // }}
+                                           
+                                            size="small"
+                                            fullWidth
+                                            margin="dense"
+                                           
+                                            sx={{"& .MuiFormLabel-root": {
+                                                    fontSize: "10px", // Adjust input text size
+                                                  },
+                                                  "& .MuiOutlinedInput-root": { 
+                                                    "& fieldset": { 
+                                                      borderColor: "#ccc!important"
+                                                    }
+                                                       } ,
+                                              
+                                                "& .MuiInputBase-input": {
+                                                  fontSize: "12px", // Reduce input text size
+                                                },
+                                                //   "& .MuiInputLabel-root":{
+                                                //   top:"-8px!important",
+                                                
+                                                // }
+                                            }}
+                                            
+                                          />
+                                        </Grid2>
                       <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
                         <StyledTextField
                           inputRef={(el) =>
@@ -1810,7 +1751,7 @@ import Breadcrumbs1 from "./Breadcrumbs1";
                 <div
                   style={{
                     width: "100%",
-                    display: "flex",justifyContent:"center",
+                    display: "flex",
                     gap: ".5rem",
                     marginBottom: "1rem",
                     fontSize: "10px",
@@ -1860,52 +1801,7 @@ import Breadcrumbs1 from "./Breadcrumbs1";
                     }}
                   />
   
-                  {/* <DatePicker
-                      selected={endDate}
-                      onChange={(date) => {if (date && startDate && date < startDate) {
-                          alert("End date cannot be before the start date.");
-                          return; // Don't update the end date if it's before the start date
-                        }setEndDate(date);
-                      }}
-                      dateFormat="yyyy-MM-dd"
-                      placeholderText="End Date"
-                      minDate={startDate || new Date()} // Ensure end date cannot be before start date
-                      disabled={!startDate} // Disable until a start date is selected
-                      customInput={
-                        <StyledTextField
-                          label="End Date"
-                          variant="outlined"
-                          size="small"
-                          fullWidth
-                          InputProps={{
-                            endAdornment: (
-                              <InputAdornment position="end">
-                                <IconButton>
-                                  <CalendarTodayIcon fontSize="small" />
-                                </IconButton>
-                              </InputAdornment>
-                            ),
-                          }}
-                          sx={{
-                            borderRadius: "8px",
-                            "& .MuiInputLabel-root": {
-                              // Target the label
-                              paddingLeft: "1rem", // Add left padding
-                            },
-                            "& .MuiInputBase-input": { fontSize: "0.65rem" },
-                            padding: "0 1rem",
-                          }}
-                        />
-                      }
-                    /> */}
-  
-                  {/* Display Expected End Date */}
-                  {/* {expectedEndDate && (
-                              <Typography sx={{ padding: "0 1rem", marginBottom: "1rem" }}>
-                              Expected End Date: {new Date(expectedEndDate).toLocaleDateString()}
-                              </Typography>
-                          )} */}
-  
+                  
                   {expectedEndDate && (
                     <StyledTextField
                       label="Expected End"
@@ -1951,28 +1847,7 @@ import Breadcrumbs1 from "./Breadcrumbs1";
                   }}
                 />
   
-                {/* <Typography className="mb-2" style={{ color: 'black' }} sx={{ padding: '0 1rem', marginBottom: '1rem' }}>
-    {duration > 0 ? `${duration} Hours` : 'Duration not available'}
-  </Typography> */}
-                {/* Vehicle Selection */}
-                {/* <StyledFormControl fullWidth margin="dense" className="select-container" sx={{ width: '80%', padding: '0 1rem', marginBottom: '1rem' }}>
-                                  <InputLabel sx={{ padding: '0 1.2rem' }}>Available Vehicles</InputLabel>
-                                  <Select
-                                      value={selectedVehicle}
-                                      onChange={handleVehicleSelection}
-                                      label="Available Vehicles"
-                                      sx={{
-                                          height: '40px', // Adjust the height
-                                          padding: '0.5rem', // Adjust padding if needed
-                                      }}
-                                  >
-                                      {[...new Map(vehicles.map(v => [v.VehicleID, v])).values()].map((vehicle, index) => (
-                                          <MenuItem key={index} value={vehicle}>
-                                              {vehicle.VehicleType} → <strong>{vehicle.FuelType}</strong> → {vehicle.Quantity}
-                                          </MenuItem>
-                                      ))}
-                                  </Select>
-                              </StyledFormControl>  */}
+                
                               <StyledFormControl
     fullWidth
     margin="dense"
@@ -2018,146 +1893,7 @@ import Breadcrumbs1 from "./Breadcrumbs1";
       }}
     />
   </StyledFormControl>
-                              {/* <FormControl fullWidth margin="dense" sx={{ width: "80%", padding: "0 1rem", marginBottom: "1rem" }}>
-        <InputLabel sx={{ padding: "0 1.2rem" }}>Available Vehicles</InputLabel>
-        <Select
-          value={selectedVehicle?.VehicleID || ""}
-          onChange={handleVehicleSelection}
-          displayEmpty
-          sx={{ height: "40px", padding: "0.5rem" }}
-        >
-          
-          <MenuItem disabled>
-            <TextField
-              variant="outlined"
-              size="small"
-              placeholder="Search vehicle..."
-              fullWidth
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              autoFocus
-            />
-          </MenuItem>
-  
-          {filteredVehicles.length > 0 ? (
-            filteredVehicles.map((vehicle, index) => (
-              <MenuItem key={index} value={vehicle.VehicleID}>
-                {vehicle.VehicleType} → <strong>{vehicle.FuelType}</strong> → {vehicle.Quantity}
-              </MenuItem>
-            ))
-          ) : (
-            <MenuItem disabled>No vehicles found</MenuItem>
-          )}
-        </Select>
-      </FormControl> */}
-                {/* <StyledFormControl fullWidth margin="dense" className="mb-3" sx={{ width: "80%", padding: "0 1rem", marginBottom: "1rem" }}>
-                                  <Autocomplete
-                                      freeSolo
-                                      clearOnEscape
-                                      options={vehicles} // Use the vehicles array directly
-                                      getOptionLabel={(option) =>
-                                          typeof option === "string"
-                                              ? option
-                                              : `${option.VehicleType} → ${option.FuelType} → ${option.Quantity}`
-                                      }
-                                      value={selectedVehicle}
-                                      onChange={(event, newValue) => {
-                                          setSelectedVehicle(newValue);
-                                          setInputValue(newValue ? `${newValue.VehicleType} → ${newValue.FuelType} → ${newValue.Quantity}` : "");
-                                          console.log("Selected Vehicle:", newValue);
-                                          getRiskFactors();
-                                      }}
-                                      inputValue={inputValue}
-                                      onInputChange={(event, newInputValue) => {
-                                          if (newInputValue === "") {
-                                              setSelectedVehicle(null); // Allow clearing
-                                          }
-                                          setInputValue(newInputValue);
-                                      }}
-                                      filterOptions={(options, state) =>
-                                          state.inputValue.length > 0
-                                              ? options.filter((option) =>
-                                                  option.VehicleType.toLowerCase().includes(state.inputValue.toLowerCase()) ||
-                                                  option.FuelType.toLowerCase().includes(state.inputValue.toLowerCase())
-                                              )
-                                              : [] // Show options only after typing
-                                      }
-                                      renderInput={(params) => (
-                                          <TextField
-                                              {...params}
-                                              label="Search Available Vehicles"
-                                              variant="outlined"
-                                              fullWidth
-                                          />
-                                      )}
-                                  />
-                              </StyledFormControl>
-                {/* <StyledFormControl
-                  fullWidth
-                  margin="dense"
-                  className="mb-3"
-                  sx={{
-                    width: "100%",
-                    // padding: "0 1rem",
-                    marginBottom: "1rem",
-                  }}
-                >
-                  <Autocomplete
-                    freeSolo
-                    clearOnEscape
-                    options={vehicles} // Use the vehicles array directly
-                    getOptionLabel={(option) =>
-                      typeof option === "string"
-                          ? option
-                          : `${option.VehicleType} → ${option.FuelType} → ${option.Quantity}`
-                  }
-                  value={selectedVehicle}
-                  inputRef={inputRef} // Assign the ref to the input
-                  onChange={(event, newValue) => {
-                      setSelectedVehicle(newValue);
-                      setInputValue(newValue ? `${newValue.VehicleType} → ${newValue.FuelType} → ${newValue.Quantity}` : "");
-                      console.log("Selected Vehicle:", newValue);
-                      getRiskFactors();
-                      inputRef.current.focus(); // Force focus back on the input
-                  }}
-                    // inputValue={inputValue}
-                    onInputChange={(event, newInputValue) => {
-                      // if (newInputValue === "") {
-                      //   setSelectedVehicle(null); // Allow clearing
-                      // }
-                      if (inputRef.current) {
-                        inputRef.current.focus(); // Force focus back on the input
-                    }
-                      setInputValue(newInputValue);
-                    }}
-                    filterOptions={(options, state) =>
-                      state.inputValue.length > 0
-                          ? options.filter((option) =>
-                              option.VehicleType.toLowerCase().includes(state.inputValue.toLowerCase()) ||
-                              option.FuelType.toLowerCase().includes(state.inputValue.toLowerCase())
-                          )
-                          : [] // Show options only after typing
-                  }
-                 
-                    renderInput={(params) => (
-                      <TextField
-                        {...params}
-                        label="Search Available Vehicles"
-                        variant="outlined"
-                       
-                        fullWidth
-                      />
-                    )}
-                    // Add a key prop here, assuming `option.id` is available
-  
-                    renderOption={(props, option) => (
-                      <li {...props} key={option.VehicleID}>
-                        {`${option.VehicleType} → ${option.FuelType} → ${option.Quantity}`}
-                      </li>
-                    )}
-                  />
-                </StyledFormControl> */}
-  
+                              
                 {/* Snackbar Notification */}
                 <Snackbar
                   open={snackbar.open}
@@ -2240,7 +1976,7 @@ import Breadcrumbs1 from "./Breadcrumbs1";
                   sx={{
                     flex: 2,
                     border: "1px solid #ccc",
-                    overflowY: "auto",
+                   
                     //   padding: 2,
                     backgroundColor: "#fafafa",
                   }}

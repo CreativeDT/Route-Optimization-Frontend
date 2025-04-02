@@ -8,14 +8,20 @@
   background-color:#2c3e50;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
   position: relative; /* Important for positioning the dropdown */
-  width:100%;
+  width:100%;  z-index: 1000;
 }
 
-.navbar-left {
+ .navbar-left {
   display: flex;
   align-items: center;
-  flex-grow: 1; /* Allow it to take available space */
-}
+  flex-grow: 1; 
+} 
+/* 
+.navbar-left, .navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;  flex-grow: 1; 
+} */
 
 .logo {
   height: 35px; /* Adjust logo height as needed */
@@ -27,20 +33,81 @@
 .navbar-right {
   display: flex;
   align-items: center;
-  gap: 20px;  /* Space out the icons and profile */
-  max-width: 100%;margin:0px 25px 0px 0px;
-}
+  gap: 20px; 
+  max-width: 100%;
+  margin:0px 25px 0px 0px;
+} 
 
 .icon {
   font-size: 1.2rem;
-  cursor: pointer;
+  cursor: pointer; cursor: pointer;
+  transition: all 0.3s ease;
+}
+.icon:hover {
+  transform: scale(1.1);
+  opacity: 0.8;
 }
 
+.role-icon {
+  font-size: 1rem;
+  margin-right: 8px;
+}
 .profile {
   position: relative; /* Keep this for the overall profile positioning */
   cursor: pointer;
 }
+/* Profile Section */
+.profile-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  position: relative;
+}
 
+.user-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.username {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.user-email {
+  font-size: 0.75rem;
+  opacity: 0.8;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-icon {
+  font-size: 1rem;
+}
+
+/* Role Badge */
+.role-badge {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.3s ease;
+}
+
+.role-label {
+  margin-left: 5px;
+}
 .profile-wrapper { /* New wrapper styles */
   position: relative; /* Important for dropdown positioning */
 }
@@ -129,16 +196,15 @@
     font-size: 12px; /* Smaller font size for mobile */
   }
 }
-
+/* Notifications */
 .notifications {
   position: relative;
-  
 }
 
 .notification-count {
   position: absolute;
-  top: -5px; /* Adjust as needed */
-  right: -5px; /* Adjust as needed */
+  top: -5px;
+  right: 10px;
   background-color: rgb(223, 131, 131);
   color: white;
   border-radius: 50%;
@@ -148,24 +214,109 @@
 
 .notification-list {
   position: absolute;
-  top: 100%; /* Position below the bell icon */
-  right: 0;
-  background-color: white;color:black;
+  top: 100%;
+  left: 50%; /* Center horizontally */
+  transform: translateX(-50%); /* Adjust for perfect centering */
+  background-color: white;
+  color: black;
   border: 1px solid #ccc;
-  border-radius: 4px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  min-width: 250px; /* Minimum width for the list */
-  max-height: 300px; /* Maximum height for the list */
-  overflow-y: auto; /* Enable vertical scrolling */
-  z-index: 1000; /* Ensure it's above other elements */
-  padding: 8px;
+  border-radius: 8px; /* Slightly rounded corners */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); /* Slightly stronger shadow */
+  min-width: 300px; /* Increased minimum width */
+  max-height: 400px; /* Increased maximum height */
+  overflow-y: auto;
+  z-index: 1000;
+  padding: 12px; /* Increased padding */
+  text-align: left; /* Align text to the left */
+}
+.notification-icon {
+  color: #3498db;
+  font-size: 0.9rem;
+  margin-top: 2px;
 }
 
+.message-text {
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+
+.timestamp {
+  font-size: 0.75rem;
+  color: #95a5a6;
+}
+
+.empty-notifications {
+  padding: 2rem 1rem;
+  text-align: center;
+  color: #95a5a6;
+}
 .notification-item {
-  padding: 8px;
+  padding: 12px;
   border-bottom: 1px solid #eee;
+  display: flex; /* Use flexbox for layout */
+  align-items: flex-start; /* Align items to the top */
+  gap: 10px; /* Add some gap between elements */
 }
 
 .notification-item:last-child {
   border-bottom: none;
+}
+
+.notification-item .icon {
+  flex-shrink: 0; /* Prevent icon from shrinking */
+  font-size: 1.2em; /* Increase icon size */
+  color: #007bff; /* Example icon color */
+}
+
+.notification-item .message {
+  flex-grow: 1; /* Allow message to grow */
+  line-height: 1.4; /* Improve line spacing */
+}
+
+.notification-item .timestamp {
+  font-size: 0.8em;
+  color: #888;
+}
+
+.notification-header {
+  padding: 1rem;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.notification-header h4 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.notification-header small {
+  color: #95a5a6;
+}
+
+
+/* Tooltips */
+.tooltip {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s;
+  pointer-events: none;
+}
+
+.home-button:hover .tooltip,
+.settings:hover .tooltip {
+  opacity: 1;
+  visibility: visible;
+  top: calc(100% + 5px);
 }

@@ -1,8 +1,8 @@
 // NavBar.js
 import React, { useContext, useState, useRef, useEffect } from 'react';
-import { FaUser, FaBell, FaCog, FaHome ,FaTruckMoving ,FaUserCog} from 'react-icons/fa';
+import { FaUser, FaBell, FaCog, FaHome, FaTruckMoving, FaUserShield,FaUserTie,FaUserCog } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography} from "@mui/material";
+import { Box, Typography ,Badge} from "@mui/material";
 import Menu from './Menu';
 import './Navbar.css';
 import logo from '../Assets/images/white_logo.png';
@@ -11,139 +11,202 @@ import { AuthContext } from '../Context/AuthContext';
 import ProfileDropdown from './ProfileDropdown';
 
 const NavBar = () => {
-  const { user, logout } = useContext(AuthContext);
-  const navigate = useNavigate();
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const profileRef = useRef(null);
-  const [showNotifications, setShowNotifications] = useState(false); // Add state for showing/hiding notifications
+    const { user, logout } = useContext(AuthContext);
+    const navigate = useNavigate();
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const profileRef = useRef(null);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [readNotifications, setReadNotifications] = useState([]); // Track read notifications
 
-  // Directly access user.user.user_id
-  const userId = user?.user?.user_id;
-  const userRole = user?.user_role; // Access user role from context
+    const userId = user?.user?.user_id;
+    const userRole = user?.user_role;
 
-  const { notifications } = useNotificationWebSocket(userId); // Pass userId
+    const { notifications } = useNotificationWebSocket(userId);
 
-  console.log("Navbar Rendered - Current User:", user);
-  // const handleHomeClick = () => {
-  //   navigate("/dashboard");
-  // };
-  const handleHomeClick = () => {
-    if (userRole === "driver") {
-      navigate("/driverdashboard");
-    } else if (userRole === "admin") {
-      navigate("/admindashboard");
-    } else if (userRole === "manager") {
-      navigate("/managerdashboard");
-    } else 
-      navigate("/dashboard");
-    
-  };
-  
-
-  const toggleProfile = () => {
-    setIsProfileOpen(!isProfileOpen);
-  };
-
-  const toggleNotifications = () => {
-    setShowNotifications(!showNotifications); // Toggle notification display
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (profileRef.current && !profileRef.current.contains(event.target)) {
-        setIsProfileOpen(false);
-      }
-      if (showNotifications && !event.target.closest('.notifications')) {
-        setShowNotifications(false); // Hide notifications if clicked outside
-      }
+    const handleHomeClick = () => {
+        if (userRole === "driver") {
+            navigate("/driverdashboard");
+        } else if (userRole === "admin") {
+            navigate("/admindashboard");
+        } else if (userRole === "manager") {
+            navigate("/managerdashboard");
+        } else
+            navigate("/dashboard");
     };
 
-    document.addEventListener('click', handleClickOutside);
-
-    return () => {
-      document.removeEventListener('click', handleClickOutside);
+    const toggleProfile = () => {
+        setIsProfileOpen(!isProfileOpen);
     };
-  }, [showNotifications]);
 
-  useEffect(() => {
-    const storedUser = JSON.parse(localStorage.getItem('user'));
-    console.log("Current User in Navbar (After Fix):", storedUser);
-  }, []);
+    const toggleNotifications = () => {
+        setShowNotifications(!showNotifications);
+        setReadNotifications(notifications.map(n => n.notification_id)); // Mark all as read when opened
+    };
 
-  const unreadCount = notifications.length; // Count unread notifications
-// Function to determine the icon based on the user role
-const getRoleIcon = () => {
-  console.log("Getting Role Icon for:", userRole);
-  switch (userRole) {
-    case 'admin':
-      return <FaUserCog className="icon" />;
-    case 'manager':
-      return <FaUser className="icon" />;
-    case 'driver':
-      return <FaTruckMoving className="icon" />;
-    default:
-      return <FaUser className="icon" />;
-  }
-};
-  return (
-    <div className="navbar">
-      <Menu />
-      <div className="navbar-left">
-        <img src={logo} alt="Logo" className="logo" onClick={handleHomeClick} style={{ cursor: 'pointer' }} />
-      </div>
-      <div className="navbar-right">
-        <div className="home-button" onClick={handleHomeClick}>
-          <FaHome className="icon" />
-        </div>
-        <div className="notifications">
-          <FaBell className="icon" onClick={toggleNotifications} />
-          {unreadCount > 0 && <span className="notification-count">{unreadCount}</span>}
-          {showNotifications && (
-            <div className="notification-list">
-              {notifications.map((msg, index) => (
-                <div key={index} className="notification-item">
-                  {msg.message}
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (profileRef.current && !profileRef.current.contains(event.target)) {
+                setIsProfileOpen(false);
+            }
+            if (showNotifications && !event.target.closest('.notifications')) {
+                setShowNotifications(false);
+            }
+        };
+
+        document.addEventListener('click', handleClickOutside);
+
+        return () => {
+            document.removeEventListener('click', handleClickOutside);
+        };
+    }, [showNotifications]);
+
+    useEffect(() => {
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        console.log("Current User in Navbar (After Fix):", storedUser);
+    }, []);
+
+    const unreadCount = notifications.filter(n => !readNotifications.includes(n.notification_id)).length;
+
+    // const getRoleIcon = () => {
+    //     switch (userRole) {
+    //         case 'admin':
+    //             return <FaUserCog className="icon" />;
+    //         case 'manager':
+    //             return <FaUser className="icon" />;
+    //         case 'driver':
+    //             return <FaTruckMoving className="icon" />;
+    //         default:
+    //             return <FaUser className="icon" />;
+    //     }
+    // };
+
+    const getRoleData = () => {
+      switch (userRole) {
+          case 'admin':
+              return {
+                  icon: <FaUserShield className="role-icon" />,
+                  label: "Administrator",
+                  color: "#e74c3c",
+                  bgColor: "rgba(231, 76, 60, 0.1)",
+                  borderColor: "#c0392b"
+              };
+          case 'manager':
+              return {
+                  icon: <FaUserTie className="role-icon" />,
+                  label: "Manager",
+                  color: "#f39c12",
+                  bgColor: "rgba(243, 156, 18, 0.1)",
+                  borderColor: "#d35400"
+              };
+          case 'driver':
+              return {
+                  icon: <FaTruckMoving className="role-icon" />,
+                  label: "Driver",
+                  color: "#3498db",
+                  bgColor: "rgba(52, 152, 219, 0.1)",
+                  borderColor: "#2980b9"
+              };
+          default:
+              return {
+                  icon: <FaUser className="role-icon" />,
+                  label: "User",
+                  color: "#95a5a6",
+                  bgColor: "rgba(149, 165, 166, 0.1)",
+                  borderColor: "#7f8c8d"
+              };
+      }
+  };
+
+  const roleData = getRoleData();
+
+    return (
+        <div className="navbar">
+            <Menu />
+            <div className="navbar-left">
+                <img src={logo} alt="Logo" className="logo" onClick={handleHomeClick} style={{ cursor: 'pointer' }} />
+            </div>
+            <div className="navbar-right">
+                <div className="home-button" onClick={handleHomeClick}>
+                    <FaHome className="icon" />
+                    <span className="tooltip">Dashboard</span>
                 </div>
-              ))}
+                <div className="notifications">
+                <Badge badgeContent={unreadCount} color="error" overlap="circular" sx={{
+                  "& .MuiBadge-badge": { 
+                  right:"37%!important",
+                },
+                }}
+                 >
+                        <FaBell className="icon" onClick={toggleNotifications}  />
+                    </Badge>
+                   
+                    
+                    {showNotifications && (
+                        <div className="notification-list">
+                            <div className="notification-header">
+                                <h4>Notifications</h4>
+                                <small>{notifications.length} total</small>
+                            </div>
+                            {notifications.length > 0 ? (
+                                notifications.map((msg, index) => (
+                                    <div key={index} className="notification-item">
+                                        <div className="notification-icon">
+                                            <FaBell />
+                                        </div>
+                                        <div className="message">
+                                            <div className="message-text">{msg.message}</div>
+                                            {msg.creationDate && (
+                                                <div className="timestamp">
+                                                    {new Date(msg.creationDate).toLocaleString()}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="empty-notifications">
+                                    No new notifications
+                                </div>
+                            )}
+                        </div>
+                    )}
+          
+                </div>
+                {/* <div className="settings">
+                    <FaCog className="icon" />
+                    <span className="tooltip">Settings</span>
+                </div> */}
+                <div className="profile" ref={profileRef}>
+                    <div className="profile-wrapper" onClick={toggleProfile}>
+                        <div className="role-badge" style={{
+                            backgroundColor: roleData.bgColor,
+                            borderLeft: `4px solid ${roleData.borderColor}`
+                        }}>
+                            {roleData.icon}
+                            <span className="role-label" style={{ color: roleData.color }}>
+                                {roleData.label}
+                            </span>
+                        </div>
+                        
+                        <div className="user-info">
+                            <Typography className="username">
+                                {user ? user.username : 'Guest'}
+                            </Typography>
+                            <Typography className="user-email">
+                                {user?.email || ''}
+                            </Typography>
+                        </div>
+                        
+                        <div className="avatar">
+                            <FaUser className="avatar-icon" />
+                        </div>
+                        
+                        <ProfileDropdown isOpen={isProfileOpen} onClose={toggleProfile} />
+                    </div>
+                </div>
             </div>
-          )}
         </div>
-        <div className="settings">
-          <FaCog className="icon" />
-        </div>
-        {/* <div className="profile" ref={profileRef}>
-          <div className="profile-wrapper">
-            <div className="profile-header" onClick={toggleProfile}>
-              <FaUser className="icon" />
-              <span>{user ? user.username : 'Guest'}</span>
-            </div>
-            <ProfileDropdown isOpen={isProfileOpen} onClose={toggleProfile} />
-          </div>
-        </div> */}
-      
-        <div className="profile" ref={profileRef}>
-     
-          <div className="profile-wrapper">
-          <Box sx={{display:"flex" ,gap:1}}>
-            <Typography className="profile-header" onClick={toggleProfile}>
-              {getRoleIcon()}  
-             
-            </Typography>
-            <Typography className="profile-header" onClick={toggleProfile}>
-                {user ? user.username : 'Guest'}
-             
-            </Typography>
-            <ProfileDropdown isOpen={isProfileOpen} onClose={toggleProfile} /> </Box>
-          </div>
-         
-
-        </div>
-      
-
-
-      </div>
-    </div>
-  );
+    );
 };
 
 export default NavBar;

@@ -454,7 +454,7 @@ const filteredData = data.filter((item) => {
                   {tabIndex === 1 && (
                     <>
                       <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>SNo</TableCell>
-                      <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Vehicle Id</TableCell>
+                      <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Vehicle LicenseNo</TableCell>
                       <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Vehicle Name</TableCell>
                       <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Fuel Type</TableCell>
                       <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>ExhaustCo2</TableCell>
@@ -511,13 +511,15 @@ const filteredData = data.filter((item) => {
                         </TableCell>
 
                       </>
+
                     )}
                     {tabIndex === 1 && (
                       <>
                          <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                         <TableCell>
-                        <Tooltip title={item.VehicleID || "No ID available"} arrow>
-                            <span>{item.VehicleID ? item.VehicleID.slice(-5) : "N/A"}</span>
+                        <Tooltip title={item.LicenseNo || "No LicenseNo available"} arrow>
+                        <span>{item.LicenseNo}</span>
+                            {/* <span>{item.VehicleID ? item.VehicleID.slice(-5) : "N/A"}</span> */}
                         </Tooltip>
                         </TableCell>
                         <TableCell>{item.VehicleType}</TableCell>

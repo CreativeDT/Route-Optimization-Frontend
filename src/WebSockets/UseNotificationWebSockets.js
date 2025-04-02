@@ -31,7 +31,17 @@ const useNotificationWebSocket = (userId) => { // Receive userId as prop
         try {
           const data = JSON.parse(event.data);
           console.log("New Notifications:", data);
-          setNotifications((prev) => [...prev, ...data]);
+          setNotifications((prev) => {
+            const uniqueNotifications = data.filter(
+              (newNotification) =>
+                !prev.some(
+                  (existingNotification) =>
+                    existingNotification.notification_id ===
+                    newNotification.notification_id
+                )
+            );
+            return [...prev, ...uniqueNotifications];
+          });
         } catch (error) {
           console.error("Error parsing notification:", error);
         }

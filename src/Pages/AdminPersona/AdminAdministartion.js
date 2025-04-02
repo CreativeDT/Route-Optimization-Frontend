@@ -197,10 +197,11 @@ const AdminAdministration = () => {
                         onChange={(e) => setSearchQuery(e.target.value)}
                         sx={{ width: "300px" }}
                     />
-                      <Tabs value={tabIndex} onChange={(e, newValue) => setTabIndex(newValue)} sx={{borderRadius:"4px",border:"1px solid #dcdcdc"}}>
-                        <Tab label="Users" />
-                        <Tab label="Vehicles" />
+                      <Tabs value={tabIndex} className="tab-links" onChange={(e, newValue) => setTabIndex(newValue)} sx={{borderRadius:"4px",border:"1px solid #dcdcdc"}}>
+                        <Tab label="Users"  className="tab-link"  />
+                        <Tab label="Vehicles"  className="tab-link"  />
                     </Tabs>
+                    
                 </Box>
 
                 {loading ? (

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Box, Typography, Card, CardContent, Grid, List, ListItem, ListItemText, Paper, Tab,Tabs,Checkbox,TextField } from '@mui/material';
+import { Box, Typography, Card, CardContent, Grid, List, ListItem, ListItemText, Paper,Chip, Tab,Tabs,Checkbox,TextField } from '@mui/material';
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap, Tooltip ,Circle } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import 'leaflet/dist/leaflet.css';
@@ -492,24 +492,49 @@ const RouteTracking = () => {
               />
               <Tabs
                             value={filter}
+                            sx={{
+                              '& .MuiTabs-indicator': {
+                                display: 'none', // Hide the default indicator
+                              },
+                              mb: 2,
+                            }}
                             onChange={(e, newValue) => setFilter(newValue)}
                         >
                             <Tab label={`All (${consignments.length})`} value="All" 
-                             sx={{ "&.MuiButtonBase-root": { 
+                             sx={{
+                               "&.MuiButtonBase-root": { 
                               minHeight: "30px !important",fontSize:"10px",padding:"8px 13px",border:"1px solid #beb7b7c9"
-                            },}}
-                             />
+                            },
+                            "&.MuiButtonBase-root.Mui-selected": { // Increase specificity
+                              backgroundColor: "#2196F3 !important", 
+                              color: "white !important",
+                          },
+                          }}
+                             /> 
                            
+
                             <Tab label={`Started (${consignments.filter((c) => c.status === "started").length})`} value="Started" 
-                               sx={{ "&.MuiButtonBase-root": { 
-                                minHeight: "30px !important",fontSize:"10px",padding:"8px 13px",border:"1px solid #beb7b7c9,"
+                               sx={{    "&.MuiButtonBase-root.Mui-selected": { // Increase specificity
+                                backgroundColor: "#00800042 !important", // Green
+                                color: "green !important",border:"1px solid #00800059"
+                            },
+                                 "&.MuiButtonBase-root": { 
+                                minHeight: "30px !important",fontSize:"10px",padding:"8px 13px",border:"1px solid #beb7b7c9"
                               },}}/>
                             <Tab label={`Not Started (${consignments.filter((c) => c.status !== "started" && c.status !== "completed").length})`} value="Not Started" 
-                             sx={{ "&.MuiButtonBase-root": { 
+                             sx={{"&.MuiButtonBase-root.Mui-selected": { // Increase specificity
+                                  backgroundColor: "#ff000061!important", // Red
+                                  color: "red !important",
+                              },
+                                                "&.MuiButtonBase-root": { 
                               minHeight: "30px !important",fontSize:"10px",padding:"8px 13px",border:"1px solid #beb7b7c9"
                             },}} />
                              <Tab label={`Completed (${consignments.filter((c) => c.status === "completed").length})`} value="Completed" 
-                             sx={{ "&.MuiButtonBase-root": { 
+                             sx={{   "&.MuiButtonBase-root.Mui-selected": { // Increase specificity
+                              backgroundColor: "#EDF4FD !important", // Blue
+                              color: "#0c6bcf  !important",border:"1px solid #d3e3fd"
+                          },
+                               "&.MuiButtonBase-root": { 
                               minHeight: "30px !important",fontSize:"10px",padding:"8px 13px",border:"1px solid #beb7b7c9"
                             },}} />
                         </Tabs>
@@ -520,7 +545,7 @@ const RouteTracking = () => {
                   Consignments
                 </Typography>
                 <List sx={{ maxHeight: "400px", overflowY: "auto" }}>
-                  {filteredConsignments.map((consignment) => (
+                  {filteredByStatus.map((consignment) => (
                     <ListItem
                       key={consignment.routeID}
                       button="true"
