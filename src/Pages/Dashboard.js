@@ -44,22 +44,22 @@ const Dashboard = () => {
       path: "/analytics",
     },
     
-    {
-      image: adminIcon,
-      alt: "Admin",
-      label: "Administration",
-      description:  
-      "Manage user access and permissions. Add, edit and deactivate user accounts.",
-      path: "/userlist",
-    },
     // {
     //   image: adminIcon,
     //   alt: "Admin",
     //   label: "Administration",
     //   description:  
     //   "Manage user access and permissions. Add, edit and deactivate user accounts.",
-    //   path: "/adminadministration",
+    //   path: "/userlist",
     // },
+    {
+      image: adminIcon,
+      alt: "Admin",
+      label: "Administration",
+      description:  
+      "Manage user access and permissions. Add, edit and deactivate user accounts.",
+      path: "/adminadministration",
+    },
   ];
 
   return (

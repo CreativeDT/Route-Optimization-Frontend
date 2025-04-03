@@ -159,7 +159,7 @@ const allCount = vehicles.length;
         const apiCall = editingVehicle
             ? axios.post(`${config.API_BASE_URL}/vehicles/updateVehicle?vehicle_id=${editingVehicle.VehicleID}`, vehiclePayload, { headers })
             : axios.post(`${config.API_BASE_URL}/addNewVehicle`, vehiclePayload, { headers });
-
+console.log("vehiclePayload:",vehiclePayload)
         apiCall
             .then(response => {
                 fetchVehicles();

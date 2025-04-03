@@ -156,14 +156,16 @@ v/* UserList.css */
 .MuiTab-root.Mui-selected {
     background-color: #EDF4FD !important;
     color: #0c6bcf !important;
-    font-weight: 700 !important;border:1px solid #dcdcdc;
+    font-weight: 700 !important;border:1px solid #EDF4FD;
 }
 .MuiTab-root{
     background-color: #dcdcdc !important;
     color: #666666 !important;
-    font-weight: 500 !important;border:1px solid #dcdcdc;
+    font-weight: 500 !important;border:1px solid #dcdcdc;padding:5px 10px!important; min-height:30px!important;
 }
-
+.MuiTabs-root{
+ min-height:30px!important;
+}
 /* .MuiButtonBase-root{
   min-height: 39px!important;
  

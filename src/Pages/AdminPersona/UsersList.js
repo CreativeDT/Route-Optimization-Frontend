@@ -25,7 +25,22 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
-import { Edit, Delete, Add ,Visibility, VisibilityOff } from "@mui/icons-material";
+import { Edit, Delete, Add ,Visibility, VisibilityOff, 
+  Error as ErrorIcon,
+  CheckCircle,
+  Info as InfoIcon,
+  ErrorOutline,
+  PersonAdd,
+  LockOutlined,
+  EmailOutlined,
+  BadgeOutlined,
+  PersonOutline,
+  Save,
+  Cancel } from "@mui/icons-material";
+  import {
+    InputAdornment,
+    LinearProgress
+  } from '@mui/material';
 import NavBar from "../../Components/NavBar";
 import Breadcrumbs from "../Breadcrumbs/Breadcrumbs";
 import config from "../../config";
@@ -235,6 +250,8 @@ const [sortField, setSortField] = useState("name"); // Default sorting field
         });
     }
   };
+
+
   const handleTabChange = (event, newPage) => {
     setActiveTab(newPage);
     if (newPage === 1) {
@@ -531,17 +548,7 @@ const handleChangeRowsPerPage = (event) => {
           </Table>
         </TableContainer>
           
-        {/* Table Pagination */}
-        <TablePagination
-                    rowsPerPageOptions={[5,10, 25, 50]}
-                    component="div"
-                    count={filteredUsers.length}
-                    rowsPerPage={rowsPerPage}
-                    page={page}
-                    onPageChange={handleChangePage}
-                    onRowsPerPageChange={handleChangeRowsPerPage}
-                />
- 
+       
         {/* Add/Edit User Dialog */}
         <Dialog open={openDialog} onClose={handleCloseDialog}>
           <DialogTitle>{editingUser ? "Edit User" : "Create User"}</DialogTitle>
@@ -661,6 +668,17 @@ const handleChangeRowsPerPage = (event) => {
             </Button>
           </DialogActions>
         </Dialog>
+         {/* Table Pagination */}
+         <TablePagination
+                    rowsPerPageOptions={[5,10, 25, 50]}
+                    component="div"
+                    count={filteredUsers.length}
+                    rowsPerPage={rowsPerPage}
+                    page={page}
+                    onPageChange={handleChangePage}
+                    onRowsPerPageChange={handleChangeRowsPerPage}
+                />
+ 
       </Paper>
       <Snackbar
         open={snackbar.open}

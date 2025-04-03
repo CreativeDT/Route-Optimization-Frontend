@@ -730,22 +730,49 @@ import Breadcrumbs1 from "./Breadcrumbs1";
   
     const inputRefs = useRef({}); // Use an object to store multiple refs
   
+    // const handleStopDemandChange = (index, field, value) => {
+    //   setSelectedStops((prevStops) =>
+    //     prevStops.map((stop, i) =>
+    //       i === index ? { ...stop, [field]: value } : stop
+    //     )
+    //   );
+  
+    //   // Retain focus for the specific input field
+    //   setTimeout(() => {
+    //     const inputEl = inputRefs.current[`${index}-${field}`];
+    //     if (inputEl && document.activeElement !== inputEl) {
+    //       inputEl.focus();
+    //     }
+    //   }, 0);
+    // };
     const handleStopDemandChange = (index, field, value) => {
-      setSelectedStops((prevStops) =>
-        prevStops.map((stop, i) =>
+      setSelectedStops((prevStops) => {
+        const newStops = prevStops.map((stop, i) =>
           i === index ? { ...stop, [field]: value } : stop
-        )
-      );
-  
-      // Retain focus for the specific input field
-      setTimeout(() => {
-        const inputEl = inputRefs.current[`${index}-${field}`];
-        if (inputEl && document.activeElement !== inputEl) {
-          inputEl.focus();
-        }
-      }, 0);
+        );
+        
+        // Focus after state update completes
+        setTimeout(() => {
+          console.log('Attempting to focus:', `${index}-${field}`);
+          const inputEl = inputRefs.current[`${index}-${field}`];
+          console.log('Input element exists:', !!inputEl);
+          if (inputEl) {
+            inputEl.focus();
+            console.log('Focus called');
+          }
+        }, 10);
+        return newStops;
+      });
     };
-  
+    // const handleStopDemandChange = (index, field, value) => {
+    //   setSelectedStops((prevStops) => {
+    //     const updatedStops = [...prevStops];
+    //     updatedStops[index] = { ...updatedStops[index], [field]: value };
+    //     return updatedStops;
+    //   });
+      
+    //   // No need for explicit focus management - we'll handle it differently
+    // };
     const preloadedDemandRef = useRef(null);
   
   //   const handlePreloadedDemandChange = (e) => {
@@ -1617,121 +1644,98 @@ import Breadcrumbs1 from "./Breadcrumbs1";
     </Typography>
   )} */}
   
-                    <Grid2
-                      container
-                      spacing={2}
-                      sx={{
-                        // paddingTop: "1rem",
-                        // marginBottom: "1rem",
-                        display: "flex",
-                        flexWrap: "nowrap",
-                      }}
-                    >
-                      
-                      <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
-                                          <StyledTextField
-                                            inputRef={(el) =>
-                                              (inputRefs.current[`${index}-drop_demand`] = el)
-                                            }
-                                            label="Drop Demand kgs"
-                                            type="text"
-                                            value={stop.drop_demand }
-                                            onChange={(e) => {
-                                              let value = e.target.value.replace(/[^0-9]/g, ""); // Allow only numbers
-                                              handleStopDemandChange(index, "drop_demand", value);
-                                            }}
-                                            onFocus={(e) => {
-                                              if (e.target.value === "0") {
-                                                handleStopDemandChange(index, "drop_demand", ""); // Clear 0 when editing starts
-                                              }
-                                            }}
-                                            // onBlur={(e) => {
-                                            //   if (e.target.value === "") {
-                                            //     handleStopDemandChange(index, "drop_demand", "0"); // Restore 0 if empty
-                                            //   }
-                                            // }}
-                                           
-                                            size="small"
-                                            fullWidth
-                                            margin="dense"
-                                           
-                                            sx={{"& .MuiFormLabel-root": {
-                                                    fontSize: "10px", // Adjust input text size
-                                                  },
-                                                  "& .MuiOutlinedInput-root": { 
-                                                    "& fieldset": { 
-                                                      borderColor: "#ccc!important"
-                                                    }
-                                                       } ,
-                                              
-                                                "& .MuiInputBase-input": {
-                                                  fontSize: "12px", // Reduce input text size
-                                                },
-                                                //   "& .MuiInputLabel-root":{
-                                                //   top:"-8px!important",
-                                                
-                                                // }
-                                            }}
-                                            
-                                          />
-                                        </Grid2>
-                      <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
-                        <StyledTextField
-                          inputRef={(el) =>
-                            (inputRefs.current[`${index}-pickup_demand`] = el)
-                          }
-                          label="Pickup Demand kgs"
-                          type="number"
-                          value={stop.pickup_demand || 0}
-                          onChange={(e) => {
-                            const value = Math.max(0, Number(e.target.value)); // Ensure value is not negative
-                            handleStopDemandChange(index, "pickup_demand", value);
-                          }}
-                          size="small"
-                          fullWidth
-                          margin="dense"
-                          sx={{ height: "20px","& .MuiFormLabel-root": {
-                            fontSize: "10px", // Adjust input text size
+  <Grid2
+                    container
+                    spacing={2}
+                    sx={{
+                      // paddingTop: "1rem",
+                      // marginBottom: "1rem",
+                      display: "flex",
+                      flexWrap: "nowrap",
+                    }}
+                  >
+                    <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
+                      <StyledTextField
+                        inputRef={(el) =>
+                          (inputRefs.current[`${index}-drop_demand`] = el)
+                        }
+                        label="Drop Demand"
+                        type="number"
+                        value={stop.drop_demand || 0}
+                        onChange={(e) => {
+                          const value = Math.max(0, Number(e.target.value)); // Ensure value is not negative
+                          handleStopDemandChange(index, "drop_demand", value);
+                        }}
+                        size="small"
+                        fullWidth
+                        margin="dense"
+                        sx={{ 
+                          height: "20px", // This might be too small and cause focus issues
+                          "& .MuiFormLabel-root": {
+                            fontSize: "10px",
                           },
-                      
-                        "& .MuiInputBase-input": {
-                          fontSize: "12px", // Reduce input text size
-                        },
-                      }}
-                      onBlur={() => {
-                        
-                      }}
-                        />
-                      </Grid2>
-                      <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
-                        <StyledTextField
-                          inputRef={(el) =>
-                            (inputRefs.current[`${index}-priority`] = el)
-                          }
-                          label="Priority"
-                          type="number"
-                          value={stop.priority || 3}
-                          onChange={(e) => {
-                            const value = Math.max(
-                              0,
-                              Math.min(Number(e.target.value), 3)
-                            );
-                            handleStopDemandChange(index, "priority", value);
-                          }}
-                          size="small"
-                          fullWidth
-                          margin="dense"
-                          sx={{ height: "20px","& .MuiFormLabel-root": {
-                            fontSize: "10px", // Adjust input text size
+                          "& .MuiInputBase-input": {
+                            fontSize: "12px",
+                            padding: "8px 10px", // Ensure consistent padding
                           },
-                      
-                        "& .MuiInputBase-input": {
-                          fontSize: "12px", // Reduce input text size
-                        },
-                      }}
-                        />
-                      </Grid2>
+                        }}
+                      />
                     </Grid2>
+
+                    <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
+                      <StyledTextField
+                        inputRef={(el) =>
+                          (inputRefs.current[`${index}-pickup_demand`] = el)
+                        }
+                        label="Pickup Demand"
+                        type="number"
+                        value={stop.pickup_demand || 0}
+                        onChange={(e) => {
+                          const value = Math.max(0, Number(e.target.value)); // Ensure value is not negative
+                          handleStopDemandChange(index, "pickup_demand", value);
+                        }}
+                        size="small"
+                        fullWidth
+                        margin="dense"
+                        sx={{ height: "20px","& .MuiFormLabel-root": {
+                          fontSize: "10px", // Adjust input text size
+                        },
+                    
+                      "& .MuiInputBase-input": {
+                        fontSize: "12px", // Reduce input text size
+                      },
+                    }}
+                      />
+                    </Grid2>
+                    <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
+                      <StyledTextField
+                        inputRef={(el) =>
+                          (inputRefs.current[`${index}-priority`] = el)
+                        }
+                        label="Priority"
+                        type="number"
+                        value={stop.priority || 3}
+                        onChange={(e) => {
+                          const value = Math.max(
+                            0,
+                            Math.min(Number(e.target.value), 3)
+                          );
+                          handleStopDemandChange(index, "priority", value);
+                        }}
+                        size="small"
+                        fullWidth
+                        margin="dense"
+                        sx={{ height: "20px","& .MuiFormLabel-root": {
+                          fontSize: "10px", // Adjust input text size
+                        },
+                    
+                      "& .MuiInputBase-input": {
+                        fontSize: "12px", // Reduce input text size
+                      },
+                    }}
+                      />
+                    </Grid2>
+                  </Grid2>
                   </Box>
                 ))}
   {/* Estimated Duration */}
