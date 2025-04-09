@@ -21,6 +21,9 @@ import ManagerAnalytics from './Pages/ManagerPersona/ManagerAnalytics';
 import DriverRouteTracking from './Pages/DriverPersona/DriverRouteTracking';
 import DriverAnalytics from './Pages/DriverPersona/DriverAnalytics';
 import AdminAdministration from './Pages/AdminPersona/AdminAdministartion';
+import UpdateProfile from './Pages/DriverPersona/UpdateProfile/UpdateProfile';
+import SessionExpiryPage from './Pages/SessionExpiryPage';
+import SessionExpired from './Pages/SessionExpired';
 
 
 
@@ -55,6 +58,9 @@ const App = () => {
         <Route path="/driverroutetracking" element={<DriverRouteTracking />} />
         <Route path ="/driveranalytics" element={<DriverAnalytics />} />
         <Route path ="/adminadministration" element={<AdminAdministration />} />
+        <Route path ="/updateprofile" element={<UpdateProfile />} />
+        <Route path ="/sessionexpiraypage" element={<SessionExpiryPage />} />
+        <Route path ="/sessionexpired" element={<SessionExpired />} />
         
      
       </Routes>

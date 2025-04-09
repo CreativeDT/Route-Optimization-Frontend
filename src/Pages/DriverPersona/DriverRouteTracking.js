@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Box, Typography, Card, CardContent, Grid, List, ListItem, ListItemText, Paper, Checkbox,TextField } from '@mui/material';
+import { Box, Typography, Card, CardContent, Grid, List, Tab,Tabs,ListItem, ListItemText, Paper, Checkbox,TextField } from '@mui/material';
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap, Tooltip ,Circle } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import 'leaflet/dist/leaflet.css';
-
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import axios from 'axios';
 import '../../markerCluster.css';
 import L from 'leaflet';
@@ -228,6 +228,7 @@ const RouteTracking = () => {
     const [selectedRoutes, setSelectedRoutes] = useState([]);
     const [selectedConsignments, setSelectedConsignments] = useState([]);
     const [shouldConnectWebSocket, setShouldConnectWebSocket] = useState(false);
+     const [filter, setFilter] = useState("All"); // Added filter state
     const [geoFences, setGeoFences] = useState([]);
     // const { vehiclePosition } = UseWebSocket("ws://localhost:8000/ws"); // Get WebSocket Data
     const { vehiclePositions } = UseWebSocket(config.WEBSOCKET_URL, shouldConnectWebSocket);
@@ -324,44 +325,47 @@ const RouteTracking = () => {
 
 
     const fetchConsignments = useCallback(async () => {
-        const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token');
 
-        try {
-            const response = await axios.post(`${config.API_BASE_URL}/getConsignments`, {
-                status: '',
-                origin: '',
-                destination: '',
-                vehicle_id: '',
-                routeID: ''
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+      try {
+          const response = await axios.post(`${config.API_BASE_URL}/getConsignments`, {
+              status: '',
+              origin: '',
+              destination: '',
+              vehicle_id: '',
+              routeID: ''
+          }, {
+              headers: {
+                  'Authorization': `Bearer ${token}`
+              }
+          });
 
-            console.log('Consignments:', response.data);
+          console.log('Consignments:', response.data);
 
-            const consignmentsWithStatusText = response.data.consignments.map(
-              (consignment) => {
-              const isAssigned = consignment.driver_id !== null && consignment.driver_id !== undefined; // Check if driver_id exists
-              console.log("Consignment ID:", consignment.consignment_id, "Driver ID:", consignment.driver_id, "isAssigned:", isAssigned);
-              return {
-                ...consignment,
-                statusText:
-                    consignment.status === 'started'
-                        ? 'Started'
-                        : 'Not Started',
-                assignedText: isAssigned ? 'Assigned' : 'Not Assigned',
-                assignedColor: isAssigned ? 'green' : 'red', // Set color based on assignment
-            };
-        }
-    );
+          const consignmentsWithStatusText = response.data.consignments.map(
+            (consignment) => {
+            const isAssigned = consignment.driver_id !== null && consignment.driver_id !== undefined; // Check if driver_id exists
+            console.log("Consignment ID:", consignment.consignment_id, "Driver ID:", consignment.driver_id, "isAssigned:", isAssigned);
+            return {
+              ...consignment,
+              statusText: 
+                  consignment.status === 'started'
+                      ? 'Started'
+                      : consignment.status === 'completed'
+                      ? 'Completed'
+                      : 'Not Started',
+              assignedText: isAssigned ? 'Assigned' : 'Not Assigned',
+              assignedColor: isAssigned ? 'green' : 'red', // Set color based on assignment
+              driverName: consignment.driver || 'Not Assigned', // Use the driver field from the API
+          };
+      });
+      
+      setConsignments(consignmentsWithStatusText);
+      } catch (error) {
+          console.error('Error fetching consignments:', error);
+      }
+  }, []);
 
-            setConsignments(consignmentsWithStatusText);
-        } catch (error) {
-            console.error('Error fetching consignments:', error);
-        }
-    }, []);
 
     useEffect(() => {
         fetchConsignments();
@@ -416,6 +420,16 @@ const RouteTracking = () => {
     );
   
     
+ 
+     // Filter consignments based on selected tab
+     const filteredByStatus = filter === "All"
+     ? filteredConsignments
+     : filteredConsignments.filter(consignment => {
+         if (filter === "Completed") return consignment.status === "completed";
+         if (filter === "Started") return consignment.status === "started";
+         if (filter === "Not Started") return consignment.status !== "started" && consignment.status !== "completed";
+         return true;
+     });
  
 
    
@@ -529,6 +543,102 @@ const RouteTracking = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                
               />
+               <Tabs
+                            value={filter}
+                            sx={{
+                              '& .MuiTabs-indicator': {
+                                display: 'none', // Hide the default indicator
+                              },
+                              mb: 2,
+                            }}
+                            onChange={(e, newValue) => setFilter(newValue)}
+                        >
+                            <Tab 
+                            label=
+                              
+                              
+                              {`All (${consignments.length})`} 
+                              
+                                 
+                             value="All" 
+                             sx={{backgroundColor:"rgba(255, 255, 255, 0.2) !important", border:"none!important",
+                               "&.MuiButtonBase-root": { 
+                              minHeight: "30px !important",fontSize:"10px",padding:"8px 13px"
+                            },
+                            "&.MuiButtonBase-root.Mui-selected": { // Increase specificity
+                              backgroundColor:  "rgba(255, 255, 255, 0.2) !important", 
+                              color: "#666666 !important",backdropFilter: "blur(8px)",borderBottom:"2px solid #666666!important"
+                          },
+                          }}
+                             /> 
+                           
+
+                            <Tab
+                            label={
+                              <Box sx={{ display: "flex", alignItems: "center" }}>
+                              <Box
+                                sx={{
+                                  width: 10,
+                                  height: 10,
+                                  borderRadius: "50%",
+                                  backgroundColor: "orange", // Started dot
+                                  marginRight: 1,
+                                }}
+                              />
+                              {`Started (${consignments.filter((c) => c.status === "started").length})`}
+                              </Box>
+  }
+                            value="Started" 
+                               sx={{ backgroundColor:"rgba(255, 255, 255, 0.2) !important", border:"none!important",  
+                                 "&.MuiButtonBase-root.Mui-selected": { // Increase specificity
+                                backgroundColor:  "rgba(255, 255, 255, 0.2) !important", 
+                                color: "orange !important",borderBottom:"2px solid rgb(253, 230, 211)!important"
+                            },
+                            
+                                 "&.MuiButtonBase-root": { 
+                                minHeight: "30px !important",fontSize:"10px",padding:"8px 13px",border:"1px solid #beb7b7c9"
+                              },}}/>
+                            <Tab 
+                            label={
+                              <Box sx={{ display: "flex", alignItems: "center" }}>
+                                <Box
+                                  sx={{
+                                    width: 10,
+                                    height: 10,
+                                    borderRadius: "50%",
+                                    backgroundColor: "red", // Not Started dot
+                                    marginRight: 1,
+                                  }}
+                                />
+                              {`Not Started (${consignments.filter((c) => c.status !== "started" && c.status !== "completed").length})`}
+                              </Box>
+                               }
+                               value="Not Started" 
+                             sx={{backgroundColor:"rgba(255, 255, 255, 0.2) !important", border:"none!important",
+                              "&.MuiButtonBase-root.Mui-selected": { // Increase specificity
+                              backgroundColor:  "rgba(255, 255, 255, 0.2) !important", 
+                                  color: "red !important",borderBottom:"2px solid rgb(253, 211, 218)!important"
+                              },
+                                                "&.MuiButtonBase-root": { 
+                              minHeight: "30px !important",fontSize:"10px",padding:"8px 13px",border:"1px solid #beb7b7c9"
+                            },}} />
+                             <Tab 
+                             label={
+                              <Box sx={{ display: "flex", alignItems: "center" }}>
+                              <CheckCircleIcon sx={{ color: "green", fontSize: 13, marginRight: 1, fontWeight: "bold" }} />
+                              {`Completed (${consignments.filter((c) => c.status === "completed").length})`}
+                            </Box>
+                          }
+                              value="Completed" 
+                             sx={{backgroundColor:"rgba(255, 255, 255, 0.2) !important", border:"none!important",  
+                               "&.MuiButtonBase-root.Mui-selected": { // Increase specificity
+                              backgroundColor:  "rgba(255, 255, 255, 0.2) !important", // Blue
+                              color: "green  !important",borderBottom:"2px solid rgb(211, 253, 218)!important"
+                          },
+                               "&.MuiButtonBase-root": { 
+                              minHeight: "30px !important",fontSize:"10px",padding:"8px 13px"
+                            },}} />
+                        </Tabs>
 
               {/* Consignments List */}
               <Box sx={{ flex: "0 0 auto", height: "440px" }}>
@@ -536,7 +646,7 @@ const RouteTracking = () => {
                   Consignments
                 </Typography>
                 <List sx={{ maxHeight: "400px", overflowY: "auto" }}>
-                  {filteredConsignments.map((consignment) => (
+                {filteredByStatus.map((consignment) => (
                     <ListItem
                       key={consignment.routeID}
                       button="true"
@@ -553,19 +663,23 @@ const RouteTracking = () => {
                         primary={
                           <Box sx={{ display: "flex", alignItems: "center" }}>
                             {/* Dot based on status */}
+                            {consignment.status === "completed" ? (
+                            <CheckCircleIcon sx={{ color: "green", fontSize: 13, marginRight: 2 }} />
+                          ) : (
                             <Box
                               sx={{
                                 width: 10,
                                 height: 10,
-                                flexShrink: 0, // Prevents resizing
+                                flexShrink: 0,
                                 borderRadius: "50%",
                                 backgroundColor:
                                   consignment.status === "started"
-                                    ? "green"
+                                    ? "orange"
                                     : "red",
                                 marginRight: 2,
                               }}
                             />
+                          )}
                             <Typography
                               variant="body2"
                               sx={{ fontSize: "12px" }}
@@ -583,11 +697,11 @@ const RouteTracking = () => {
                             >
                             Status:  {consignment.statusText}
                             </Typography>
-                            <Typography
-                              variant="body2"
-                              sx={{ fontSize: "10px" }}
-                            >
-                            Driver:  {consignment.assignedText}
+                            <Typography variant="body2" sx={{ fontSize: "10px" }}>
+                                Driver Name:{" "}
+                                <span style={{ color: consignment.driverName !== "Not Assigned" ? "green" : "red" }}>
+                                    {consignment.driverName}
+                                </span>
                             </Typography>
                             </Box>
                             <Typography

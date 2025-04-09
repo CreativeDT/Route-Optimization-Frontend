@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { FaUser, FaBell, FaCog, FaHome, FaTruckMoving, FaUserShield,FaUserTie,FaUserCog } from 'react-icons/fa';
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,Alert ,DialogContentText,
     Typography, CircularProgress, Box, Tabs, Tab, Tooltip, Button, Dialog,TablePagination,Snackbar,
@@ -40,7 +42,11 @@ const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "
 const [openDialog, setOpenDialog] = React.useState(false);
 
 const [selectedRouteID, setSelectedRouteID] = React.useState(null);
-
+// const [editRouteOpen, setEditRouteOpen] = useState(false);
+// const [routeToEdit, setRouteToEdit] = useState(null);
+const [editDialogOpen, setEditDialogOpen] = useState(false);
+const [editedRoute, setEditedRoute] = useState(null);
+const navigate = useNavigate();
 const handleDriverChange = (newValue, routeID) => {
   if (newValue) {
     const isReassigning = !!selectedDrivers[routeID]; // Check if a driver was already assigned
@@ -153,7 +159,7 @@ useEffect(() => {
 
     const token = localStorage.getItem("token");
     if (!token) {
-      setError("No token found. Please log in.");
+      navigate("/sessionexpired");
       setLoading(false);
       return;
     }
@@ -254,33 +260,20 @@ const handleAssignDriver = async (driverId, routeId) => {
         alert("Please select a driver.");
         return;
     }
-
-    try {
+try {
         const token = localStorage.getItem("token");
         if (!token) {
-            console.error("No token found. Please log in.");
+          navigate("/sessionexpired");
             return;
         }
-
-        // Modify API endpoint to correct one
-        const response = await axios.post(
+ const response = await axios.post(
             `${config.API_BASE_URL}/assignDriver`, 
             { driver_id: driverId, route_id: routeId },
             { headers: { Authorization: `Bearer ${token}` } }
         );
-        
-        //  Update the selectedDrivers state immediately after success
-          // setSelectedDrivers((prev) => ({
-          //   ...prev,
-          //   [routeId]: availableDrivers.find((d) => d.driver_id === driverId),
-          // }));
-          const assignedDriver = availableDrivers.find((d) => d.driver_id === driverId);
+ const assignedDriver = availableDrivers.find((d) => d.driver_id === driverId);
                    if (assignedDriver) {
-                  //  setSelectedDrivers((prev) => ({
-                  // ...prev,
-                  // [routeId]: assignedDriver.driver_name, // Store driver_name here
-                  //     }));}
-                  const newSelectedDrivers = {
+  const newSelectedDrivers = {
                     ...selectedDrivers,
                     [routeId]: assignedDriver.driver_name,
                 };
@@ -338,7 +331,7 @@ const handleDriverSelectChange = (event, newValue, routeId) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
-        setError("No token found. Please log in.");
+        navigate("/sessionexpired");
         return;
       }
   
@@ -367,12 +360,46 @@ const handleDriverSelectChange = (event, newValue, routeId) => {
     const handleSearchChange = (event) => {
       setSearchQuery(event.target.value);
     };
+// const filteredData = data.filter((item) => {
+//   const searchValue = searchQuery.toLowerCase();
+//   return Object.values(item).some(
+//     (value) => value && value.toString().toLowerCase().includes(searchValue)
+//   );
+// });
+
 const filteredData = data.filter((item) => {
-  const searchValue = searchQuery.toLowerCase();
-  return Object.values(item).some(
-    (value) => value && value.toString().toLowerCase().includes(searchValue)
-  );
+  const searchValue = searchQuery.trim().toLowerCase();
+
+  const driverAvailability =
+    item.route_status === "Not Assigned" && item["Vehicle Status"] === "Not Assigned"
+      ? "available"
+      : "unavailable";
+
+  const assignedDriver =
+    item["Vehicle Status"] === "In Transit" ? "Assigned" : "Not Assigned";
+
+  const combinedValues = [
+    ...Object.values(item).map((val) =>
+      val != null ? val.toString().toLowerCase() : ""
+    ),
+    driverAvailability.toLowerCase(),
+    assignedDriver.toLowerCase(),
+  ];
+
+  return combinedValues.some((val) => val.startsWith(searchValue));
 });
+//Edit/Update Planned Route
+const handleEditRoute = (route) => {
+  console.log("Edit button clicked for route:", route);
+  setEditedRoute({ ...route });
+  setEditDialogOpen(true);
+};
+const handleStopChange = (index, key, value) => {
+  const updatedStops = [...editedRoute.stop_demands];
+  updatedStops[index][key] = value;
+  console.log(`Updated stop ${index} - ${key}:`, value);
+  setEditedRoute({ ...editedRoute, stop_demands: updatedStops });
+};
 
 
   return (
@@ -383,10 +410,12 @@ const filteredData = data.filter((item) => {
         {/* Tabs for Drivers, Vehicles, and Fleet Details */}
         <Box className="filter-container"> 
           <Typography variant="h5" sx={{ color: "#156272" }} gutterBottom>
-            Manager Dashboard
+            <FaUserTie className="role-icon" /> Manager Dashboard
           </Typography>
          
-          <Box sx={{display:'flex',gap:1}}>
+          <Box sx={{display:'flex',gap:1,
+           
+          }}>
                    <TextField className="search-add-container"
           
   label="Search"
@@ -394,6 +423,17 @@ const filteredData = data.filter((item) => {
   value={searchQuery}
   onChange={(e) => setSearchQuery(e.target.value)}
   smallWidth
+  sx={{
+    marginBottom: "9px",
+    "& .MuiOutlinedInput-input": {
+      padding: "6px 10px", // Reduce top/bottom and left/right padding
+      fontSize: "12px", // Optional: Smaller font if needed
+    },
+    
+    "& .MuiOutlinedInput-root": {
+      minHeight: "37px", // Reduce total height of input
+    },
+  }}
   
 />
 
@@ -468,7 +508,7 @@ const filteredData = data.filter((item) => {
                     <>
                         <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>SNo</TableCell>
                         <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Route ID</TableCell>
-                        <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Vehicle ID</TableCell>
+                        <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Vehicle LicenseNo</TableCell>
                        
                         <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Origin</TableCell>
                         <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Destination</TableCell>
@@ -527,23 +567,32 @@ const filteredData = data.filter((item) => {
                         <TableCell>{item.ExhaustCO2}</TableCell>
                         <TableCell>{item.Mileage}</TableCell>
                         <TableCell>{item.VehicleCapacity}</TableCell>
-                        <TableCell>{item["Vehicle Status"]}</TableCell>
+                        <TableCell   sx={{
+                              color: item["Vehicle Status"] === "In Transit" ? '#7ade7a !important' : '#cf6473 !important',
+                              fontWeight: 'bold !important',
+                             
+                            }}>{item["Vehicle Status"]}</TableCell>
 
-                        <TableCell>{item.assigned_driver || "Not Assigned"}</TableCell>
+                        <TableCell>
+                            {item["Vehicle Status"] === "In Transit" ? "Assigned" : "Not Assigned"}
+                          </TableCell>
+
+
                       </>
                     )}
                    {tabIndex === 2 && (
                     <>
                         <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                         
-                        <TableCell>
+                        {/* <TableCell>
                         <Tooltip title={item.routeID || "N/A"} arrow>
                             <span>{item.routeID ? item.routeID.slice(-5) : "N/A"}</span>
                         </Tooltip>
-                        </TableCell>
+                        </TableCell> */}
                         <TableCell>
-                        <Tooltip title={item.vehicle_id || "N/A"} arrow>
-                            <span>{item.vehicle_id ? item.vehicle_id.slice(-5) : "N/A"}</span>
+                        <Tooltip title={item.LicenseNo || "No LicenseNo available"} arrow>
+                        <span>{item.LicenseNo}</span>
+                            {/* <span>{item.vehicle_id ? item.vehicle_id.slice(-5) : "N/A"}</span> */}
                         </Tooltip>
                         </TableCell>
                         
@@ -572,6 +621,16 @@ const filteredData = data.filter((item) => {
                         <TableCell>{item.status}</TableCell>
                         <TableCell>{item.carbon_emission || "N/A"}</TableCell>
                         <TableCell>{new Date(item.creationDate).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                        <Button
+                          sx={{ fontSize: "12px" }}
+                          onClick={() => handleEditRoute(item)}
+                          disabled={item.status === "completed"} // Optional: disable if route is completed
+                        >
+                          Edit
+                        </Button>
+                      </TableCell>
+
                         <TableCell>
                           <Button
                             sx={{ fontSize: "12px" }}
@@ -684,6 +743,7 @@ const filteredData = data.filter((item) => {
 
 <Autocomplete
   options={availableDrivers.filter((driver) => driver.route_status === "Not Assigned")}
+  // options={availableDrivers}
   getOptionLabel={(option) => option.driver_name || ""}
   value={null} // Keeps dropdown empty after selection
   onChange={(event, newValue) => {
@@ -778,7 +838,7 @@ const filteredData = data.filter((item) => {
   <DialogTitle>Confirm Driver Reassignment</DialogTitle>
   <DialogContent>
     <DialogContentText>
-      Are you sure you want to assign {selectedDriver?.driver_name} to this route?
+      Are you sure you want to Reassign {selectedDriver?.driver_name} to this route?
     </DialogContentText>
   </DialogContent>
   <DialogActions>
@@ -824,56 +884,47 @@ const filteredData = data.filter((item) => {
     {isManager && <Button onClick={handleSubmit} color="primary">Save</Button>}
   </DialogActions>
     </Dialog>
-    {/* Assign driver pop up */}
-    {/* <Dialog fullWidth  open={openAssignDialog} onClose={() => setOpenAssignDialog(false)}>
-  <DialogTitle>Assign Driver to Route</DialogTitle>
-  <DialogContent>
-  <TableContainer component={Paper} fullWidth sx={{ maxHeight: 300, overflowY: "auto" }}>
-                        <Table>
-                            <TableHead>
-                                <TableRow>
-                                    <TableCell>SNo</TableCell>
-                                    <TableCell>Driver Name</TableCell>
-                                    <TableCell>Email</TableCell>
-                                    <TableCell>Vehicle Status</TableCell>
-                                    <TableCell>Route Status</TableCell>
-                                </TableRow>
-                            </TableHead>
-                            <TableBody>
-                            {availableDrivers
-                                    .filter((driver) => driver.route_status === "Not Assigned")
-                                    .map((driver, index) => (
-                                        <TableRow key={driver.id}>
-                                            <TableCell>{index + 1}</TableCell>
-                                            <TableCell>{driver.driver_name}</TableCell>
-                                            <TableCell>{driver.email}</TableCell>
-                                            <TableCell>{driver.vehicle_status}</TableCell>
-                                            <TableCell>{driver.route_status}</TableCell>
-                                            <TableCell>
-                                                <Button
-                                                    variant="contained"
-                                                    color="primary"
-                                                    onClick={() => setSelectedDriver(driver.id)}
-                                                >
-                                                    Select
-                                                </Button>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))}
-                            </TableBody>
-                        </Table>
-                    </TableContainer>
-   
-  </DialogContent>
-  <DialogActions>
-    <Button onClick={() => setOpenAssignDialog(false)} color="secondary">
-      Cancel
-    </Button>
-    <Button onClick={handleAssignDriver} color="primary">
-      Assign
-    </Button>
-  </DialogActions>
-</Dialog> */}
+
+    {/* pop up Edit/Update Planned Route */}
+    <DialogContent>
+  {console.log("Edited Route in Dialog:", editedRoute)}
+
+  {editedRoute?.stop_demands?.length > 0 ? (
+    editedRoute.stop_demands.map((stop, index) => (
+      <Box key={index} display="flex" gap={2} mb={2}>
+        <TextField
+          label="Name"
+          value={stop.name}
+          onChange={(e) => handleStopChange(index, "name", e.target.value)}
+        />
+        <TextField
+          label="Drop Demand"
+          type="number"
+          value={stop.drop_demand}
+          onChange={(e) => handleStopChange(index, "drop_demand", e.target.value)}
+        />
+        <TextField
+          label="Pickup Demand"
+          type="number"
+          value={stop.pickup_demand}
+          onChange={(e) => handleStopChange(index, "pickup_demand", e.target.value)}
+        />
+        <TextField
+          label="Priority"
+          type="number"
+          value={stop.priority}
+          onChange={(e) => handleStopChange(index, "priority", e.target.value)}
+        />
+      </Box>
+    ))
+  ) : (
+    <Typography>No stop demands to edit</Typography>
+  )}
+</DialogContent>
+
+
+
+    
 
     </>
   );

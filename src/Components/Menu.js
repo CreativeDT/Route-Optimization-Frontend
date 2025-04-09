@@ -48,10 +48,10 @@ const Menu = () => {
         </div> */}
 
         <div className="tile-container1">
-          <Link to="/route-planning" className="tile1">
+          {/* <Link to="/route-planning" className="tile1">
             <img src={routeIcon} alt="Route Planning" className="icon-image" />
             <span>Route Planning</span>
-          </Link>
+          </Link> */}
 
           <Link to="/route-tracking" className="tile1">
             <img src={trackingIcon} alt="Route Tracking" className="icon-image" />

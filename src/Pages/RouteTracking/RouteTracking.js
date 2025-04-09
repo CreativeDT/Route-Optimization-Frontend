@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Box, Typography, Card, CardContent, Grid, List, ListItem, ListItemText, Paper, Checkbox,TextField } from '@mui/material';
+import { Box, Typography, Card, CardContent, Grid, List, ListItem, ListItemText, Paper, Checkbox,Tabs,Tab,TextField } from '@mui/material';
 import { MapContainer, TileLayer, Marker, Polyline, Popup, useMap, Tooltip ,Circle } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-markercluster';
 import 'leaflet/dist/leaflet.css';
-
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import axios from 'axios';
 import '../../markerCluster.css';
 import L from 'leaflet';
@@ -76,15 +76,31 @@ const defaultCenter = [41.8781, -87.6298]; // Default center (Chicago)
 //     user.name.toLowerCase().includes(searchTerm.toLowerCase())
 // );
 
-
+// Add this near your other icon definitions (like redIcon, greenIcon)
+const customMarkerIcon = (color) => {
+  return new L.Icon({
+    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+  });
+};
 const waypointIcon = new L.Icon({
     iconUrl: blueicon, // Blue dot icon URL
     iconSize: [20, 20],
     iconAnchor: [10, 10],
     popupAnchor: [0, -10],
 });
+  const pathOptions = {
+    color: '#888',
+    weight: 3,
+    dashArray: '5, 5',
+    opacity: 0.7
+  };
 
-const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleRoutes, vehiclePositions }) => {
+const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleRoutes, vehiclePositions,routeHistory=[] }) => {
     const map = useMap();
     const vehicleMarkerRef = useRef(null); // Ref for the vehicle marker
 
@@ -130,6 +146,13 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
 
     const filteredWaypoints = routeWaypoints.slice(1, routeWaypoints.length - 1);
 
+    // Historical route polyline (moved inside the return statement)
+    const historicalPathOptions = {
+    color: '#888',
+    weight: 3,
+    dashArray: '5, 5',
+    opacity: 0.7
+  };    
     return (
         <>
             <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
@@ -155,13 +178,29 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
                         <Popup>{route?.destination || "Destination"}</Popup>
                     </Marker>
                 )}
+                  {/* Waypoints with historical/planned distinction */}
+        {filteredWaypoints.map((waypoint, index) => {
+          const isHistorical = routeHistory.some(h => 
+            h.route_waypoints?.some(s => s.id === waypoint.id)
+          );return (
+            <Marker 
+              key={index}
+              position={[waypoint.coordinates[1], waypoint.coordinates[0]]}
+              icon={customMarkerIcon(isHistorical ? 'gray' : 'blue')}
+            >
+              <Popup>
+                {waypoint.name} - {isHistorical ? 'Historical' : 'Planned'}
+              </Popup>
+            </Marker>
+          );
+        })}
 
                 {/* Render Filtered Waypoints (excluding first and last) */}
-                {filteredWaypoints.length > 0 && filteredWaypoints.map((waypoint, index) => (
+                {/* {filteredWaypoints.length > 0 && filteredWaypoints.map((waypoint, index) => (
                     <Marker key={index} position={[waypoint.coordinates[1], waypoint.coordinates[0]]} icon={waypointIcon}>
                         <Popup>{waypoint.name}</Popup>
                     </Marker>
-                ))}
+                ))} */}
                 {/* {routeWaypoints.slice(1, -1).map((waypoint, index) => (
                     <Marker
                         key={index}
@@ -200,6 +239,15 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
                     },
                 }}
             >
+                {/* Historical Route Polylines */}
+      {routeHistory.map((history, idx) => (
+        <Polyline
+          key={`history-${idx}`}
+          color="red"
+          positions={history.route_coordinates.map(coord => [coord[1], coord[0]])}
+          pathOptions={historicalPathOptions}
+        />
+      ))}
                 <Tooltip direction="top" offset={[0, -10]} opacity={1}>
                     <Typography variant="body2">
                         <strong>Route Details:</strong><br />
@@ -217,6 +265,14 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
                     </Typography>
                 </Tooltip>
             </Polyline>
+             {/* Historical Route Polylines */}
+      {routeHistory.map((history, idx) => (
+        <Polyline
+          key={`history-${idx}`}
+          positions={history.route_coordinates.map(coord => [coord[1], coord[0]])}
+          pathOptions={historicalPathOptions}
+        />
+      ))}
 
         </>
     );
@@ -228,9 +284,12 @@ const RouteTracking = () => {
     const [selectedConsignments, setSelectedConsignments] = useState([]);
     const [shouldConnectWebSocket, setShouldConnectWebSocket] = useState(false);
     const [geoFences, setGeoFences] = useState([]);
+    const [routeHistory, setRouteHistory] = useState([]);
+
+
     // const { vehiclePosition } = UseWebSocket("ws://localhost:8000/ws"); // Get WebSocket Data
     const { vehiclePositions } = UseWebSocket(config.WEBSOCKET_URL, shouldConnectWebSocket);
-
+   const [filter, setFilter] = useState("All");
     useEffect(() => {
       console.log("Selected Routes:", selectedRoutes); // Debugging log
       
@@ -291,10 +350,10 @@ const RouteTracking = () => {
       return [latSum / coordinates.length, lngSum / coordinates.length];
     };
     
-    
+    const token = localStorage.getItem('token');
     const fetchRouteData = useCallback(async (routeID) => {
         try {
-            const token = localStorage.getItem('token');
+           
             const response = await axios.post(`${config.API_BASE_URL}/getRouteData`, {
                 routeID,
                 vehicle_id: ''
@@ -339,20 +398,22 @@ const RouteTracking = () => {
 
             const consignmentsWithStatusText = response.data.consignments.map(
               (consignment) => {
-              const isAssigned = consignment.driver_id !== null && consignment.driver_id !== undefined; // Check if driver_id exists
-              console.log("Consignment ID:", consignment.consignment_id, "Driver ID:", consignment.driver_id, "isAssigned:", isAssigned);
-              return {
-                ...consignment,
-                statusText:
-                    consignment.status === 'started'
-                        ? 'Started'
-                        : 'Not Started',
-                assignedText: isAssigned ? 'Assigned' : 'Not Assigned',
-                assignedColor: isAssigned ? 'green' : 'red', // Set color based on assignment
-            };
-        }
-    );
-
+                const isAssigned = consignment.driver_id !== null && consignment.driver_id !== undefined; // Check if driver_id exists
+                console.log("Consignment ID:", consignment.consignment_id, "Driver ID:", consignment.driver_id, "isAssigned:", isAssigned);
+                return {
+                  ...consignment,
+                  statusText: 
+                      consignment.status === 'started'
+                          ? 'Started'
+                          : consignment.status === 'completed'
+                          ? 'Completed'
+                          : 'Not Started',
+                  assignedText: isAssigned ? 'Assigned' : 'Not Assigned',
+                  assignedColor: isAssigned ? 'green' : 'red', // Set color based on assignment
+                  driverName: consignment.driver || 'Not Assigned', // Use the driver field from the API
+              };
+          });
+          
             setConsignments(consignmentsWithStatusText);
         } catch (error) {
             console.error('Error fetching consignments:', error);
@@ -372,36 +433,87 @@ const RouteTracking = () => {
     //     }
     // }, [vehiclePosition]);
 
+    // const handleConsignmentSelection = async (consignment) => {
+    //   console.log("Selected consignment:", consignment);
+    //     const isSelected = selectedConsignments.includes(consignment.routeID);
+    //     let updatedSelectedConsignments;
+    //     if (isSelected) {
+    //         updatedSelectedConsignments = selectedConsignments.filter(id => id !== consignment.routeID);
+    //     } else {
+    //         if (selectedConsignments.length >= 3) {
+    //             alert('You can select up to 3 consignments.');
+    //             return;
+    //         }
+    //         updatedSelectedConsignments = [...selectedConsignments, consignment.routeID];
+    //     }
+    //     setSelectedConsignments(updatedSelectedConsignments);
+
+    //     const routes = [];
+    //     const historyRoutes = [];
+    //     for (const routeID of updatedSelectedConsignments) {
+    //         const route = await fetchRouteData(routeID);
+    //         routes.push(route);
+    //          // Fetch history only for started or completed routes
+    //           const selectedConsignment = consignments.find(c => c.routeID === routeID);
+    //           if (selectedConsignment && (selectedConsignment.status === 'started' || selectedConsignment.status === 'completed')) {
+    //             const history = await fetchRouteHistory(routeID);
+    //             historyRoutes.push(...history); // Add all historical routes
+    //           }
+    //     }
+    //     setSelectedRoutes(routes);
+    //     setRouteHistory(historyRoutes); 
+    //     console.log("selectedRoutes:",selectedRoutes)
+    //     console.log("routeHistory:", historyRoutes);
+    //     // Check if any selected consignment is started
+    //     const shouldConnect = updatedSelectedConsignments.some(id => {
+    //         const selectedConsignment = consignments.find(c => c.routeID === id);
+    //         return selectedConsignment && selectedConsignment.status === 'started';
+    //     });
+    //     setShouldConnectWebSocket(shouldConnect);
+    // };
+
+
     const handleConsignmentSelection = async (consignment) => {
       console.log("Selected consignment:", consignment);
-        const isSelected = selectedConsignments.includes(consignment.routeID);
-        let updatedSelectedConsignments;
-        if (isSelected) {
-            updatedSelectedConsignments = selectedConsignments.filter(id => id !== consignment.routeID);
-        } else {
-            if (selectedConsignments.length >= 3) {
-                alert('You can select up to 3 consignments.');
-                return;
-            }
-            updatedSelectedConsignments = [...selectedConsignments, consignment.routeID];
+      const isSelected = selectedConsignments.includes(consignment.routeID);
+      let updatedSelectedConsignments;
+    
+      if (isSelected) {
+        updatedSelectedConsignments = selectedConsignments.filter(id => id !== consignment.routeID);
+      } else {
+        if (selectedConsignments.length >= 3) {
+          alert('You can select up to 3 consignments.');
+          return;
         }
-        setSelectedConsignments(updatedSelectedConsignments);
-
-        const routes = [];
-        for (const routeID of updatedSelectedConsignments) {
-            const route = await fetchRouteData(routeID);
-            routes.push(route);
-        }
-        setSelectedRoutes(routes);
-        console.log("selectedRoutes:",selectedRoutes)
-
-        // Check if any selected consignment is started
-        const shouldConnect = updatedSelectedConsignments.some(id => {
-            const selectedConsignment = consignments.find(c => c.routeID === id);
-            return selectedConsignment && selectedConsignment.status === 'started';
-        });
-        setShouldConnectWebSocket(shouldConnect);
+        updatedSelectedConsignments = [...selectedConsignments, consignment.routeID];
+      }
+    
+      setSelectedConsignments(updatedSelectedConsignments);
+    
+      const routes = [];
+      for (const routeID of updatedSelectedConsignments) {
+        const route = await fetchRouteData(routeID);
+        routes.push(route);
+    
+        // 🔥 Fetch tracked route history per selected consignment
+        const filters = {
+          origin: route.origin,
+          destination: route.destination,
+          stops: route.stops || [],
+        };
+        await fetchTrackedRouteHistory(filters); // This will call your backend
+      }
+    
+      setSelectedRoutes(routes);
+      console.log("selectedRoutes1:", routes);
+    
+      const shouldConnect = updatedSelectedConsignments.some(id => {
+        const selectedConsignment = consignments.find(c => c.routeID === id);
+        return selectedConsignment && selectedConsignment.status === 'started';
+      });
+      setShouldConnectWebSocket(shouldConnect);
     };
+    
 
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -411,8 +523,35 @@ const RouteTracking = () => {
             .includes(searchQuery.toLowerCase())
     );
   
-    
+   
+
+   // Filter consignments based on selected tab
+   const filteredByStatus = filter === "All"
+   ? filteredConsignments
+   : filteredConsignments.filter(consignment => {
+       if (filter === "Completed") return consignment.status === "completed";
+       if (filter === "Started") return consignment.status === "started";
+       if (filter === "Not Started") return consignment.status !== "started" && consignment.status !== "completed";
+       return true;
+   });
+
+ //Route History
+ const fetchTrackedRouteHistory = async (filters) => {
+  const token = localStorage.getItem('token');
+  try {
  
+
+    const response = await axios.post(`${config.API_BASE_URL}/routeHistory/trackedRouteHistory`, filters, {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`
+      }
+    });
+    return response.data.routes;
+  } catch (error) {
+    console.error('Error fetching route history:', error);
+    return [];
+  }
+};
 
    
     
@@ -525,6 +664,102 @@ const RouteTracking = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                
               />
+              <Tabs
+                            value={filter}
+                            sx={{
+                              '& .MuiTabs-indicator': {
+                                display: 'none', // Hide the default indicator
+                              },
+                              mb: 2,
+                            }}
+                            onChange={(e, newValue) => setFilter(newValue)}
+                        >
+                            <Tab 
+                            label=
+                              
+                              
+                              {`All (${consignments.length})`} 
+                              
+                                 
+                             value="All" 
+                             sx={{backgroundColor:"rgba(255, 255, 255, 0.2) !important", border:"none!important",
+                               "&.MuiButtonBase-root": { 
+                              minHeight: "30px !important",fontSize:"10px",padding:"8px 13px"
+                            },
+                            "&.MuiButtonBase-root.Mui-selected": { // Increase specificity
+                              backgroundColor:  "rgba(255, 255, 255, 0.2) !important", 
+                              color: "#666666 !important",backdropFilter: "blur(8px)",borderBottom:"2px solid #666666!important"
+                          },
+                          }}
+                             /> 
+                           
+
+                            <Tab
+                            label={
+                              <Box sx={{ display: "flex", alignItems: "center" }}>
+                              <Box
+                                sx={{
+                                  width: 10,
+                                  height: 10,
+                                  borderRadius: "50%",
+                                  backgroundColor: "orange", // Started dot
+                                  marginRight: 1,
+                                }}
+                              />
+                              {`Started (${consignments.filter((c) => c.status === "started").length})`}
+                              </Box>
+  }
+                            value="Started" 
+                               sx={{ backgroundColor:"rgba(255, 255, 255, 0.2) !important", border:"none!important",  
+                                 "&.MuiButtonBase-root.Mui-selected": { // Increase specificity
+                                backgroundColor:  "rgba(255, 255, 255, 0.2) !important", 
+                                color: "orange !important",borderBottom:"2px solid rgb(253, 230, 211)!important"
+                            },
+                            
+                                 "&.MuiButtonBase-root": { 
+                                minHeight: "30px !important",fontSize:"10px",padding:"8px 13px",border:"1px solid #beb7b7c9"
+                              },}}/>
+                            <Tab 
+                            label={
+                              <Box sx={{ display: "flex", alignItems: "center" }}>
+                                <Box
+                                  sx={{
+                                    width: 10,
+                                    height: 10,
+                                    borderRadius: "50%",
+                                    backgroundColor: "red", // Not Started dot
+                                    marginRight: 1,
+                                  }}
+                                />
+                              {`Not Started (${consignments.filter((c) => c.status !== "started" && c.status !== "completed").length})`}
+                              </Box>
+                               }
+                               value="Not Started" 
+                             sx={{backgroundColor:"rgba(255, 255, 255, 0.2) !important", border:"none!important",
+                              "&.MuiButtonBase-root.Mui-selected": { // Increase specificity
+                              backgroundColor:  "rgba(255, 255, 255, 0.2) !important", 
+                                  color: "red !important",borderBottom:"2px solid rgb(253, 211, 218)!important"
+                              },
+                                                "&.MuiButtonBase-root": { 
+                              minHeight: "30px !important",fontSize:"10px",padding:"8px 13px",border:"1px solid #beb7b7c9"
+                            },}} />
+                             <Tab 
+                             label={
+                              <Box sx={{ display: "flex", alignItems: "center" }}>
+                              <CheckCircleIcon sx={{ color: "green", fontSize: 13, marginRight: 1, fontWeight: "bold" }} />
+                              {`Completed (${consignments.filter((c) => c.status === "completed").length})`}
+                            </Box>
+                          }
+                              value="Completed" 
+                             sx={{backgroundColor:"rgba(255, 255, 255, 0.2) !important", border:"none!important",  
+                               "&.MuiButtonBase-root.Mui-selected": { // Increase specificity
+                              backgroundColor:  "rgba(255, 255, 255, 0.2) !important", // Blue
+                              color: "green  !important",borderBottom:"2px solid rgb(211, 253, 218)!important"
+                          },
+                               "&.MuiButtonBase-root": { 
+                              minHeight: "30px !important",fontSize:"10px",padding:"8px 13px"
+                            },}} />
+                        </Tabs>
 
               {/* Consignments List */}
               <Box sx={{ flex: "0 0 auto", height: "440px" }}>
@@ -532,7 +767,7 @@ const RouteTracking = () => {
                   Consignments
                 </Typography>
                 <List sx={{ maxHeight: "400px", overflowY: "auto" }}>
-                  {filteredConsignments.map((consignment) => (
+                  {filteredByStatus.map((consignment) => (
                     <ListItem
                       key={consignment.routeID}
                       button="true"
@@ -549,19 +784,23 @@ const RouteTracking = () => {
                         primary={
                           <Box sx={{ display: "flex", alignItems: "center" }}>
                             {/* Dot based on status */}
+                            {consignment.status === "completed" ? (
+                            <CheckCircleIcon sx={{ color: "green", fontSize: 13, marginRight: 2 }} />
+                          ) : (
                             <Box
-                              sx={{
-                                width: 10,
-                                height: 10,
-                                flexShrink: 0, // Prevents resizing
-                                borderRadius: "50%",
-                                backgroundColor:
-                                  consignment.status === "started"
-                                    ? "green"
-                                    : "red",
-                                marginRight: 2,
-                              }}
-                            />
+                            sx={{
+                              width: 10,
+                              height: 10,
+                              flexShrink: 0,
+                              borderRadius: "50%",
+                              backgroundColor:
+                                consignment.status === "started"
+                                  ? "orange"
+                                  : "red",
+                              marginRight: 2,
+                            }}
+                          />
+                        )}
                             <Typography
                               variant="body2"
                               sx={{ fontSize: "12px" }}
@@ -579,12 +818,12 @@ const RouteTracking = () => {
                             >
                             Status:  {consignment.statusText}
                             </Typography>
-                            <Typography
-                              variant="body2"
-                              sx={{ fontSize: "10px" }}
-                            >
-                            Driver:  {consignment.assignedText}
-                            </Typography>
+                           <Typography variant="body2" sx={{ fontSize: "10px" }}>
+                               Driver Name:{" "}
+                               <span style={{ color: consignment.driverName !== "Not Assigned" ? "green" : "red" }}>
+                                   {consignment.driverName}
+                               </span>
+                           </Typography>
                             </Box>
                             <Typography
                               variant="body2"
@@ -665,11 +904,47 @@ const RouteTracking = () => {
                     route={route}
                     vehiclePositions={vehiclePositions}  // Pass the object with positions
                     multipleRoutes={selectedRoutes.length > 1}
+                    routeHistory={routeHistory} // Pass the history data
                   />
                 ))}
+                {/* Historical routes */}
+  
+  {routeHistory.length > 0 && (
+  <div className="leaflet-bottom leaflet-left">
+    <div className="leaflet-control leaflet-bar">
+      <div style={{ 
+        padding: '5px 10px',
+        backgroundColor: 'white',
+        borderRadius: '4px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <div style={{
+            width: '15px',
+            height: '3px',
+            backgroundColor: '#888',
+            marginRight: '5px',
+            opacity: '0.7',
+            backgroundImage: 'linear-gradient(to right, #888 50%, transparent 50%)',
+            backgroundSize: '5px 2px'
+          }}></div>
+          <span>Historical Route</span>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', marginTop: '5px' }}>
+          <div style={{
+            width: '15px',
+            height: '3px',
+            backgroundColor: '#3388ff',
+            marginRight: '5px'
+          }}></div>
+          <span>Planned Route</span>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
           {geoFences.length > 0 &&
   geoFences.map((fence, index) => {
-    // ✅ Check if route_waypoints exist before looping
+    //  Check if route_waypoints exist before looping
     if (!fence.route_waypoints || fence.route_waypoints.length === 0) {
       console.warn("No waypoints found for fence:", fence);
       return null; // Skip rendering this fence if no waypoints exist

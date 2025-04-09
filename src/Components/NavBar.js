@@ -27,7 +27,7 @@ const NavBar = () => {
         if (userRole === "driver") {
             navigate("/driverdashboard");
         } else if (userRole === "admin") {
-            navigate("/admindashboard");
+            navigate("/dashboard");
         } else if (userRole === "manager") {
             navigate("/managerdashboard");
         } else
@@ -118,6 +118,14 @@ const NavBar = () => {
   };
 
   const roleData = getRoleData();
+  const getUserInitials = () => {
+    const fullName = user?.username || '';
+    const nameParts = fullName.trim().split(' ');
+    const firstInitial = nameParts[0]?.charAt(0).toUpperCase() || '';
+    const secondInitial = nameParts[1]?.charAt(0).toUpperCase() || '';
+    return firstInitial + secondInitial;
+};
+
 
     return (
         <div className="navbar">
@@ -188,18 +196,21 @@ const NavBar = () => {
                             </span>
                         </div>
                         
-                        <div className="user-info">
+                        {/* <div className="user-info">
                             <Typography className="username">
                                 {user ? user.username : 'Guest'}
                             </Typography>
                             <Typography className="user-email">
                                 {user?.email || ''}
                             </Typography>
-                        </div>
+                        </div> */}
                         
                         <div className="avatar">
-                            <FaUser className="avatar-icon" />
-                        </div>
+                            {/* <FaUser className="avatar-icon" /> */}
+                            <div className="avatar-initials">
+                                        {getUserInitials()}
+                                    </div>
+                                                        </div>
                         
                         <ProfileDropdown isOpen={isProfileOpen} onClose={toggleProfile} />
                     </div>

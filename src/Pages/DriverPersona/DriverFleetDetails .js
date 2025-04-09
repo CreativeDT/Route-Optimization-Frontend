@@ -10,7 +10,7 @@ import {
   TableHead,
   TableRow,
   Paper,Box,
-  Alert,
+  Alert,Select, MenuItem ,
   Switch,
 } from "@mui/material";
 import axios from "axios";
@@ -92,17 +92,40 @@ const DriverFleetDetails = () => {
 
   // Handler to toggle route status.
   // For example, toggling between "started" and "not started".
-  const handleToggleStatus = async (routeID, currentStatus) => {
-    const newStatus = currentStatus === "started" ? "not started" : "started";
+  // const handleToggleStatus = async (routeID, currentStatus) => {
+  //   const newStatus = currentStatus === "started" ? "not started" : "started";
 
+  //   try {
+  //     const response = await axios.post(
+  //       `${config.API_BASE_URL}/updateStatus`,
+  //       { routeID, status: newStatus },
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+  //     if (response.status === 200) {
+  //       // Update local state with the new status for this route.
+  //       setConsignments((prev) =>
+  //         prev.map((consignment) =>
+  //           consignment.routeID === routeID
+  //             ? { ...consignment, status: newStatus }
+  //             : consignment
+  //         )
+  //       );
+  //     }
+  //   } catch (err) {
+  //     console.error("Error updating route status:", err);
+  //     setError("Failed to update route status.");
+  //   }
+  // };
+  const handleStatusChange = async (routeID, newStatus) => {
     try {
       const response = await axios.post(
         `${config.API_BASE_URL}/updateStatus`,
         { routeID, status: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+  
       if (response.status === 200) {
-        // Update local state with the new status for this route.
+        // Update local state
         setConsignments((prev) =>
           prev.map((consignment) =>
             consignment.routeID === routeID
@@ -116,7 +139,7 @@ const DriverFleetDetails = () => {
       setError("Failed to update route status.");
     }
   };
-
+  
   return (
     <>
       <NavBar />
@@ -148,7 +171,7 @@ const DriverFleetDetails = () => {
                     <TableCell>{consignment.vehicle_id}</TableCell>
                     <TableCell>{consignment.origin}</TableCell>
                     <TableCell>{consignment.destination}</TableCell>
-                    <TableCell>
+                    {/* <TableCell>
                       <Switch
                         checked={consignment.status === "started"}
                         onChange={() =>
@@ -157,7 +180,42 @@ const DriverFleetDetails = () => {
                         color="primary"
                       />
                       {consignment.status}
+                    </TableCell> */}
+                   <TableCell>
+                      <Select
+                        value={consignment.status}
+                        onChange={(e) => handleStatusChange(consignment.routeID, e.target.value)}
+                        variant="standard" // removes the default outlined border
+                        disableUnderline // removes the underline from 'standard' variant
+                        size="small"
+                        sx={{
+                          minWidth: 120,
+                          backgroundColor:
+                            consignment.status === "started"
+                               ? "#ff980073" // orange
+                              : consignment.status === "not started"
+                              ? "#ff00005e" 
+                              : consignment.status === "rested"
+                              ? "#03a9f485" // blue
+                              : consignment.status === "completed"
+                              ? "#4caf50ab" // green
+                              : "#e0e0e0", // default gray
+                          color: "white",
+                          borderRadius: 1,
+                           fontSize:"10px",
+                          "& .MuiSelect-select": {
+                            padding: "2px 12px",
+                          },
+                        }}
+                      >
+                        <MenuItem value="started">Started</MenuItem>
+                        <MenuItem value="not started">Not Started</MenuItem>
+                        <MenuItem value="rested">Rested</MenuItem>
+                        <MenuItem value="completed">Completed</MenuItem>
+                      </Select>
                     </TableCell>
+
+
                     <TableCell>{consignment.carbon_emission}</TableCell>
                     <TableCell>
                       {new Date(consignment.creationDate).toLocaleString()}

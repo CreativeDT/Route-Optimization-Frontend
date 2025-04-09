@@ -1,4 +1,4 @@
-import React, { useState, useContext,useEffect } from "react";
+import React, { useState, useContext,useEffect,useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Typography, TextField,  IconButton, InputAdornment,Button, Box, Paper, Link, MenuItem, Container } from "@mui/material";
@@ -16,7 +16,7 @@ import { Visibility, VisibilityOff } from "@mui/icons-material";
 const theme = createTheme();
 
 
-const SESSION_TIMEOUT = 5 * 60 * 1000; // 5 minutes
+const SESSION_TIMEOUT = 1 * 60 * 1000; // 5 minutes
 const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -30,19 +30,22 @@ const Login = () => {
 const handleTogglePassword = () => {
   setShowPassword(!showPassword);
 };
-  let timeoutRef = null;
+  let timeoutRef = useRef(null);
   useEffect(() => {
     const resetTimer = () => {
-      if (timeoutRef) clearTimeout(timeoutRef);
-      timeoutRef = setTimeout(() => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => {
         handleSessionTimeout();
       }, SESSION_TIMEOUT);
     };
+  
+    resetTimer(); // Start timer
 
+  
     const handleSessionTimeout = () => {
       setSessionExpired(true);
       logout(); // Clear authentication
-      navigate("/"); // Redirect to login page
+      navigate("/sessionexpired"); // Redirect to login page
     };
 
     resetTimer(); // Initialize timer on login
@@ -51,7 +54,7 @@ const handleTogglePassword = () => {
      window.addEventListener("keydown", resetTimer);
  
      return () => {
-       clearTimeout(timeoutRef);
+      clearTimeout(timeoutRef.current);
        window.removeEventListener("mousemove", resetTimer);
        window.removeEventListener("keydown", resetTimer);
      };

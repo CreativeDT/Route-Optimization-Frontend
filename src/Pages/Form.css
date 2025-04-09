@@ -164,7 +164,7 @@ v/* UserList.css */
     font-weight: 500 !important;border:1px solid #dcdcdc;padding:5px 10px!important; min-height:30px!important;
 }
 .MuiTabs-root{
- min-height:30px!important;
+ min-height:36px!important;height: 36px!important;
 }
 /* .MuiButtonBase-root{
   min-height: 39px!important;
