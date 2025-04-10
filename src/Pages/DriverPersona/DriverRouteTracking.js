@@ -86,142 +86,332 @@ const waypointIcon = new L.Icon({
 });
 
 const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleRoutes, vehiclePositions }) => {
-    const map = useMap();
-    const vehicleMarkerRef = useRef(null); // Ref for the vehicle marker
+  const map = useMap();
+  const vehicleMarkerRef = useRef(null);
+  const animationFrameRef = useRef(null);
+  const previousPositionRef = useRef(null);
+  const movementStartTimeRef = useRef(null);
+  const movementDuration = 1500; // Duration for smooth movement in ms
 
-    useEffect(() => {
-        if (coordinates.length > 0) {
-            const latLngs = coordinates.map(coord => [coord[1], coord[0]]);
-            map.fitBounds(latLngs);
-        }
-    }, [coordinates, map]);
-      // Get the vehicle position for this route
+  // Custom vehicle icons with different orientations
+  const vehicleIcons = {
+      default: L.icon({
+          iconUrl: 'https://cdn-icons-png.flaticon.com/512/2799/2799490.png',
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
+          popupAnchor: [0, -20]
+      }),
+      moving: L.icon({
+          iconUrl: 'https://cdn-icons-png.flaticon.com/512/2799/2799490.png',
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
+          popupAnchor: [0, -20]
+      }),
+      arrived: L.icon({
+          iconUrl: 'https://cdn-icons-png.flaticon.com/512/2799/2799490.png',
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
+          popupAnchor: [0, -20]
+      }),
+      // Add more status-specific icons as needed
+  };
+
+  // Function to get rotated icon based on movement direction
+  const getRotatedIcon = (fromPos, toPos) => {
+      if (!fromPos || !toPos) return vehicleIcons.default;
+      
+      // Calculate angle between positions
+      const angle = Math.atan2(toPos.lng - fromPos.lng, toPos.lat - fromPos.lat) * 180 / Math.PI;
+      
+      // Create rotated icon
+      return L.divIcon({
+          html: `<div style="transform: rotate(${angle}deg);">
+                   <img src="https://cdn-icons-png.flaticon.com/512/2799/2799490.png" width="40" height="40" />
+                 </div>`,
+          iconSize: [40, 40],
+          iconAnchor: [20, 20],
+          className: 'rotated-vehicle-icon'
+      });
+  };
+
+  // Smooth movement function
+  const animateVehicleMovement = (fromPos, toPos, startTime) => {
+      const now = Date.now();
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / movementDuration, 1);
+      
+      // Calculate intermediate position
+      const currentLat = fromPos.lat + (toPos.lat - fromPos.lat) * progress;
+      const currentLng = fromPos.lng + (toPos.lng - fromPos.lng) * progress;
+      
+      // Update marker position and rotation
+      if (vehicleMarkerRef.current) {
+          vehicleMarkerRef.current.setLatLng([currentLat, currentLng]);
+          
+          // Only update rotation if we have both positions
+          if (fromPos && toPos) {
+              const icon = getRotatedIcon(fromPos, toPos);
+              vehicleMarkerRef.current.setIcon(icon);
+          }
+      }
+      
+      // Continue animation if not finished
+      if (progress < 1) {
+          animationFrameRef.current = requestAnimationFrame(() => 
+              animateVehicleMovement(fromPos, toPos, startTime)
+          );
+      } else {
+          previousPositionRef.current = toPos;
+      }
+  };
+
+  useEffect(() => {
+      if (coordinates.length > 0) {
+          const latLngs = coordinates.map(coord => [coord[1], coord[0]]);
+          map.fitBounds(latLngs);
+      }
+  }, [coordinates, map]);
+
   const vehiclePosition = vehiclePositions[route.routeID];
 
-  const hasCenteredRef = useRef(false);
-    useEffect(() => {
-        if (vehiclePosition && map && route.status === 'started') {
-            console.log("Updating vehicle position on map:", vehiclePosition);
+  useEffect(() => {
+      if (vehiclePosition && map && route.status === 'started') {
+          // Cancel any ongoing animation
+          if (animationFrameRef.current) {
+              cancelAnimationFrame(animationFrameRef.current);
+          }
 
-            // Update marker position directly using the ref
-            if (vehicleMarkerRef.current) {
-                vehicleMarkerRef.current.setLatLng([vehiclePosition.lat, vehiclePosition.lng]);
-                vehicleMarkerRef.current.setIcon(getVehicleIcon(vehiclePosition.status)); // Update icon
-            } else {
-                const newMarker = L.marker(
-                    [vehiclePosition.lat, vehiclePosition.lng],
-                    { icon: getVehicleIcon(vehiclePosition.status) }
-                ).addTo(map);
-                vehicleMarkerRef.current = newMarker;
-            }
-            // map.flyTo([vehiclePosition.lat, vehiclePosition.lng], map.getZoom(), { animate: true, duration: 1.5 });
-        // Center the map only once
-    if (!hasCenteredRef.current) {
-        map.flyTo([vehiclePosition.lat, vehiclePosition.lng], map.getZoom(), { animate: true, duration: 1.5 });
-        hasCenteredRef.current = true;
+          const newPos = {
+              lat: vehiclePosition.lat,
+              lng: vehiclePosition.lng
+          };
+
+          // Initialize marker if it doesn't exist
+          if (!vehicleMarkerRef.current) {
+              const icon = previousPositionRef.current 
+                  ? getRotatedIcon(previousPositionRef.current, newPos)
+                  : vehicleIcons.default;
+              
+              vehicleMarkerRef.current = L.marker([newPos.lat, newPos.lng], { icon }).addTo(map);
+              previousPositionRef.current = newPos;
+          } 
+          // Animate movement if position changed
+          else if (
+              previousPositionRef.current && 
+              (previousPositionRef.current.lat !== newPos.lat || 
+               previousPositionRef.current.lng !== newPos.lng)
+          ) {
+              movementStartTimeRef.current = Date.now();
+              animateVehicleMovement(previousPositionRef.current, newPos, movementStartTimeRef.current);
+          }
+          // Just update icon if position didn't change but status might have
+          else {
+              const icon = vehicleIcons[vehiclePosition.status] || vehicleIcons.default;
+              vehicleMarkerRef.current.setIcon(icon);
+          }
       }
-        
-        }
-    }, [vehiclePosition, map, route.status]);
 
-   
-    useEffect(() => {
-        console.log('Route Waypoints in MapView:', routeWaypoints);
-    }, [routeWaypoints]);
+      return () => {
+          if (animationFrameRef.current) {
+              cancelAnimationFrame(animationFrameRef.current);
+          }
+      };
+  }, [vehiclePosition, map, route.status]);
 
-    const filteredWaypoints = routeWaypoints.slice(1, routeWaypoints.length - 1);
+  // Custom icons for markers
+  const redIcon = L.icon({
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/2776/2776067.png',
+      iconSize: [32, 32],
+      iconAnchor: [16, 32],
+      popupAnchor: [0, -32]
+  });
 
-    return (
-        <>
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            <MarkerClusterGroup>
-                {/* Start Point */}
-                {coordinates.length > 0 && (
-                    <Marker
-                        key="start"
-                        position={[coordinates[0][1], coordinates[0][0]]}
-                        icon={redIcon}
-                    >
-                        <Popup>{route?.origin || "Origin"}</Popup>
-                    </Marker>
-                )}
+  const greenIcon = L.icon({
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/2776/2776067.png',
+      iconSize: [32, 32],
+      iconAnchor: [16, 32],
+      popupAnchor: [0, -32]
+  });
 
-                {/* End Point */}
-                {coordinates.length > 1 && (
-                    <Marker
-                        key="end"
-                        position={[coordinates[coordinates.length - 1][1], coordinates[coordinates.length - 1][0]]}
-                        icon={greenIcon}
-                    >
-                        <Popup>{route?.destination || "Destination"}</Popup>
-                    </Marker>
-                )}
+  const waypointIcon = L.icon({
+      iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+      iconSize: [28, 28],
+      iconAnchor: [14, 28],
+      popupAnchor: [0, -28]
+  });
 
-                {/* Render Filtered Waypoints (excluding first and last) */}
-                {filteredWaypoints.length > 0 && filteredWaypoints.map((waypoint, index) => (
-                    <Marker key={index} position={[waypoint.coordinates[1], waypoint.coordinates[0]]} icon={waypointIcon}>
-                        <Popup>{waypoint.name}</Popup>
-                    </Marker>
-                ))}
-                {/* {routeWaypoints.slice(1, -1).map((waypoint, index) => (
-                    <Marker
-                        key={index}
-                        position={[waypoint.coordinates[1], waypoint.coordinates[0]]}
-                        icon={waypointIcon}
-                    >
-                        <Popup>{waypoint.name}</Popup>
-                    </Marker>
-                ))} */}
+  const filteredWaypoints = routeWaypoints.slice(1, routeWaypoints.length - 1);
 
-                {vehiclePosition && route.status === 'started' && (
-                    <Marker
-                        ref={vehicleMarkerRef}
-                        position={[vehiclePosition.lat, vehiclePosition.lng]}
-                        icon={getVehicleIcon(vehiclePosition.status)}
-                    >
-                        <Popup>
-                            <Typography>Vehicle Status: {vehiclePosition.status}</Typography>
-                            <Typography>Location: {vehiclePosition.placeName}</Typography>
-                        </Popup>
-                    </Marker>
-                )}
-            </MarkerClusterGroup>
+// Add some CSS for the enhanced UI
+const styles = `
+  .map-popup {
+      min-width: 150px;
+  }
+  
+  .map-popup h4 {
+      margin: 0 0 5px 0;
+      color: #3b82f6;
+  }
+  
+  .route-tooltip {
+      background: rgba(255, 255, 255, 0.9);
+      border: 2px solid #3b82f6;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  }
+  
+  .route-tooltip-content {
+      padding: 5px;
+  }
+  
+  .route-tooltip-content h3 {
+      margin: 0 0 10px 0;
+      color: #1e3a8a;
+      font-size: 14px;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 5px;
+  }
+  
+  .route-details {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 10px;
+  }
+  
+  .vehicle-details h4 {
+      margin: 10px 0 5px 0;
+      color: #1e3a8a;
+      font-size: 13px;
+  }
+  
+  .rotated-vehicle-icon {
+      background: transparent !important;
+      border: none !important;
+  }
+`;
+// Add styles to the document head
+const styleElement = document.createElement('style');
+styleElement.innerHTML = styles;
+document.head.appendChild(styleElement);
+  return (
+      <>
+          <TileLayer 
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" 
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          />
+          
+          <MarkerClusterGroup>
+              {/* Start Point */}
+              {coordinates.length > 0 && (
+                  <Marker
+                      key="start"
+                      position={[coordinates[0][1], coordinates[0][0]]}
+                      icon={redIcon}
+                  >
+                      <Popup>
+                          <div className="map-popup">
+                              <h4>Origin</h4>
+                              <p>{route?.origin || "Starting Point"}</p>
+                          </div>
+                      </Popup>
+                  </Marker>
+              )}
 
-            {/* Polyline with Hover Popup */}
-            <Polyline
-                positions={coordinates.map(coord => [coord[1], coord[0]])}
-                color="#3b82f6"
-                weight={5} // Increase weight to make hover easier
-                eventHandlers={{
-                    mouseover: (e) => {
-                        e.target.setStyle({ weight: 8, color: "#1e3a8a" }); // Change style on hover
-                    },
-                    mouseout: (e) => {
-                        e.target.setStyle({ weight: 5, color: "#3b82f6" }); // Revert style on mouse out
-                    },
-                }}
-            >
-                <Tooltip direction="top" offset={[0, -10]} opacity={1}>
-                    <Typography variant="body2">
-                        <strong>Route Details:</strong><br />
-                        Origin: {route?.origin}<br />
-                        Destination: {route?.destination}<br />
-                        Distance: {route?.distance} km<br />
-                        Duration: {route?.duration} hrs<br />
-                        {/* <br /> */}
-                        <strong>Vehicle Information:</strong><br />
-                        Fuel Type: {route?.fuel_type || "N/A"}<br />
-                        Vehicle Type: {route?.vehicle_type || "N/A"}<br />
-                        CO₂ Emission: {route?.carbon_emission ? `${route.carbon_emission} kg` : "N/A"}
+              {/* End Point */}
+              {coordinates.length > 1 && (
+                  <Marker
+                      key="end"
+                      position={[coordinates[coordinates.length - 1][1], coordinates[coordinates.length - 1][0]]}
+                      icon={greenIcon}
+                  >
+                      <Popup>
+                          <div className="map-popup">
+                              <h4>Destination</h4>
+                              <p>{route?.destination || "End Point"}</p>
+                          </div>
+                      </Popup>
+                  </Marker>
+              )}
 
+              {/* Waypoints */}
+              {filteredWaypoints.map((waypoint, index) => (
+                  <Marker 
+                      key={`waypoint-${index}`} 
+                      position={[waypoint.coordinates[1], waypoint.coordinates[0]]} 
+                      icon={waypointIcon}
+                  >
+                      <Popup>
+                          <div className="map-popup">
+                              <h4>Waypoint {index + 1}</h4>
+                              <p>{waypoint.name}</p>
+                          </div>
+                      </Popup>
+                  </Marker>
+              ))}
+          </MarkerClusterGroup>
 
-                    </Typography>
-                </Tooltip>
-            </Polyline>
-
-        </>
-    );
+          {/* Route Polyline with enhanced tooltip */}
+          <Polyline
+              positions={coordinates.map(coord => [coord[1], coord[0]])}
+              color="#3b82f6"
+              weight={5}
+              opacity={0.7}
+              dashArray="5, 5"
+              eventHandlers={{
+                  mouseover: (e) => {
+                      e.target.setStyle({
+                          weight: 8,
+                          color: "#1e3a8a",
+                          opacity: 1,
+                          dashArray: ""
+                      });
+                  },
+                  mouseout: (e) => {
+                      e.target.setStyle({
+                          weight: 5,
+                          color: "#3b82f6",
+                          opacity: 0.7,
+                          dashArray: "5, 5"
+                      });
+                  },
+              }}
+          >
+              <Tooltip 
+                  direction="top" 
+                  offset={[0, -10]} 
+                  opacity={1}
+                  permanent={false}
+                  className="route-tooltip"
+              >
+                  <div className="route-tooltip-content">
+                      <h3>Route Information</h3>
+                      <div className="route-details">
+                          <div>
+                              <strong>Origin:</strong> {route?.origin}<br />
+                              <strong>Destination:</strong> {route?.destination}<br />
+                          </div>
+                          <div>
+                              <strong>Distance:</strong> {route?.distance} km<br />
+                              <strong>Duration:</strong> {route?.duration} hrs<br />
+                          </div>
+                      </div>
+                      <div className="vehicle-details">
+                          <h4>Vehicle Information</h4>
+                          <div>
+                              <strong>Type:</strong> {route?.vehicle_type || "N/A"}<br />
+                              <strong>Fuel:</strong> {route?.fuel_type || "N/A"}<br />
+                              <strong>CO₂:</strong> {route?.carbon_emission ? `${route.carbon_emission} kg` : "N/A"}
+                          </div>
+                      </div>
+                  </div>
+              </Tooltip>
+          </Polyline>
+      </>
+  );
 });
+
+
+
 
 const RouteTracking = () => {
     const [consignments, setConsignments] = useState([]);

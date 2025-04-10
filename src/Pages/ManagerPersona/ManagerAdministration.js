@@ -5,7 +5,8 @@ import { FaUser, FaBell, FaCog, FaHome, FaTruckMoving, FaUserShield,FaUserTie,Fa
 import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,Alert ,DialogContentText,
     Typography, CircularProgress, Box, Tabs, Tab, Tooltip, Button, Dialog,TablePagination,Snackbar,
-    DialogTitle, DialogContent, DialogActions, InputLabel, Select, MenuItem,TextField, Autocomplete
+    DialogTitle, DialogContent, DialogActions, InputLabel, Select, MenuItem,TextField, Autocomplete, IconButton,
+    InputAdornment
 } from "@mui/material";
 import { FormControl } from "@mui/material";
 
@@ -15,7 +16,15 @@ import SearchIcon from "@mui/icons-material/Search";
 import config from "../../config";
 import "./../Form.css";  
 import Breadcrumbs1 from "./Breadcrumbs1";
-
+import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
+import CloseIcon from '@mui/icons-material/Close';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import PlaceIcon from '@mui/icons-material/Place';
+import PriorityHighIcon from '@mui/icons-material/PriorityHigh';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import AddLocationIcon from '@mui/icons-material/AddLocation';
+import LocationOffIcon from '@mui/icons-material/LocationOff';
+import SaveIcon from '@mui/icons-material/Save';
 const Dashboard = () => {
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -46,6 +55,12 @@ const [selectedRouteID, setSelectedRouteID] = React.useState(null);
 // const [routeToEdit, setRouteToEdit] = useState(null);
 const [editDialogOpen, setEditDialogOpen] = useState(false);
 const [editedRoute, setEditedRoute] = useState(null);
+const [confirmOpen, setConfirmOpen] = useState(false);
+const [deleteIndex, setDeleteIndex] = useState(null);
+
+const [stopToDelete, setStopToDelete] = useState({ index: null, name: '' });
+
+const token = localStorage.getItem("token");
 const navigate = useNavigate();
 const handleDriverChange = (newValue, routeID) => {
   if (newValue) {
@@ -139,8 +154,8 @@ useEffect(() => {
     setLoading(true);
     setError("");
     let apiUrl = "";
-    let method = "get"; // Default to GET
-    let payload = {};   // Default empty payload
+    let method = "get"; 
+    let payload = {};   
   
     if (tabIndex === 0) {
       apiUrl = `${config.API_BASE_URL}/getDrivers`;
@@ -148,12 +163,12 @@ useEffect(() => {
       apiUrl = `${config.API_BASE_URL}/getVehicles`;
     } else if (tabIndex === 2) {
       apiUrl = `${config.API_BASE_URL}/getConsignments`;
-      method = "post"; // Change to POST for this endpoint
+      method = "post"; 
       payload = {  status: '',
         origin: '',
         destination: '',
         vehicle_id: '',
-        routeID: '' }; // Example payload (adjust as needed)
+        routeID: '' }; 
     }
     console.log("Payload Sent:", payload);
 
@@ -389,19 +404,132 @@ const filteredData = data.filter((item) => {
   return combinedValues.some((val) => val.startsWith(searchValue));
 });
 //Edit/Update Planned Route
-const handleEditRoute = (route) => {
-  console.log("Edit button clicked for route:", route);
-  setEditedRoute({ ...route });
-  setEditDialogOpen(true);
+const handleEditRoute = async (item) => {
+  console.log("Edit button clicked for item:", item);
+  try {
+    const token = localStorage.getItem("token");
+    // Fetch full route data
+    const response = await axios.post(
+      `${config.API_BASE_URL}/getRouteData`,
+      { routeID: item.routeID },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    
+    console.log("Fetched full route data:", response.data);
+    
+    // Extract the full route details from the API response
+    const fullRouteData = response.data.route[0]; // if route is an array
+    
+    // Set edited route with full data, ensuring stop_demands is defined.
+    setEditedRoute({
+      ...fullRouteData,
+      stop_demands: fullRouteData.stop_demands || [],
+    });
+    setEditDialogOpen(true);
+  } catch (error) {
+    console.error("Error fetching full route data:", error);
+    alert("Failed to fetch full route details.");
+  }
 };
+
+// Log when editedRoute updates
+useEffect(() => {
+  console.log("editedRoute updated:", editedRoute);
+}, [editedRoute]);
+
+
+
 const handleStopChange = (index, key, value) => {
   const updatedStops = [...editedRoute.stop_demands];
+  console.log("editedRoute:", editedRoute);
   updatedStops[index][key] = value;
   console.log(`Updated stop ${index} - ${key}:`, value);
   setEditedRoute({ ...editedRoute, stop_demands: updatedStops });
 };
 
+const handleUpdateRoute = async () => {
+  const token = localStorage.getItem("token");
+  // console.log("editedRoute1:", editedRoute);
+  if (!editedRoute?.routeID || !Array.isArray(editedRoute?.stop_demands)) {
+    alert("Missing route data.");
+    // console.log("editedRoute2:", editedRoute);
 
+    return;
+  }
+
+  try {
+    const payload = {
+      routeID: editedRoute.routeID,
+      stop_demands: editedRoute.stop_demands.map((stop) => ({
+        name: stop.name,
+        coordinates: stop.coordinates,
+        drop_demand: stop.drop_demand || 0,
+        pickup_demand: stop.pickup_demand || 0,
+        priority: stop.priority || 1
+      }))
+    };
+
+    console.log("Sending payload to backend:", payload);
+
+    const response = await axios.post(
+      `${config.API_BASE_URL}/updatePlannedRoute`,
+      payload,
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      }
+    );
+
+    console.log("updatePlannedRoute response:", response);
+
+    if (response.data.detail === "Route details updated successfully") {
+      alert("Route updated successfully!");
+      setEditDialogOpen(false);
+      fetchData(); // Optionally refresh the route list
+    } else {
+      alert("Unexpected response: " + response.data.detail);
+    }
+  } catch (err) {
+    console.error("Error updating route:", err);
+    alert("Failed to update the route.");
+  }
+};
+
+const handleRemoveStop = (index) => {
+  // Your logic to remove a stop at the given index
+  const updatedStops = [...editedRoute.stop_demands];
+  updatedStops.splice(index, 1);
+  setEditedRoute({
+    ...editedRoute,
+    stop_demands: updatedStops
+  });
+};
+
+const handleAddStop = () => {
+  // Your logic to add a new stop
+  const newStop = {
+    name: '',
+    drop_demand: 0,
+    pickup_demand: 0,
+    priority: 1
+  };
+  
+  setEditedRoute({
+    ...editedRoute,
+    stop_demands: [...(editedRoute.stop_demands || []), newStop]
+  });
+};
+
+const handleDeleteClick = (index, stop) => {
+  setStopToDelete({ index, name: stop.name });
+  setConfirmOpen(true);
+};
+
+const handleConfirmDelete = () => {
+  if (stopToDelete.index !== null) {
+    handleRemoveStop(stopToDelete.index);
+  }
+  setConfirmOpen(false);
+};
   return (
     <>
       <NavBar />
@@ -515,6 +643,7 @@ const handleStopChange = (index, key, value) => {
                         <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Status</TableCell>
                         <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Carbon Emission</TableCell>
                         <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Created Date</TableCell>
+                        <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Update/Edit Route</TableCell>
                         <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Summary</TableCell>
                         <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Driver</TableCell>
                         <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Assign Driver</TableCell>
@@ -537,7 +666,7 @@ const handleStopChange = (index, key, value) => {
                         <TableCell>{item.joining_date}</TableCell>
                         {/* <TableCell>{item.vehicle_status}</TableCell> */}
                         {/* <TableCell>{item.route_status}</TableCell> */}
-                        <TableCell 
+                        {/* <TableCell 
                           sx={{
                             color: item.route_status === "Not Assigned" && item.vehicle_status === "Not Assigned" 
                             ? "#7ade7a !important"
@@ -548,8 +677,8 @@ const handleStopChange = (index, key, value) => {
                           {item.route_status === "Not Assigned" && item.vehicle_status === "Not Assigned" 
                             ? "Available" 
                             : "Unavailable"}
-                        </TableCell>
-
+                        </TableCell> */}
+                        <TableCell>{item.driver_status}</TableCell>
                       </>
 
                     )}
@@ -584,11 +713,11 @@ const handleStopChange = (index, key, value) => {
                     <>
                         <TableCell>{page * rowsPerPage + index + 1}</TableCell>
                         
-                        {/* <TableCell>
+                        <TableCell>
                         <Tooltip title={item.routeID || "N/A"} arrow>
                             <span>{item.routeID ? item.routeID.slice(-5) : "N/A"}</span>
                         </Tooltip>
-                        </TableCell> */}
+                        </TableCell>
                         <TableCell>
                         <Tooltip title={item.LicenseNo || "No LicenseNo available"} arrow>
                         <span>{item.LicenseNo}</span>
@@ -622,14 +751,25 @@ const handleStopChange = (index, key, value) => {
                         <TableCell>{item.carbon_emission || "N/A"}</TableCell>
                         <TableCell>{new Date(item.creationDate).toLocaleDateString()}</TableCell>
                         <TableCell>
-                        <Button
-                          sx={{ fontSize: "12px" }}
-                          onClick={() => handleEditRoute(item)}
-                          disabled={item.status === "completed"} // Optional: disable if route is completed
-                        >
-                          Edit
-                        </Button>
-                      </TableCell>
+  <Tooltip
+    title={
+      item.updatedAt 
+        ?"updated"
+        : "Not updated"
+    }
+  >
+    {/* Wrap the Button in a span to ensure disabled buttons still show tooltips */}
+    <span>
+      <Button
+        sx={{ fontSize: "12px" }}
+        onClick={() => handleEditRoute(item)}
+        disabled={item.status !== "not started"} // Disable for started or completed routes
+      >
+        Edit
+      </Button>
+    </span>
+  </Tooltip>
+</TableCell>
 
                         <TableCell>
                           <Button
@@ -742,7 +882,8 @@ const handleStopChange = (index, key, value) => {
 /> */}
 
 <Autocomplete
-  options={availableDrivers.filter((driver) => driver.route_status === "Not Assigned")}
+  options={availableDrivers.filter((driver) => driver.
+    driver_status === "Available")}
   // options={availableDrivers}
   getOptionLabel={(option) => option.driver_name || ""}
   value={null} // Keeps dropdown empty after selection
@@ -886,45 +1027,259 @@ const handleStopChange = (index, key, value) => {
     </Dialog>
 
     {/* pop up Edit/Update Planned Route */}
-    <DialogContent>
-  {console.log("Edited Route in Dialog:", editedRoute)}
+   <Dialog
+  open={editDialogOpen}
+  onClose={() => setEditDialogOpen(false)}
+  maxWidth="md"
+  fullWidth
+  PaperProps={{
+    sx: {
+      borderRadius: 1,
+      boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.1)',
+      maxHeight: '98vh',
+    }
+  }}
+>
+  <DialogTitle
+    sx={{
+      bgcolor: '#5e87b0;',
+      color: 'white',
+      fontWeight: 600,
+      py: 1,
+      px: 2,
+      fontSize: '1rem',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between'
+    }}
+  >
+    <Box display="flex" alignItems="center">
+      <DirectionsCarIcon sx={{ mr: 1, fontSize: '1.1rem' }} />
+      Update Route Details
+    </Box>
+    <IconButton
+      edge="end"
+      color="inherit"
+      onClick={() => setEditDialogOpen(false)}
+      aria-label="close"
+      size="small"
+      sx={{
+        '&:hover': { bgcolor: 'primary.dark' }
+      }}
+    >
+      <CloseIcon fontSize="small" />
+    </IconButton>
+  </DialogTitle>
 
-  {editedRoute?.stop_demands?.length > 0 ? (
-    editedRoute.stop_demands.map((stop, index) => (
-      <Box key={index} display="flex" gap={2} mb={2}>
-        <TextField
-          label="Name"
-          value={stop.name}
-          onChange={(e) => handleStopChange(index, "name", e.target.value)}
-        />
-        <TextField
-          label="Drop Demand"
-          type="number"
-          value={stop.drop_demand}
-          onChange={(e) => handleStopChange(index, "drop_demand", e.target.value)}
-        />
-        <TextField
-          label="Pickup Demand"
-          type="number"
-          value={stop.pickup_demand}
-          onChange={(e) => handleStopChange(index, "pickup_demand", e.target.value)}
-        />
-        <TextField
-          label="Priority"
-          type="number"
-          value={stop.priority}
-          onChange={(e) => handleStopChange(index, "priority", e.target.value)}
-        />
+  <DialogContent sx={{ py: 1, px: 2 }}>
+    {editedRoute?.stop_demands?.length > 0 ? (
+      <Box>
+        <Typography variant="subtitle2" fontWeight={500} mb={1} color="text.secondary">
+          <LocationOnIcon color="primary" sx={{ fontSize: '1rem', mr: 0.5 }} />
+          Stop Points Configuration
+        </Typography>
+        
+        <Box sx={{ maxHeight: '400px', overflowY: 'auto', pr: 0.5 }}>
+          {editedRoute.stop_demands.map((stop, index) => (
+            <Paper
+              key={index}
+              elevation={0}
+              sx={{
+                p: 1,
+                mb: 1,
+                borderRadius: 1,
+                borderLeft: '3px solid',
+                borderColor: 'primary.main',
+                bgcolor: 'background.paper'
+              }}
+            >
+              <Box display="flex" gap={1} alignItems="center" flexWrap="wrap">
+                <TextField
+                  label="Stop Name"
+                  value={stop.name}
+                  onChange={(e) => handleStopChange(index, "name", e.target.value)}
+                  variant="outlined"
+                  size="small"
+                  fullWidth
+                  sx={{ minWidth: 150 }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PlaceIcon sx={{ fontSize: '1rem' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+                <TextField
+                  label="Drop Demand"
+                  type="number"
+                  value={stop.drop_demand}
+                  onChange={(e) => handleStopChange(index, "drop_demand", e.target.value)}
+                  variant="outlined"
+                  size="small"
+                  sx={{ width: 120 }}
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">units</InputAdornment>,
+                  }}
+                />
+                <TextField
+                  label="Pickup Demand"
+                  type="number"
+                  value={stop.pickup_demand}
+                  onChange={(e) => handleStopChange(index, "pickup_demand", e.target.value)}
+                  variant="outlined"
+                  size="small"
+                  sx={{ width: 120 }}
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">units</InputAdornment>,
+                  }}
+                />
+                <TextField
+                  label="Priority"
+                  type="number"
+                  value={stop.priority}
+                  onChange={(e) => handleStopChange(index, "priority", e.target.value)}
+                  variant="outlined"
+                  size="small"
+                  sx={{ width: 90 }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <PriorityHighIcon sx={{ fontSize: '1rem' }} />
+                      </InputAdornment>
+                    ),
+                  }}
+                />
+                 <IconButton
+          color="error"
+          onClick={() => handleDeleteClick(index, stop)}
+          size="small"
+          sx={{
+            position: 'absolute',
+            right: 8,
+            top: 8,
+            '&:hover': { bgcolor: 'error.light' }
+          }}
+        >
+          <DeleteOutlineIcon sx={{ fontSize: '1.1rem' }} />
+        </IconButton>
+              </Box>
+            </Paper>
+          ))}
+        </Box>
+
+        <Box mt={1} display="flex" justifyContent="flex-end">
+          <Button
+            variant="outlined"
+            startIcon={<AddLocationIcon sx={{ fontSize: '1rem' }} />}
+            onClick={handleAddStop}
+            size="small"
+            sx={{ textTransform: 'none', borderRadius: 0.5, fontSize: '0.8125rem' }}
+          >
+            Add Stop
+          </Button>
+        </Box>
       </Box>
-    ))
-  ) : (
-    <Typography>No stop demands to edit</Typography>
-  )}
-</DialogContent>
+    ) : (
+      <Box
+        textAlign="center"
+        py={2}
+        sx={{
+          border: '1px dashed',
+          borderColor: 'divider',
+          borderRadius: 1
+        }}
+      >
+        <Box sx={{ fontSize: '2rem', color: 'text.disabled', mb: 0.5 }}>
+          <LocationOffIcon fontSize="inherit" />
+        </Box>
+        <Typography variant="body2" color="text.secondary" mb={1}>
+          No stop points configured
+        </Typography>
+        <Button
+          variant="contained"
+          startIcon={<AddLocationIcon sx={{ fontSize: '1rem' }} />}
+          onClick={handleAddStop}
+          size="small"
+          sx={{
+            textTransform: 'none',
+            borderRadius: 0.5,
+            fontSize: '0.8125rem'
+          }}
+        >
+          Add First Stop
+        </Button>
+      </Box>
+    )}
+  </DialogContent>
 
-
-
-    
+  <DialogActions sx={{ px: 2, py: 1, borderTop: '1px solid', borderColor: 'divider' }}>
+    <Button
+      onClick={() => setEditDialogOpen(false)}
+      variant="outlined"
+      size="small"
+      sx={{
+        textTransform: 'none',
+        px: 1.5,
+        borderRadius: 0.5,
+        fontSize: '0.8125rem'
+      }}
+    >
+      Cancel
+    </Button>
+    <Button
+      variant="contained"
+      onClick={handleUpdateRoute}
+      startIcon={<SaveIcon sx={{ fontSize: '1rem' }} />}
+      size="small"
+      sx={{
+        textTransform: 'none',
+        px: 1.5,
+        borderRadius: 0.5,
+        fontSize: '0.8125rem',
+        boxShadow: 'none',
+        '&:hover': { boxShadow: 'none', bgcolor: 'primary.dark' }
+      }}
+    >
+      Save
+    </Button>
+  </DialogActions>
+</Dialog>
+     {/* Confirmation Dialog */}
+     <Dialog
+    open={confirmOpen}
+    onClose={() => setConfirmOpen(false)}
+    maxWidth="xs"
+    fullWidth
+    PaperProps={{ sx: { borderRadius: 1 } }}
+  >
+    <DialogTitle sx={{ fontSize: '1rem', py: 1.5, fontWeight: 500 }}>
+      Confirm Stop Deletion
+    </DialogTitle>
+    <DialogContent sx={{ py: 1 }}>
+      <Typography variant="body2">
+        Are you sure you want to delete <strong>{stopToDelete?.name || 'this stop'}</strong>?
+      </Typography>
+    </DialogContent>
+    <DialogActions sx={{ px: 2, py: 1 }}>
+      <Button
+        onClick={() => setConfirmOpen(false)}
+        size="small"
+        sx={{ fontSize: '0.8125rem' }}
+      >
+        Cancel
+      </Button>
+      <Button
+        onClick={handleConfirmDelete}
+        color="error"
+        variant="contained"
+        size="small"
+        sx={{ fontSize: '0.8125rem' }}
+      >
+        Delete
+      </Button>
+    </DialogActions>
+  </Dialog>
 
     </>
   );

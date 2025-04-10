@@ -13,7 +13,7 @@ import React, {
     InputLabel,
     
     MenuItem,
-    Button,
+    Button,Tabs,Tab,
     Typography,
     TextField,
     styled,
@@ -49,6 +49,7 @@ import React, {
   import IconButton from "@mui/material/IconButton";
   import blueicon from "../../Assets/images/blue.png";
   import { CircularProgress } from "@mui/material";
+  import RouteHistory from "./RouteHistory"; // adjust the path as needed
 
   import config from "../../config";
   //import { ExpandMore, Close } from "@mui/icons-material";
@@ -92,6 +93,7 @@ import Breadcrumbs1 from "./Breadcrumbs1";
     const[label,setLabel] =useState([]);
     const [stopsError, setStopsError] = useState("");
     const [searchValue, setSearchValue] = useState("");
+    const [mapKey, setMapKey] = useState(1);
     const [snackbar, setSnackbar] = useState({
       open: false,
       message: "",
@@ -112,6 +114,11 @@ import Breadcrumbs1 from "./Breadcrumbs1";
     const [preload, setPreload] = useState("");
     const inputRef = useRef(null);
     const searchBoxRef = useRef(null);
+    const [activeTab, setActiveTab] = useState("mapView");
+const [plannedRoute, setPlannedRoute] = useState(null);
+
+const [selectedConsignment, setSelectedConsignment] = useState(null);
+
     const StyledTextField = styled(TextField)(({ theme }) => ({
       "& .MuiOutlinedInput-root": {
         "& fieldset": {
@@ -644,7 +651,21 @@ import Breadcrumbs1 from "./Breadcrumbs1";
           setPredictEmission({}); // Set to empty object on error
         });
     };
-  
+  // Handle tab change with map reinitialization
+  const handleTabChange = (e, newValue) => {
+    setActiveTab(newValue);
+    if (newValue === "mapView") {
+      setMapKey(prev => prev + 1); // Force remount of map component
+    }
+  };
+  useEffect(() => {
+    if (activeTab === "mapView") {
+      const timer = setTimeout(() => {
+        setMapInitialized(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [activeTab, mapKey]);
     const handleStopsChange = (selectedOptions) => {
       setSelectedStops(selectedOptions || []);
     };
@@ -1365,6 +1386,7 @@ import Breadcrumbs1 from "./Breadcrumbs1";
           {/* {" "} */}
           {/* Added flex and overflow hidden */}
           <Stack direction="row" spacing={2}>
+         
             <Box
               sx={{
                 flex: "0 0 25%",
@@ -1941,6 +1963,9 @@ import Breadcrumbs1 from "./Breadcrumbs1";
             {/* Map and Routes Side Panel */}
   
             {/* Map and Routes Side Panel */}
+           
+
+          
             <Box
               sx={{
                 height: "85vh", // Full viewport height
@@ -1949,6 +1974,57 @@ import Breadcrumbs1 from "./Breadcrumbs1";
                 flexDirection: "column",
               }}
             >
+                <Tabs
+              value={activeTab}
+              onChange={handleTabChange}
+              sx={{ 
+                borderRadius: "4px",
+                border: "1px solid #dcdcdc",
+                mb: 1,
+                "& .MuiTabs-indicator": {
+                  display: "none", // Hide the default indicator
+                },
+              }}
+              variant="fullWidth"
+            >
+              <Tab 
+                label="Map View" 
+                value="mapView"
+                sx={{
+                  backgroundColor: activeTab === "mapView" ? "#388e3c" : "#dcdcdc4a",
+                  color: activeTab === "mapView" ? "white" : "#1976d2",
+                  border: "1px solid #dcdcdc",
+                  padding: "5px 15px",
+                  "&.MuiTab-root": {
+                    minHeight: "39px !important",
+                  },
+                  "&.Mui-selected": {
+                    backgroundColor: "#388e3c",
+                    color: "white",
+                  },
+                }}
+              />
+              <Tab 
+                label="Route History" 
+                value="routeHistory"
+                sx={{
+                  backgroundColor: activeTab === "routeHistory" ? "#388e3c" : "#dcdcdc4a",
+                  color: activeTab === "routeHistory" ? "white" : "#1976d2",
+                  border: "1px solid #dcdcdc",
+                  padding: "5px 15px",
+                  "&.MuiTab-root": {
+                    minHeight: "39px !important",
+                  },
+                  "&.Mui-selected": {
+                    backgroundColor: "#388e3c",
+                    color: "white",
+                  },
+                }}
+              />
+            </Tabs>
+            
+
+
               {" "}
               {/* Takes 65% of the width, added height */}
               {/* <Card
@@ -1966,7 +2042,8 @@ import Breadcrumbs1 from "./Breadcrumbs1";
                     sx={{ display: "flex", flexDirection: "row", height: "100%" }}
                   > */}
               {/* Map */}
-              <Box sx={{ flex: 2 }}>
+              {activeTab === "mapView" && (
+              <Box sx={{ flex: 2 }} key={`map-container-${mapKey}`}>
                 <div
                   ref={handleMapRef}
                   style={{ height: "100%", width: "100%" ,padding:"5px"}}
@@ -1975,7 +2052,8 @@ import Breadcrumbs1 from "./Breadcrumbs1";
                   <Typography variant="body1">Loading Map...</Typography>
                 )}
               </Box>
-              {suggestedRoutes?.length > 0 && (
+              )}
+               {activeTab === "mapView" && suggestedRoutes?.length > 0 && (
                 <Box
                   sx={{
                     flex: 2,
@@ -2100,8 +2178,17 @@ import Breadcrumbs1 from "./Breadcrumbs1";
                   </TableContainer>
                 </Box>
               )}
+
+{activeTab === "routeHistory" && (
+    <Box sx={{ flex: 2, p: 2 }}>
+     
+      <RouteHistory />
+    </Box>
+  )}
             </Box>
-          </Stack>
+        
+           
+</Stack>
           {/* </Container> */}
         </Box>
       </div>

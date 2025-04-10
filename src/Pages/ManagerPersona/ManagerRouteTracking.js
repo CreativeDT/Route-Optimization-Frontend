@@ -473,11 +473,12 @@ const RouteTracking = () => {
         const route = await fetchRouteData(routeID);
         routes.push(route);
     
-        // 🔥 Fetch tracked route history per selected consignment
+        //Fetch tracked route history per selected consignment
         const filters = {
-          origin: route.origin,
-          destination: route.destination,
-          stops: route.stops || [],
+          route_id:route.routeID,
+          // origin: route.origin,
+          // destination: route.destination,
+          // stops: route.stops || [],
         };
         await fetchTrackedRouteHistory(filters); // This will call your backend
       }
