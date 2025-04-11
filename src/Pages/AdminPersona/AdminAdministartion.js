@@ -682,10 +682,10 @@ const AdminAdministration = () => {
 
   return (
     <>
-      <NavBar />
-      <Breadcrumbs />
-      <Paper sx={{ padding: 2, margin: "auto" }}>
-        <Box
+      <NavBar id="navbar"/>
+      <Breadcrumbs  id="breadcrumbs"/>
+      <Paper id="dashboard-container" sx={{ padding: 2, margin: "auto" }}>
+        <Box  id="header-container"
           sx={{
             display: "flex",
             justifyContent: "space-between",
@@ -693,28 +693,28 @@ const AdminAdministration = () => {
             marginBottom: 2,
           }}
         >
-          <Typography variant="h5" sx={{ color: "#156272" }}>
+          <Typography  id="admin-dashboard-title"  variant="h5" sx={{ color: "#156272" }}>
             <FaUserShield className="role-icon" /> Admin Dashboard
           </Typography>
 
-          <Tabs
+          <Tabs  id="main-tab-selector"
             value={tabIndex}
             className="tab-links"
             onChange={(e, newValue) => setTabIndex(newValue)}
             sx={{ borderRadius: "4px", border: "1px solid #dcdcdc" }}
           >
-            <Tab
+            <Tab id="tab-users"
               label="Users"
               className="tab-link"
               sx={{ "&.MuiTab-root": { minHeight: "37px!important" } }}
             />
-            <Tab label="Vehicles" className="tab-link" />
+            <Tab label="Vehicles" id="tab-vehicles"  className="tab-link" />
           </Tabs>
         </Box>
-        <Box>
+        <Box id="content-container">
           {tabIndex === 0 ? (
-            <Box className="filter-container">
-              <Button
+            <Box className="filter-container" id="user-tab-content">
+              <Button  id="create-user-btn"
                 variant="contained"
                 color="primary"
                 startIcon={<Add />}
@@ -723,20 +723,20 @@ const AdminAdministration = () => {
                 Create User
               </Button>
               <Box sx={{ display: "flex", gap: 1 }}>
-                <TextField
+                <TextField    id="search-users"
                   className="search-add-container"
                   placeholder="Search"
                   size="small"
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
-                <Tabs
+                <Tabs id="user-filter-tabs"
                   value={filter}
                   onChange={(e, newValue) => {
                     setFilter(newValue); // Update the filter
                     setUserPage(0); // Reset pagination to first page
                   }}
                 >
-                  <Tab
+                  <Tab  id="filter-all-users"
                     label={`All (${data.length})`}
                     value="All"
                     className="tab"
@@ -751,7 +751,7 @@ const AdminAdministration = () => {
                       },
                     }}
                   />
-                  <Tab
+                  <Tab  id="filter-managers"
                     label={`Managers (${
                       data.filter(
                         (u) => u.role?.trim().toLowerCase() === "manager"
@@ -772,7 +772,7 @@ const AdminAdministration = () => {
                       },
                     }}
                   />
-                  <Tab
+                  <Tab  id="filter-drivers"
                     label={`Drivers (${
                       data.filter((u) => u.role === "driver").length
                     })`}
@@ -789,7 +789,7 @@ const AdminAdministration = () => {
                       },
                     }}
                   />
-                  <Tab
+                  <Tab  id="filter-deleted-users"
                     label={`Deleted Users (${
                       data.filter((u) => u.deleted === true).length
                     })`}
@@ -812,8 +812,8 @@ const AdminAdministration = () => {
               </Box>
             </Box>
           ) : (
-            <Box className="filter-container">
-              <Button
+            <Box className="filter-container" id="vehicle-tab-content">
+              <Button id="add-vehicle-btn"
                 variant="contained"
                 color="primary"
                 startIcon={<Add />}
@@ -823,20 +823,20 @@ const AdminAdministration = () => {
               </Button>
 
               <Box sx={{ display: "flex", gap: 1 }}>
-                <TextField
+                <TextField id="search-vehicles"
                   variant="outlined"
                   placeholder="Search Vehicle"
                   size="small"
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
-                <Tabs
+                <Tabs  id="vehicle-filter-tabs"
                   value={filter}
                   onChange={(e, newValue) => {
                     setFilter(newValue); // Update the filter
                     setUserPage(0); // Reset pagination to first page
                   }}
                 >
-                  <Tab
+                  <Tab id="filter-all-vehicles"
                     label={`All (${allCountVehicles})`}
                     value="All"
                     className="tab"
@@ -848,7 +848,7 @@ const AdminAdministration = () => {
                       padding: "5px 15px",
                     }}
                   />
-                  <Tab
+                  <Tab id="filter-diesel-vehicles"
                     label={`Diesel (${dieselCount})`}
                     value="Diesel"
                     className="tab"
@@ -860,7 +860,7 @@ const AdminAdministration = () => {
                       padding: "5px 15px",
                     }}
                   />
-                  <Tab
+                  <Tab id="filter-gasoline-vehicles"
                     label={`Gasoline (${gasolineCount})`}
                     value="Gasoline"
                     className="tab"
@@ -879,14 +879,14 @@ const AdminAdministration = () => {
         </Box>
 
         {loading ? (
-          <CircularProgress />
+          <CircularProgress  id="loading-indicator"/>
         ) : error ? (
-          <Typography color="error">{error}</Typography>
+          <Typography  id="error-message" color="error">{error}</Typography>
         ) : data.length === 0 ? (
-          <Typography>No data found.</Typography>
+          <Typography id="no-data-message">No data found.</Typography>
         ) : (
           <TableContainer
-            component={Paper}
+            component={Paper} id="data-table-container"
             sx={{
               maxHeight: "60vh",
               overflowY: "auto",
@@ -907,7 +907,7 @@ const AdminAdministration = () => {
               },
             }}
           >
-            <Table sx={{ borderCollapse: "collapse" }}>
+            <Table id="data-table"  sx={{ borderCollapse: "collapse" }}>
               <TableHead
                 sx={{
                   position: "sticky",
@@ -1474,12 +1474,12 @@ const AdminAdministration = () => {
                   },
                 }}
               >
-                <MenuItem value="Heavy-duty trucks">
+                {/* <MenuItem value="Heavy-duty trucks">
                   <Box display="flex" alignItems="center" gap={1}>
                     <LocalShipping />
                     Heavy-duty trucks
                   </Box>
-                </MenuItem>
+                </MenuItem> */}
                 <MenuItem value="Light-duty trucks">
                   <Box display="flex" alignItems="center" gap={1}>
                     <DirectionsCar />

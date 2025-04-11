@@ -475,7 +475,7 @@ const RouteTracking = () => {
     
         //Fetch tracked route history per selected consignment
         const filters = {
-          route_id:route.routeID,
+          routeID:route.routeID,
           // origin: route.origin,
           // destination: route.destination,
           // stops: route.stops || [],
