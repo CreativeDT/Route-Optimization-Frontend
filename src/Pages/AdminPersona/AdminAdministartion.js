@@ -141,8 +141,9 @@ const AdminAdministration = () => {
   };
 
   useEffect(() => {
+    console.log("Fetching data with filter:", filter);
     fetchData();
-  }, [tabIndex]);
+  }, [tabIndex, filter]);
   useEffect(() => {
     // Retrieve the user object from localStorage
     const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -166,6 +167,8 @@ const AdminAdministration = () => {
     } else {
       apiUrl = `${config.API_BASE_URL}/getVehicles`;
     }
+    console.log("Current filter:", filter);
+
     const token = localStorage.getItem("token");
     if (!token) {
       setError("No token found. Please log in.");
@@ -180,16 +183,41 @@ const AdminAdministration = () => {
       });
       console.log("API Response:", response.data);
       let responseData = [];
-      if (tabIndex === 0 && Array.isArray(response.data.users)) {
+    
+      // if (tabIndex === 0 && Array.isArray(response.data.users)) {
+      //   responseData = response.data.users.map((user) => ({
+      //     id: user.user_id,
+      //     name: user.username,
+      //     email: user.email,
+      //     role: user.role.toLowerCase(), // Convert role to lowercase
+      //     status: user.status,
+      //     deleted: user.deleted ?? false,
+      //   }));
+      // } 
+      if (tabIndex === 0 && filter === "deleted" && Array.isArray(response.data.users)) {
         responseData = response.data.users.map((user) => ({
           id: user.user_id,
           name: user.username,
           email: user.email,
-          role: user.role.toLowerCase(), // Convert role to lowercase
+          role: "deleted",
+          status: user.status,
+          deleted: true,
+        }));
+      }
+      
+     else if (tabIndex === 0 && Array.isArray(response.data.users)) {
+        responseData = response.data.users.map((user) => ({
+          id: user.user_id,
+          name: user.username,
+          email: user.email,
+          role: user.role.toLowerCase(),
           status: user.status,
           deleted: user.deleted ?? false,
         }));
-      } else if (tabIndex === 1 && Array.isArray(response.data.vehicles)) {
+      }
+      
+      
+      else if (tabIndex === 1 && Array.isArray(response.data.vehicles)) {
         responseData = response.data.vehicles.map((vehicle) => ({
           vehicle_id: vehicle.VehicleID,
           vehicle_type: vehicle.VehicleType,
@@ -306,9 +334,7 @@ const AdminAdministration = () => {
       })
       .catch((error) => console.error("Error removing user:", error));
   };
-  useEffect(() => {
-    fetchData();
-  }, []);
+  
   // Open Dialog for Add/Edit
   //   const handleOpenDialog = (user = null) => {
   //     console.log("Opening dialog, user:", user); // Log the user object
@@ -360,7 +386,7 @@ const AdminAdministration = () => {
 
     const userPayload1 = {
       user_id: editingUser?.user_id, // Ensure ID is sent when editing
-      username: newUser.username,
+      username: newUser.name,
       password: newUser.password,
       email: newUser.email,
       user_role: newUser.user_role,
@@ -790,9 +816,8 @@ const AdminAdministration = () => {
                     }}
                   />
                   <Tab  id="filter-deleted-users"
-                    label={`Deleted Users (${
-                      data.filter((u) => u.deleted === true).length
-                    })`}
+                    label={`Deleted Users (${data.filter((u) => u.role?.trim().toLowerCase() === "deleted").length})`}
+                    onClick={() => setFilter("deleted")}
                     value="deleted"
                     className="tab"
                     sx={{
@@ -1015,11 +1040,19 @@ const AdminAdministration = () => {
 
                     // Role-based filtering (for users only)
                     let roleMatch = true;
+                    // if (tabIndex === 0 && filter !== "All") {
+                    //   roleMatch =
+                    //     item.role?.trim().toLowerCase() ===
+                    //     filter.toLowerCase();
+                    // }
                     if (tabIndex === 0 && filter !== "All") {
-                      roleMatch =
-                        item.role?.trim().toLowerCase() ===
-                        filter.toLowerCase();
+                      if (filter === "deleted") {
+                        roleMatch = item.deleted === true;
+                      } else {
+                        roleMatch = item.role?.trim().toLowerCase() === filter.toLowerCase();
+                      }
                     }
+                    
 
                     // Fuel-type filtering (for vehicles only)
                     let fuelTypeMatch = true;
@@ -1474,12 +1507,12 @@ const AdminAdministration = () => {
                   },
                 }}
               >
-                {/* <MenuItem value="Heavy-duty trucks">
+                <MenuItem value="Heavy-duty trucks">
                   <Box display="flex" alignItems="center" gap={1}>
                     <LocalShipping />
                     Heavy-duty trucks
                   </Box>
-                </MenuItem> */}
+                </MenuItem>
                 <MenuItem value="Light-duty trucks">
                   <Box display="flex" alignItems="center" gap={1}>
                     <DirectionsCar />
