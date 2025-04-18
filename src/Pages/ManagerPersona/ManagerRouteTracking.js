@@ -88,183 +88,176 @@ const waypointIcon = new L.Icon({
 });
 
 const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleRoutes, vehiclePositions }) => {
-    const map = useMap();
-    const vehicleMarkerRef = useRef(null); // Ref for the vehicle marker
+  const map = useMap();
+  const vehicleMarkerRef = useRef(null);
+  const hasCenteredRef = useRef(false);
 
-    useEffect(() => {
-        if (coordinates.length > 0) {
-            const latLngs = coordinates.map(coord => [coord[1], coord[0]]);
-            map.fitBounds(latLngs);
-        }
-    }, [coordinates, map]);
-      // Get the vehicle position for this route
+  // Fit map to planned route bounds
+  useEffect(() => {
+      if (coordinates.length > 0) {
+          const latLngs = coordinates.map(coord => [coord[1], coord[0]]);
+          map.fitBounds(latLngs);
+      }
+  }, [coordinates, map]);
+
+  // Get vehicle live position
   const vehiclePosition = vehiclePositions[route.routeID];
 
-  const hasCenteredRef = useRef(false);
-    useEffect(() => {
-        if (vehiclePosition && map && route.status === 'started') {
-            console.log("Updating vehicle position on map:", vehiclePosition);
+  // Handle vehicle position update
+  useEffect(() => {
+      if (vehiclePosition && map && route.status === 'started') {
+          console.log("Updating vehicle position on map:", vehiclePosition);
 
-            // Update marker position directly using the ref
-            if (vehicleMarkerRef.current) {
-                vehicleMarkerRef.current.setLatLng([vehiclePosition.lat, vehiclePosition.lng]);
-                vehicleMarkerRef.current.setIcon(getVehicleIcon(vehiclePosition.status)); // Update icon
-            } else {
-                const newMarker = L.marker(
-                    [vehiclePosition.lat, vehiclePosition.lng],
-                    { icon: getVehicleIcon(vehiclePosition.status) }
-                ).addTo(map);
-                vehicleMarkerRef.current = newMarker;
-            }
-            // map.flyTo([vehiclePosition.lat, vehiclePosition.lng], map.getZoom(), { animate: true, duration: 1.5 });
-        // Center the map only once
-    if (!hasCenteredRef.current) {
-        map.flyTo([vehiclePosition.lat, vehiclePosition.lng], map.getZoom(), { animate: true, duration: 1.5 });
-        hasCenteredRef.current = true;
+          if (vehicleMarkerRef.current) {
+              vehicleMarkerRef.current.setLatLng([vehiclePosition.lat, vehiclePosition.lng]);
+              vehicleMarkerRef.current.setIcon(getVehicleIcon(vehiclePosition.status));
+          } else {
+              const newMarker = L.marker(
+                  [vehiclePosition.lat, vehiclePosition.lng],
+                  { icon: getVehicleIcon(vehiclePosition.status) }
+              ).addTo(map);
+              vehicleMarkerRef.current = newMarker;
+          }
+
+          if (!hasCenteredRef.current) {
+              map.flyTo([vehiclePosition.lat, vehiclePosition.lng], map.getZoom(), { animate: true, duration: 1.5 });
+              hasCenteredRef.current = true;
+          }
       }
-        
-        }
-    }, [vehiclePosition, map, route.status]);
+  }, [vehiclePosition, map, route.status]);
 
-   
-    useEffect(() => {
-        console.log('Route Waypoints in MapView:', routeWaypoints);
-    }, [routeWaypoints]);
+  // Safe parse for actual route coordinates
+  const actualCoordinates = route.actual_coordinates || [];
+  console.log("Using actual_coordinates from props:", actualCoordinates);
+  
 
-    const filteredWaypoints = routeWaypoints.slice(1, routeWaypoints.length - 1);
+  const filteredWaypoints = routeWaypoints.slice(1, -1);
+  useEffect(() => {
+    if (actualCoordinates.length > 0 && map) {
+      const bounds = actualCoordinates.map(coord => [coord[1], coord[0]]);
+      map.fitBounds(bounds);
+    }
+  }, [actualCoordinates, map]);
+  
+  return (
+      <>
+          <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
-    return (
-        <>
-            <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-            <MarkerClusterGroup>
-                {/* Start Point */}
-                {coordinates.length > 0 && (
-                    <Marker
-                        key="start"
-                        position={[coordinates[0][1], coordinates[0][0]]}
-                        icon={redIcon}
-                    >
-                        <Popup>{route?.origin || "Origin"}</Popup>
-                    </Marker>
-                )}
-
-                {/* End Point-planned */}
-                {coordinates.length > 1 && (
-                    <Marker
-                        key="end"
-                        position={[coordinates[coordinates.length - 1][1], coordinates[coordinates.length - 1][0]]}
-                        icon={greenIcon}
-                    >
-                        <Popup>{route?.destination || "Destination"}</Popup>
-                    </Marker>
-                )}
-
-                {/* Render Filtered Waypoints (excluding first and last) */}
-                {filteredWaypoints.length > 0 && filteredWaypoints.map((waypoint, index) => (
-                    <Marker key={index} position={[waypoint.coordinates[1], waypoint.coordinates[0]]} icon={waypointIcon}>
-                        <Popup>{waypoint.name}</Popup>
-                    </Marker>
-                ))}
-                {/* {routeWaypoints.slice(1, -1).map((waypoint, index) => (
-                    <Marker
-                        key={index}
-                        position={[waypoint.coordinates[1], waypoint.coordinates[0]]}
-                        icon={waypointIcon}
-                    >
-                        <Popup>{waypoint.name}</Popup>
-                    </Marker>
-                ))} */}
-
-                {vehiclePosition && route.status === 'started' && (
-                    <Marker
-                        ref={vehicleMarkerRef}
-                        position={[vehiclePosition.lat, vehiclePosition.lng]}
-                        icon={getVehicleIcon(vehiclePosition.status)}
-                    >
-                        <Popup>
-                            <Typography>Vehicle Status: {vehiclePosition.status}</Typography>
-                            <Typography>Location: {vehiclePosition.placeName}</Typography>
-                        </Popup>
-                    </Marker>
-                )}
-                 {/* Optional Start/End for Actual Route */}
-            {route.actual_coordinates && route.actual_coordinates.length > 0 && (
-                <>
-                    <Marker
-                        key="actualStart"
-                        position={[route.actual_coordinates[0][1], route.actual_coordinates[0][0]]}
-                        icon={redIcon}
-                    >
-                        <Popup>Actual Start</Popup>
-                    </Marker>
-                    <Marker
-                        key="actualEnd"
-                        position={[
-                            route.actual_coordinates[route.actual_coordinates.length - 1][1],
-                            route.actual_coordinates[route.actual_coordinates.length - 1][0],
-                        ]}
-                        icon={greenIcon}
-                    >
-                        <Popup>Actual End</Popup>
-                    </Marker>
-                </>
-            )}
-            </MarkerClusterGroup>
-
-            {/* Polyline with Hover Popup */}
-            {coordinates.length > 0 && (
-            <Polyline
-                positions={coordinates.map(coord => [coord[1], coord[0]])}
-                color="#3b82f6"
-                weight={5} // Increase weight to make hover easier
-                eventHandlers={{
-                    mouseover: (e) => {
-                        e.target.setStyle({ weight: 8, color: "#1e3a8a" }); // Change style on hover
-                    },
-                    mouseout: (e) => {
-                        e.target.setStyle({ weight: 5, color: "#3b82f6" }); // Revert style on mouse out
-                    },
-                }}
-            >
-                <Tooltip direction="top" offset={[0, -10]} opacity={1}>
-                    <Typography variant="body2">
-                        <strong>Route Details:</strong><br />
-                        Origin: {route?.origin}<br />
-                        Destination: {route?.destination}<br />
-                        Distance: {route?.distance} km<br />
-                        Duration: {route?.duration} hrs<br />
-                        {/* <br /> */}
-                        <strong>Vehicle Information:</strong><br />
-                        Fuel Type: {route?.fuel_type || "N/A"}<br />
-                        Vehicle Type: {route?.vehicle_type || "N/A"}<br />
-                        CO₂ Emission: {route?.carbon_emission ? `${route.carbon_emission} kg` : "N/A"}
-
-
-                    </Typography>
-                </Tooltip>
-            </Polyline>
-     )}
-      {/* Polyline - Actual Route */}
-      {route.actual_coordinates && route.actual_coordinates.length > 0 && (
-            <Polyline
-                positions={route.actual_coordinates.map(coord => [coord[1], coord[0]])}
-                color="green"
-                dashArray="6"
-                weight={4}
-            >
-                <Tooltip direction="top" offset={[0, -10]} opacity={1}>
-                    <Typography variant="body2">
-                        <strong>Actual Route Taken</strong><br />
-                        Start: {route?.origin}<br />
-                        End: {route?.destination}
-                    </Typography>
-                </Tooltip>
-            </Polyline>
+          <MarkerClusterGroup>
+              {/* Start Marker (Planned) */}
+              {coordinates.length > 0 && (
+                  <Marker
+                      key="start"
+                      position={[coordinates[0][1], coordinates[0][0]]}
+                      icon={redIcon}
+                  >
+                      <Popup>{route?.origin || "Origin"}</Popup>
+                  </Marker>
               )}
-        </>
-    );
-});
 
+              {/* End Marker (Planned) */}
+              {coordinates.length > 1 && (
+                  <Marker
+                      key="end"
+                      position={[coordinates[coordinates.length - 1][1], coordinates[coordinates.length - 1][0]]}
+                      icon={greenIcon}
+                  >
+                      <Popup>{route?.destination || "Destination"}</Popup>
+                  </Marker>
+              )}
+
+              {/* Waypoints */}
+              {filteredWaypoints.map((waypoint, index) => (
+                  <Marker
+                      key={`waypoint-${index}`}
+                      position={[waypoint.coordinates[1], waypoint.coordinates[0]]}
+                      icon={waypointIcon}
+                  >
+                      <Popup>{waypoint.name}</Popup>
+                  </Marker>
+              ))}
+
+              {/* Live Vehicle Position */}
+              {vehiclePosition && route.status === 'started' && (
+                  <Marker
+                      ref={vehicleMarkerRef}
+                      position={[vehiclePosition.lat, vehiclePosition.lng]}
+                      icon={getVehicleIcon(vehiclePosition.status)}
+                  >
+                      <Popup>
+                          <Typography>Vehicle Status: {vehiclePosition.status}</Typography>
+                          <Typography>Location: {vehiclePosition.placeName}</Typography>
+                      </Popup>
+                  </Marker>
+              )}
+
+              {/* Actual Route Start/End Markers */}
+              {actualCoordinates.length > 0 && (
+                  <>
+                      <Marker
+                          key="actualStart"
+                          position={[actualCoordinates[0][1], actualCoordinates[0][0]]}
+                          icon={redIcon}
+                      >
+                          <Popup>Actual Start</Popup>
+                      </Marker>
+                      <Marker
+                          key="actualEnd"
+                          position={[actualCoordinates[actualCoordinates.length - 1][1], actualCoordinates[actualCoordinates.length - 1][0]]}
+                          icon={greenIcon}
+                      >
+                          <Popup>Actual End</Popup>
+                      </Marker>
+                  </>
+              )}
+          </MarkerClusterGroup>
+
+          {/* Polyline for Planned Route */}
+           {coordinates.length > 0 && (
+              <Polyline
+                  positions={coordinates.map(coord => [coord[1], coord[0]])}
+                  color="blue"
+                  weight={5}
+                  eventHandlers={{
+                      mouseover: (e) => e.target.setStyle({ weight: 8, color: "#1e3a8a" }),
+                      mouseout: (e) => e.target.setStyle({ weight: 5, color: "#3b82f6" }),
+                  }}
+              >
+                  <Tooltip direction="top" offset={[0, -10]} opacity={1}>
+                      <Typography variant="body2">
+                          <strong>Planned Route</strong><br />
+                          Origin: {route?.origin}<br />
+                          Destination: {route?.destination}<br />
+                          Distance: {route?.distance} miles<br />
+                          Duration: {route?.duration} hrs<br />
+                          Fuel: {route?.fuel_type || "N/A"}<br />
+                          Vehicle: {route?.vehicle_type || "N/A"}<br />
+                          CO₂: {route?.carbon_emission ? `${route.carbon_emission} lbs` : "N/A"}
+                      </Typography>
+                  </Tooltip>
+              </Polyline>
+          )} 
+
+          {/* Polyline for Actual Route */}
+          {actualCoordinates.length > 0 && (
+              <Polyline
+                  positions={actualCoordinates.map(coord => [coord[1], coord[0]])}
+                  color="green"
+                  dashArray="6"
+                  weight={4}
+              >
+                  <Tooltip direction="top" offset={[0, -10]} opacity={1}>
+                      <Typography variant="body2">
+                          <strong>Actual Route Taken</strong><br />
+                          Start: {route?.origin}<br />
+                          End: {route?.destination}
+                      </Typography>
+                  </Tooltip>
+              </Polyline>
+          )}
+      </>
+  );
+});
 const RouteTracking = () => {
     const [consignments, setConsignments] = useState([]);
     const [selectedRoutes, setSelectedRoutes] = useState([]);
@@ -480,11 +473,27 @@ const RouteTracking = () => {
           // destination: route.destination,
           // stops: route.stops || [],
         };
-        await fetchTrackedRouteHistory(filters); // This will call your backend
+       
+        const trackedHistory = await fetchTrackedRouteHistory(filters);
+
+        if (trackedHistory?.routes?.length > 0) {
+          const coordsStr = trackedHistory.routes[0].route_coordinates;
+          console.log("coordsStr:",coordsStr)
+          try {
+            route.actual_coordinates = JSON.parse(coordsStr); // convert string to array
+          } catch (error) {
+            console.error("Failed to parse actual coordinates:", error);
+            route.actual_coordinates = [];
+          }
+        } else {
+          route.actual_coordinates = [];
+        }
+        
+        
       }
     
       setSelectedRoutes(routes);
-      console.log("selectedRoutes1:", routes);
+      console.log("setselectedRoutes:", routes);
     
       const shouldConnect = updatedSelectedConsignments.some(id => {
         const selectedConsignment = consignments.find(c => c.routeID === id);
@@ -493,6 +502,7 @@ const RouteTracking = () => {
       setShouldConnectWebSocket(shouldConnect);
     };
     
+   
 
     const filteredConsignments = consignments.filter((consignment) =>
         `${consignment.origin} ➜ ${consignment.destination}`
@@ -511,19 +521,26 @@ const RouteTracking = () => {
      });
      const fetchTrackedRouteHistory = async (filters) => {
       const token = localStorage.getItem('token');
+      console.log("Sending filters to trackedRouteHistory API:", filters);
+
       try {
         const res = await axios.post(`${config.API_BASE_URL}/routeHistory/trackedRouteHistory`, filters,{ 
            headers: {
           'Authorization': `Bearer ${token}` // Include the token in the Authorization header
       }});
+      console.log("Response from trackedRouteHistory API:", res);
+
         if (res.data.routes.length) {
           console.log("Fetched tracked routes:", res.data.routes);
           setTrackedRoutes(res.data.routes);
+          return res.data; 
         } else {
           alert("No tracked route history found.");
+          return { routes: [] }; 
         }
       } catch (err) {
         console.error("Error fetching tracked route history", err);
+        return { routes: [] }; 
       }
     };
     
@@ -531,7 +548,7 @@ const RouteTracking = () => {
    
     
     return (
-      <Box
+      <Box id="main-box"
       sx={{
         bgcolor: "#f4f6f8",
         minHeight: "100vh",
@@ -545,7 +562,7 @@ const RouteTracking = () => {
 
      
 
-        <Grid
+        <Grid id="main-grid"
           container
           spacing={2}
           sx={{
@@ -560,7 +577,7 @@ const RouteTracking = () => {
         >
            
           {/* Left Column: Consignments and Route Details */}
-          <Grid
+          <Grid id="grid"
             item
             xs={12}
             md={4}
@@ -570,8 +587,8 @@ const RouteTracking = () => {
               gap: 2,
               height: "100%",
             }}
-          >
-            <Paper
+          > 
+            <Paper id="paper"
               elevation={3}
               sx={{
                 flex: 1, // Makes it fill available space
@@ -582,7 +599,7 @@ const RouteTracking = () => {
               }}
             >
               {/* Search Field */}
-              <TextField
+              <TextField  id="search"
                 label="Search Consignments"
                 variant="outlined"
                 fullWidth
@@ -591,7 +608,7 @@ const RouteTracking = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
                
               />
-              <Tabs
+              <Tabs id="tabs"
                             value={filter}
                             sx={{
                               '& .MuiTabs-indicator': {
@@ -601,7 +618,7 @@ const RouteTracking = () => {
                             }}
                             onChange={(e, newValue) => setFilter(newValue)}
                         >
-                            <Tab 
+                            <Tab  id="tab_all"
                             label=
                               
                               
@@ -621,8 +638,8 @@ const RouteTracking = () => {
                              /> 
                            
 
-                            <Tab
-                            label={
+                            <Tab id="tab_started"
+                            label={ 
                               <Box sx={{ display: "flex", alignItems: "center" }}>
                               <Box
                                 sx={{
@@ -646,7 +663,7 @@ const RouteTracking = () => {
                                  "&.MuiButtonBase-root": { 
                                 minHeight: "30px !important",fontSize:"10px",padding:"8px 13px",border:"1px solid #beb7b7c9"
                               },}}/>
-                            <Tab 
+                            <Tab  id="tab-notstarted"
                             label={
                               <Box sx={{ display: "flex", alignItems: "center" }}>
                                 <Box
@@ -670,7 +687,7 @@ const RouteTracking = () => {
                                                 "&.MuiButtonBase-root": { 
                               minHeight: "30px !important",fontSize:"10px",padding:"8px 13px",border:"1px solid #beb7b7c9"
                             },}} />
-                             <Tab 
+                             <Tab  id="tab_complted"
                              label={
                               <Box sx={{ display: "flex", alignItems: "center" }}>
                               <CheckCircleIcon sx={{ color: "green", fontSize: 13, marginRight: 1, fontWeight: "bold" }} />
@@ -689,19 +706,19 @@ const RouteTracking = () => {
                         </Tabs>
 
               {/* Consignments List */}
-              <Box sx={{ flex: "0 0 auto" }}>
-                <Typography variant="h6" gutterBottom>
+              <Box sx={{ flex: "0 0 auto" }} id="box2">
+                <Typography variant="h6" gutterBottom id="box2-name">
                   Consignments
                 </Typography>
                 <List sx={{ maxHeight: "400px", overflowY: "auto" }}>
                   {filteredByStatus.map((consignment) => (
-                    <ListItem
+                    <ListItem id="consignments_list"
                       key={consignment.routeID}
                       button="true"
                       onClick={() => handleConsignmentSelection(consignment)}
                       sx={{ border: "1px solid #ddd", mb: 1, borderRadius: 1 }}
                     >
-                      <Checkbox
+                      <Checkbox id="consignments-checkbox"
                         checked={selectedConsignments.includes(
                           consignment.routeID
                         )}
@@ -714,7 +731,7 @@ const RouteTracking = () => {
                             {consignment.status === "completed" ? (
                             <CheckCircleIcon sx={{ color: "green", fontSize: 13, marginRight: 2 }} />
                           ) : (
-                            <Box
+                            <Box id="consignment-status"
                               sx={{
                                 width: 10,
                                 height: 10,
@@ -728,7 +745,7 @@ const RouteTracking = () => {
                               }}
                             />
                           )}
-                            <Typography
+                            <Typography id="consignment-path"
                               variant="body2"
                               sx={{ fontSize: "12px" }}
                             >
@@ -745,7 +762,7 @@ const RouteTracking = () => {
                             >
                             Status:  {consignment.statusText}
                             </Typography>
-                            <Typography variant="body2" sx={{ fontSize: "10px" }}>
+                            <Typography id="consignment-drivername" variant="body2" sx={{ fontSize: "10px" }}>
     Driver Name:{" "}
     <span style={{ color: consignment.driverName !== "Not Assigned" ? "green" : "red" }}>
         {consignment.driverName}
@@ -757,7 +774,7 @@ const RouteTracking = () => {
                               sx={{ fontSize: "10px" }}
                             >
                               Predicted CO₂ Emission:{" "}
-                              {consignment.carbon_emission || "N/A"} Kg
+                              {consignment.carbon_emission || "N/A"} lbs
                             </Typography>
                           </React.Fragment>
                         }
@@ -795,7 +812,7 @@ const RouteTracking = () => {
                     )}
                     
                 </Grid> */}
-          <Grid
+          <Grid id="grid2"
              item
              xs={12}
              md={8}
@@ -806,8 +823,8 @@ const RouteTracking = () => {
                overflow: "hidden",
              }}
            >
-            <Box sx={{ flex:1, borderRadius: 2 }}>
-              <MapContainer
+            <Box id="box_mapcontainer" sx={{ flex:1, borderRadius: 2 }}>
+              <MapContainer id="mapcontainer" 
                 center={
                   selectedRoutes.length > 0 &&
                   selectedRoutes[0].route_coordinates.length > 0
@@ -824,7 +841,8 @@ const RouteTracking = () => {
                 <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
 
                 {selectedRoutes.map((route, index) => (
-                  <MapView
+                  
+                  <MapView id="mapview"
                     key={index}
                     coordinates={route.route_coordinates}
                     routeWaypoints={route.route_waypoints || []}

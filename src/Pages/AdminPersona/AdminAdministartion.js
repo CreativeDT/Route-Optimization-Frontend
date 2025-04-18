@@ -942,37 +942,37 @@ const AdminAdministration = () => {
                   "& th": { padding: "4px" },
                 }}
               >
-                <TableRow>
+                <TableRow id="table-header-row">
                   {tabIndex === 0 ? (
                     <>
-                      <TableCell
+                      <TableCell id="header-sno"
                         sx={{ color: "white", borderRight: "1px solid #bbb" }}
                       >
                         SNo
                       </TableCell>
                       {/* <TableCell sx={{ color: "white", borderRight: "1px solid #bbb" }}>ID</TableCell> */}
-                      <TableCell
+                      <TableCell  id="header-name"
                         sx={{ color: "white", borderRight: "1px solid #bbb" }}
                       >
                         Name
                       </TableCell>
 
-                      <TableCell
+                      <TableCell id="header-role"
                         sx={{ color: "white", borderRight: "1px solid #bbb" }}
                       >
                         Role
                       </TableCell>
-                      <TableCell
+                      <TableCell id="header-email" 
                         sx={{ color: "white", borderRight: "1px solid #bbb" }}
                       >
                         Email
                       </TableCell>
-                      <TableCell
+                      <TableCell id="header-status"
                         sx={{ color: "white", borderRight: "1px solid #bbb" }}
                       >
                         Activity Status
                       </TableCell>
-                      <TableCell
+                      <TableCell  id="header-action"
                         sx={{ color: "white", borderRight: "1px solid #bbb" }}
                       >
                         Action
@@ -980,48 +980,48 @@ const AdminAdministration = () => {
                     </>
                   ) : (
                     <>
-                      <TableCell
+                      <TableCell id="header-sno"
                         sx={{ color: "white", borderRight: "1px solid #bbb" }}
                       >
                         SNo
                       </TableCell>
 
-                      <TableCell
+                      <TableCell id="vehicle-license"
                         sx={{ color: "white", borderRight: "1px solid #bbb" }}
                       >
                         Vehicle LicenseNo
                       </TableCell>
-                      <TableCell
+                      <TableCell id="vehicle-type"
                         sx={{ color: "white", borderRight: "1px solid #bbb" }}
                       >
                         Vehicle Type
                       </TableCell>
-                      <TableCell
+                      <TableCell id="vehicle-fuel"
                         sx={{ color: "white", borderRight: "1px solid #bbb" }}
                       >
                         Fuel Type
                       </TableCell>
-                      <TableCell
+                      <TableCell  id="vehicle-co2"
                         sx={{ color: "white", borderRight: "1px solid #bbb" }}
                       >
                         CO2 Emissions(g/mile)
                       </TableCell>
-                      <TableCell
+                      <TableCell id="vehicle-mileage"
                         sx={{ color: "white", borderRight: "1px solid #bbb" }}
                       >
                         Mileage(km/l)
                       </TableCell>
-                      <TableCell
+                      <TableCell id="vehicle-capacity"
                         sx={{ color: "white", borderRight: "1px solid #bbb" }}
                       >
                         Capacity(lbs)
                       </TableCell>
-                      <TableCell
+                      <TableCell id="vehicle-status"
                         sx={{ color: "white", borderRight: "1px solid #bbb" }}
                       >
                         Status
                       </TableCell>
-                      <TableCell
+                      <TableCell id="vehicle-action"
                         sx={{ color: "white", borderRight: "1px solid #bbb" }}
                       >
                         Action
@@ -1065,15 +1065,15 @@ const AdminAdministration = () => {
                     return searchMatch && roleMatch && fuelTypeMatch;
                   })
                   .map((item, index) => (
-                    <TableRow key={index}>
+                    <TableRow key={index} id="table-row">
                       {tabIndex === 0 ? (
                         <>
-                          <TableCell>
+                          <TableCell  id={`user-sno-${index}`}>
                             {userPage * userRowsPerPage + index + 1}
                           </TableCell>
                           {/* <TableCell>{item.user_id}</TableCell> */}
-                          <TableCell>{item.name}</TableCell>
-                          <TableCell>
+                          <TableCell id={`user-name-${index}`}>{item.name}</TableCell>
+                          <TableCell id={`user-role-${index}`}>
                             <Box sx={{ display: "flex", alignItems: "center" }}>
                               <Avatar
                                 sx={{ width: 32, height: 32, marginRight: 1 }}
@@ -1083,11 +1083,11 @@ const AdminAdministration = () => {
                               </Typography>
                             </Box>
                           </TableCell>
-                          <TableCell>{item.email}</TableCell>
-                          <TableCell>{item.status}</TableCell>
+                          <TableCell id={`user-email-${index}`}>{item.email}</TableCell>
+                          <TableCell id={`user-status-${index}`}>{item.status}</TableCell>
 
-                          <TableCell>
-                            <IconButton
+                          <TableCell id={`user-action-${index}`}>
+                            <IconButton  id={`delete-user-${item.id}`}
                               onClick={() => handleDeleteUser(item.id)}
                               color="error"
                             >
@@ -1097,29 +1097,29 @@ const AdminAdministration = () => {
                         </>
                       ) : (
                         <>
-                          <TableCell>
+                          <TableCell id={`vehicle-sno-${index}`}>
                             {vehiclePage * vehicleRowsPerPage + index + 1}
                           </TableCell>
-                          <TableCell>{item.license_no}</TableCell>
-                          <TableCell>{item.vehicle_type}</TableCell>
-                          <TableCell>{item.fuel_type}</TableCell>
-                          <TableCell>{item.exhaust_co2}</TableCell>
-                          <TableCell>{item.mileage}</TableCell>
-                          <TableCell>{item.capacity}</TableCell>
-                          <TableCell>{item.status}</TableCell>
-                          <TableCell>
+                          <TableCell id={`vehicle-license-${index}`}>{item.license_no}</TableCell>
+                          <TableCell  id={`vehicle-type-${index}`}>{item.vehicle_type}</TableCell>
+                          <TableCell id={`vehicle-fuel-${index}`}>{item.fuel_type}</TableCell>
+                          <TableCell  id={`vehicle-co2-${index}`}>{item.exhaust_co2}</TableCell>
+                          <TableCell id={`vehicle-mileage-${index}`}>{item.mileage}</TableCell>
+                          <TableCell id={`vehicle-capacity-${index}`}>{item.capacity}</TableCell>
+                          <TableCell id={`vehicle-status-${index}`}>{item.status}</TableCell>
+                          <TableCell id={`vehicle-action-${index}`}>
                             {item.status === "In Transit" ? (
                               <>
                                 <Tooltip title="Vehicle is in transit,cant able to edit/delete">
                                   <span>
-                                    <IconButton disabled color="primary">
+                                    <IconButton disabled color="primary" id={`edit-vehicle-${item.id}`}>
                                       <Edit />
                                     </IconButton>
                                   </span>
                                 </Tooltip>
                                 <Tooltip title="Vehicle is in transit,cant able to edit/delete">
                                   <span>
-                                    <IconButton disabled color="error">
+                                    <IconButton disabled color="error" id={`delete-vehicle-${item.id}`}>
                                       <Delete />
                                     </IconButton>
                                   </span>

@@ -323,23 +323,57 @@ try {
 //     const driverId = event.target.value;
 //     setSelectedDrivers({ ...selectedDrivers, [routeId]: driverId });
 // };
-const handleDriverSelectChange = (event, newValue, routeId) => {
-    if (newValue) {
-        // setSelectedDrivers((prev) => ({
-        //     ...prev,
-        //     [routeId]: newValue // Store selected driver
-        // }));
-        setIsReassigning(!!selectedDrivers[routeId]);
-          setSelectedDriver(newValue);
-          setSelectedRouteID(routeId);
-          if (selectedDrivers[routeId]) {
-          setOpenDialog(true); // Show confirmation dialog for reassignment
-          } else {
-          handleConfirmAssignment(); // Assign directly if it's the first time
-          }
-          }
-          };
-
+// const handleDriverSelectChange = (event, newValue, routeId) => {
+//     if (newValue) {
+//         // setSelectedDrivers((prev) => ({
+//         //     ...prev,
+//         //     [routeId]: newValue // Store selected driver
+//         // }));
+//         setIsReassigning(!!selectedDrivers[routeId]);
+//           setSelectedDriver(newValue);
+//           setSelectedRouteID(routeId);
+//           if (selectedDrivers[routeId]) {
+//           setOpenDialog(true); // Show confirmation dialog for reassignment
+//           } else {
+//           handleConfirmAssignment(); // Assign directly if it's the first time
+//           }
+//           }
+//           };
+const handleDriverSelectChange = async (event, newValue, routeId) => {
+  if (newValue) {
+    try {
+      setLoading(true); // Show loading state
+      
+      // Call the assignment API
+      await handleAssignDriver(newValue.driver_id, routeId);
+      
+      // Update local state
+      setSelectedDrivers(prev => ({
+        ...prev,
+        [routeId]: newValue.driver_name
+      }));
+      
+      // Show success message
+      setSnackbar({
+        open: true,
+        message: selectedDrivers[routeId] 
+          ? "Driver reassigned successfully!" 
+          : "Driver assigned successfully!",
+        severity: "success"
+      });
+      
+    } catch (error) {
+      console.error("Assignment error:", error);
+      setSnackbar({
+        open: true,
+        message: "Failed to assign driver",
+        severity: "error"
+      });
+    } finally {
+      setLoading(false);
+    }
+  }
+};
         
 
   const fetchDrivers = async () => {
@@ -534,17 +568,15 @@ const handleConfirmDelete = () => {
     <>
       <NavBar />
       <Breadcrumbs1 />
-      <Paper sx={{ border: "1px solid  #e0e0e0", margin: "auto",padding:2 }}>
+      <Paper  id="paper" sx={{ border: "1px solid  #e0e0e0", margin: "auto",padding:2 }}>
         {/* Tabs for Drivers, Vehicles, and Fleet Details */}
-        <Box className="filter-container"> 
-          <Typography variant="h5" sx={{ color: "#156272" }} gutterBottom>
+        <Box className="filter-container" id="filter-container"> 
+          <Typography variant="h5" sx={{ color: "#156272" }} gutterBottom id="page-header">
             <FaUserTie className="role-icon" /> Manager Dashboard
           </Typography>
          
-          <Box sx={{display:'flex',gap:1,
-           
-          }}>
-                   <TextField className="search-add-container"
+          <Box sx={{display:'flex',gap:1}} id="box">
+                   <TextField className="search-add-container" id="search-add-container"
           
   label="Search"
   variant="outlined"
@@ -565,8 +597,8 @@ const handleConfirmDelete = () => {
   
 />
 
-          <Tabs value={tabIndex} onChange={(e, newValue) => setTabIndex(newValue)} sx={{borderRadius:"4px",border:"1px solid #dcdcdc"}}>
-            <Tab label="Drivers" sx={{
+          <Tabs id="tabs" value={tabIndex} onChange={(e, newValue) => setTabIndex(newValue)} sx={{borderRadius:"4px",border:"1px solid #dcdcdc"}}>
+            <Tab id="tab" label="Drivers" sx={{
                 backgroundColor: tabIndex === "Drivers" ? "#388e3c" : "#dcdcdc4a!important", // Change the background color of active tab
                 color: tabIndex === "Drivers" ? "white" : "#1976d2", // Change text color for active tab
                 border:"1px solid #dcdcdc",padding:"5px 15px",
@@ -575,7 +607,7 @@ const handleConfirmDelete = () => {
                 },
                  
               }} />
-            <Tab label="Vehicles"   sx={{
+            <Tab id="tab1" label="Vehicles"   sx={{
                 backgroundColor: tabIndex === "Vehicles" ? "#388e3c" : "#dcdcdc4a!important", // Change the background color of active tab
                 color: tabIndex === "Vehicles" ? "white" : "#1976d2", // Change text color for active tab
                 border:"1px solid #dcdcdc",padding:"5px 15px",
@@ -584,7 +616,7 @@ const handleConfirmDelete = () => {
                 },
                  
               }}/>
-            <Tab label="Routes"  sx={{
+            <Tab id="tab" label="Routes"  sx={{
                 backgroundColor: tabIndex === "Routes" ? "#388e3c" : "#dcdcdc4a!important", // Change the background color of active tab
                 color: tabIndex === "Routes" ? "white" : "#1976d2", // Change text color for active tab
                 border:"1px solid #dcdcdc",padding:"5px 15px",
@@ -604,66 +636,66 @@ const handleConfirmDelete = () => {
         ) : data.length === 0 ? (
           <Typography>No data found.</Typography>
         ) : (
-          <TableContainer component={Paper} sx={{ maxHeight:"60vh", overflowY: "auto" , boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
-            <Table sx={{ minWidth: 650 ,borderCollapse: "collapse" }}>
-              <TableHead sx={{ position: "sticky", top: 0, backgroundColor: "#5e87b0 ", zIndex: 1 }}>
-                <TableRow>
+          <TableContainer id="table-container" component={Paper} sx={{ maxHeight:"60vh", overflowY: "auto" , boxShadow: "0 2px 4px rgba(0,0,0,0.1)" }}>
+            <Table id="id" sx={{ minWidth: 650 ,borderCollapse: "collapse" }}>
+              <TableHead id="table-head"sx={{ position: "sticky", top: 0, backgroundColor: "#5e87b0 ", zIndex: 1 }}>
+                <TableRow id="table-row">
                   {tabIndex === 0 && (
                     <>
-                      <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>SNo</TableCell>
-                      <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>Driver Name</TableCell>
-                      <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>Email</TableCell>
-                      <TableCell sx={{ color: "white" ,borderRight: "1px solid #bbb"}}>Date of Joining</TableCell>
+                      <TableCell id="user-sno" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>SNo</TableCell>
+                      <TableCell id="user-drivername" sx={{ color: "white",borderRight: "1px solid #bbb" }}>Driver Name</TableCell>
+                      <TableCell  id="user-sno" sx={{ color: "white",borderRight: "1px solid #bbb" }}>Email</TableCell>
+                      <TableCell id="user-date_joining" sx={{ color: "white" ,borderRight: "1px solid #bbb"}}>Date of Joining</TableCell>
                       {/* <TableCell sx={{ color: "white",borderRight: "1px solid #bbb" }}>Vehicle Status</TableCell> */}
                       {/* <TableCell sx={{ color: "white" ,borderRight: "1px solid #bbb"}}>Route Status</TableCell> */}
-                      <TableCell sx={{ color: "white" ,borderRight: "1px solid #bbb"}}>Driver Availability</TableCell>
+                      <TableCell id="user-availability" sx={{ color: "white" ,borderRight: "1px solid #bbb"}}>Driver Availability</TableCell>
                     </>
                   )}
                   {tabIndex === 1 && (
                     <>
-                      <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>SNo</TableCell>
-                      <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Vehicle LicenseNo</TableCell>
-                      <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Vehicle Name</TableCell>
-                      <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Fuel Type</TableCell>
-                      <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>ExhaustCo2</TableCell>
-                      <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Mileage</TableCell>
-                      <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Vehicle Capacity</TableCell>
-                      <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Vehicle Status</TableCell>
-                      <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Assigned Driver</TableCell>
+                      <TableCell id="vehicle-sno" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>SNo</TableCell>
+                      <TableCell id="vehicle-licenseno" sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Vehicle LicenseNo</TableCell>
+                      <TableCell id="vehicle-name" sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Vehicle Name</TableCell>
+                      <TableCell id="vehicle-fueltype" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Fuel Type</TableCell>
+                      <TableCell  id="vehicle-co2"sx={{ color: "white" , borderRight: "1px solid #bbb" }}>ExhaustCo2</TableCell>
+                      <TableCell id="vehicle-mileage" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Mileage</TableCell>
+                      <TableCell id="vehicle-capacity" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Vehicle Capacity</TableCell>
+                      <TableCell id="vehicle-status" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Vehicle Status</TableCell>
+                      <TableCell id="vehicle-assigndriver" sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Assigned Driver</TableCell>
                     </>
                   )}
                   {tabIndex === 2 && (
                     <>
-                        <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>SNo</TableCell>
-                        <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Route ID</TableCell>
-                        <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Vehicle LicenseNo</TableCell>
+                        <TableCell id="sno" sx={{ color: "white", borderRight: "1px solid #bbb"  }}>SNo</TableCell>
+                        <TableCell id="routeid" sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Route ID</TableCell>
+                        <TableCell id="vehicle-licenseno" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Vehicle LicenseNo</TableCell>
                        
-                        <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Origin</TableCell>
-                        <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Destination</TableCell>
-                        <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Status</TableCell>
-                        <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Carbon Emission</TableCell>
-                        <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Created Date</TableCell>
-                        <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Update/Edit Route</TableCell>
-                        <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Summary</TableCell>
-                        <TableCell sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Driver</TableCell>
-                        <TableCell sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Assign Driver</TableCell>
+                        <TableCell id="origin" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Origin</TableCell>
+                        <TableCell id="destination" sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Destination</TableCell>
+                        <TableCell id="status" sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Status</TableCell>
+                        <TableCell id="co2" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Carbon Emission</TableCell>
+                        <TableCell id="crated-date" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Created Date</TableCell>
+                        <TableCell id="updaed-route" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Update/Edit Route</TableCell>
+                        <TableCell id="summary" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Summary</TableCell>
+                        <TableCell id="driver" sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Driver</TableCell>
+                        <TableCell id="assign-driver" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Assign Driver</TableCell>
                     </>
                     )}
 
                 </TableRow>
               </TableHead>
               {Array.isArray(data) && data.length > 0 ? (
-              <TableBody>
+              <TableBody id="table-body">
                 {filteredData
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((item, index) => (
-                  <TableRow key={item.id || index}>
+                  <TableRow id="table-row" key={item.id || index}>
                     {tabIndex === 0 && (
                       <>
-                        <TableCell>{page * rowsPerPage + index + 1}</TableCell>
-                        <TableCell>{item.driver_name}</TableCell>
-                        <TableCell>{item.email}</TableCell>
-                        <TableCell>{item.joining_date}</TableCell>
+                        <TableCell id="sno">{page * rowsPerPage + index + 1}</TableCell>
+                        <TableCell id="driver_name">{item.driver_name}</TableCell>
+                        <TableCell id="driver-email">{item.email}</TableCell>
+                        <TableCell id="driver-joiningdate">{item.joining_date}</TableCell>
                         {/* <TableCell>{item.vehicle_status}</TableCell> */}
                         {/* <TableCell>{item.route_status}</TableCell> */}
                         {/* <TableCell 
@@ -678,31 +710,31 @@ const handleConfirmDelete = () => {
                             ? "Available" 
                             : "Unavailable"}
                         </TableCell> */}
-                        <TableCell>{item.driver_status}</TableCell>
+                        <TableCell id="driver-status">{item.driver_status}</TableCell>
                       </>
 
                     )}
                     {tabIndex === 1 && (
                       <>
-                         <TableCell>{page * rowsPerPage + index + 1}</TableCell>
-                        <TableCell>
+                         <TableCell id="sno">{page * rowsPerPage + index + 1}</TableCell>
+                        <TableCell id="license">
                         <Tooltip title={item.LicenseNo || "No LicenseNo available"} arrow>
                         <span>{item.LicenseNo}</span>
                             {/* <span>{item.VehicleID ? item.VehicleID.slice(-5) : "N/A"}</span> */}
                         </Tooltip>
                         </TableCell>
-                        <TableCell>{item.VehicleType}</TableCell>
-                        <TableCell>{item.FuelType}</TableCell>
-                        <TableCell>{item.ExhaustCO2}</TableCell>
-                        <TableCell>{item.Mileage}</TableCell>
-                        <TableCell>{item.VehicleCapacity}</TableCell>
-                        <TableCell   sx={{
+                        <TableCell id="vehicletype">{item.VehicleType}</TableCell>
+                        <TableCell id="fuelype">{item.FuelType}</TableCell>
+                        <TableCell id="exhaustco2">{item.ExhaustCO2}</TableCell>
+                        <TableCell id="mileage">{item.Mileage}</TableCell>
+                        <TableCell id="vehiclecapacity">{item.VehicleCapacity}</TableCell>
+                        <TableCell  id="status" sx={{
                               color: item["Vehicle Status"] === "In Transit" ? '#7ade7a !important' : '#cf6473 !important',
                               fontWeight: 'bold !important',
                              
                             }}>{item["Vehicle Status"]}</TableCell>
 
-                        <TableCell>
+                        <TableCell id="assigned">
                             {item["Vehicle Status"] === "In Transit" ? "Assigned" : "Not Assigned"}
                           </TableCell>
 
@@ -711,21 +743,21 @@ const handleConfirmDelete = () => {
                     )}
                    {tabIndex === 2 && (
                     <>
-                        <TableCell>{page * rowsPerPage + index + 1}</TableCell>
+                        <TableCell id="sno">{page * rowsPerPage + index + 1}</TableCell>
                         
                         <TableCell>
                         <Tooltip title={item.routeID || "N/A"} arrow>
                             <span>{item.routeID ? item.routeID.slice(-5) : "N/A"}</span>
                         </Tooltip>
-                        </TableCell>
-                        <TableCell>
+                        </TableCell >
+                        <TableCell id="license1">
                         <Tooltip title={item.LicenseNo || "No LicenseNo available"} arrow>
                         <span>{item.LicenseNo}</span>
                             {/* <span>{item.vehicle_id ? item.vehicle_id.slice(-5) : "N/A"}</span> */}
                         </Tooltip>
                         </TableCell>
                         
-                        <TableCell
+                        <TableCell id="origin"
                          sx={{ 
                             minWidth: "80px", // Ensures a minimum width
                             maxWidth: "15vw", // Sets max width relative to viewport
@@ -737,7 +769,7 @@ const handleConfirmDelete = () => {
                               <span>{item.origin}</span>
                             </Tooltip>
                         </TableCell>
-                        <TableCell  sx={{minWidth: "80px", 
+                        <TableCell id="destination" sx={{minWidth: "80px", 
                         maxWidth: "15vw", 
                         whiteSpace: "nowrap",
                         overflow: "hidden",
@@ -747,9 +779,9 @@ const handleConfirmDelete = () => {
                         <span>{item.destination}</span>
                         </Tooltip>
                     </TableCell>
-                        <TableCell>{item.status}</TableCell>
-                        <TableCell>{item.carbon_emission || "N/A"}</TableCell>
-                        <TableCell>{new Date(item.creationDate).toLocaleDateString()}</TableCell>
+                        <TableCell id="status1">{item.status}</TableCell>
+                        <TableCell id="co2_!">{item.carbon_emission || "N/A"}</TableCell>
+                        <TableCell id="createdate1">{new Date(item.creationDate).toLocaleDateString()}</TableCell>
                         <TableCell>
   <Tooltip
     title={
@@ -771,7 +803,7 @@ const handleConfirmDelete = () => {
   </Tooltip>
 </TableCell>
 
-                        <TableCell>
+                        <TableCell id="completed">
                           <Button
                             sx={{ fontSize: "12px" }}
                             onClick={() => handleOpenSummary(item)}
@@ -808,7 +840,7 @@ const handleConfirmDelete = () => {
                       >
                        {item.driver || "Not Assigned"}
                       </TableCell> */}
-                     <TableCell
+                     <TableCell id="selectdriver"
   sx={{
     backgroundColor: item.driver_id ? "#bde2bd" : "#e9a7a78c", // Green if assigned, Red if not
     color: "white", // Ensure text remains visible
@@ -821,7 +853,7 @@ const handleConfirmDelete = () => {
 </TableCell>
 
 
-                        <TableCell>
+                        <TableCell id="assigndriver">
                        {/* <Autocomplete
                             options={availableDrivers.filter((driver) => driver.route_status === "Not Assigned")}
                             getOptionLabel={(option) => option.driver_name || ""}
@@ -912,7 +944,7 @@ const handleConfirmDelete = () => {
     </TableCell>
 
     {/* Snackbar for success messages */}
-    <Snackbar
+    <Snackbar id="snackbar"
       open={snackbar.open}
       autoHideDuration={3000}
       onClose={() => setSnackbar({ ...snackbar, open: false })}
@@ -941,7 +973,7 @@ const handleConfirmDelete = () => {
          )}
          </Paper>
            {/* Pagination */}
-      <TablePagination
+      <TablePagination id="pagination"
         rowsPerPageOptions={[5, 10, 25]}
         component="div"
         count={data.length}
@@ -951,12 +983,12 @@ const handleConfirmDelete = () => {
         onRowsPerPageChange={handleChangeRowsPerPage}
       />
        {/* Confirmation Dialog for Reassignment */}
-    <Dialog open={confirmReassign} onClose={() => setConfirmReassign(false)}>
-      <DialogTitle>Reassign Driver</DialogTitle>
-      <DialogContent>
+    <Dialog id="dialog" open={confirmReassign} onClose={() => setConfirmReassign(false)}>
+      <DialogTitle id="dialog_title">Reassign Driver</DialogTitle>
+      <DialogContent id="dialog_Content">
         Are you sure you want to reassign the driver?
       </DialogContent>
-      <DialogActions>
+      <DialogActions id="dialod_actions">
         <Button onClick={() => setConfirmReassign(false)} color="secondary">
           Cancel
         </Button>
@@ -972,17 +1004,17 @@ const handleConfirmDelete = () => {
       </DialogActions>
     </Dialog>
  
-    <Dialog
+    <Dialog id="open"
   open={openDialog}
   onClose={() => setOpenDialog(false)}
 >
-  <DialogTitle>Confirm Driver Reassignment</DialogTitle>
-  <DialogContent>
-    <DialogContentText>
+  <DialogTitle id="dialog-title">Confirm Driver Reassignment</DialogTitle>
+  <DialogContent id="dialog_content">
+    <DialogContentText id="dialog-text">
       Are you sure you want to Reassign {selectedDriver?.driver_name} to this route?
     </DialogContentText>
   </DialogContent>
-  <DialogActions>
+  <DialogActions id="dialogaction">
     <Button onClick={() => setOpenDialog(false)}>Cancel</Button>
     <Button onClick={handleConfirmAssignment} color="primary">Confirm</Button>
   </DialogActions>
@@ -990,11 +1022,11 @@ const handleConfirmDelete = () => {
 
 
 
-      <Dialog open={open} onClose={() => setOpen(false)}>
-      <DialogTitle>
+      <Dialog id="dialog1" open={open} onClose={() => setOpen(false)}>
+      <DialogTitle id="dialogetitle1">
             {selectedConsignment?.summaryAdded ? "View/Edit Summary" : "Add Consignment Summary"}
         </DialogTitle>
-      <DialogContent>
+      <DialogContent id="dialogecontent">
         {["delayFactor", "rerouteFactor", "accidentFactor", "stockMismatchFactor"].map((field) => (
           <FormControl key={field} fullWidth margin="dense">
             <InputLabel>{field.replace(/([A-Z])/g, " $1").trim()}</InputLabel>
@@ -1027,7 +1059,7 @@ const handleConfirmDelete = () => {
     </Dialog>
 
     {/* pop up Edit/Update Planned Route */}
-   <Dialog
+   <Dialog id="dialog3"
   open={editDialogOpen}
   onClose={() => setEditDialogOpen(false)}
   maxWidth="md"
@@ -1040,7 +1072,7 @@ const handleConfirmDelete = () => {
     }
   }}
 >
-  <DialogTitle
+  <DialogTitle id="dialogtitle3"
     sx={{
       bgcolor: '#5e87b0;',
       color: 'white',
@@ -1071,7 +1103,7 @@ const handleConfirmDelete = () => {
     </IconButton>
   </DialogTitle>
 
-  <DialogContent sx={{ py: 1, px: 2 }}>
+  <DialogContent  id="dialog-content3" sx={{ py: 1, px: 2 }}>
     {editedRoute?.stop_demands?.length > 0 ? (
       <Box>
         <Typography variant="subtitle2" fontWeight={500} mb={1} color="text.secondary">
@@ -1150,7 +1182,7 @@ const handleConfirmDelete = () => {
                     ),
                   }}
                 />
-                 <IconButton
+                 <IconButton id="deletestop"
           color="error"
           onClick={() => handleDeleteClick(index, stop)}
           size="small"
@@ -1168,8 +1200,8 @@ const handleConfirmDelete = () => {
           ))}
         </Box>
 
-        <Box mt={1} display="flex" justifyContent="flex-end">
-          <Button
+        <Box mt={1} display="flex" justifyContent="flex-end" id="handlestop">
+          <Button id="addstop"
             variant="outlined"
             startIcon={<AddLocationIcon sx={{ fontSize: '1rem' }} />}
             onClick={handleAddStop}
@@ -1181,7 +1213,7 @@ const handleConfirmDelete = () => {
         </Box>
       </Box>
     ) : (
-      <Box
+      <Box id="center"
         textAlign="center"
         py={2}
         sx={{
@@ -1190,13 +1222,13 @@ const handleConfirmDelete = () => {
           borderRadius: 1
         }}
       >
-        <Box sx={{ fontSize: '2rem', color: 'text.disabled', mb: 0.5 }}>
+        <Box sx={{ fontSize: '2rem', color: 'text.disabled', mb: 0.5 }} id="points">
           <LocationOffIcon fontSize="inherit" />
         </Box>
         <Typography variant="body2" color="text.secondary" mb={1}>
           No stop points configured
         </Typography>
-        <Button
+        <Button id="add"
           variant="contained"
           startIcon={<AddLocationIcon sx={{ fontSize: '1rem' }} />}
           onClick={handleAddStop}
@@ -1213,8 +1245,8 @@ const handleConfirmDelete = () => {
     )}
   </DialogContent>
 
-  <DialogActions sx={{ px: 2, py: 1, borderTop: '1px solid', borderColor: 'divider' }}>
-    <Button
+  <DialogActions  id="dialogactions4" sx={{ px: 2, py: 1, borderTop: '1px solid', borderColor: 'divider' }}>
+    <Button id="open4"
       onClick={() => setEditDialogOpen(false)}
       variant="outlined"
       size="small"
@@ -1227,7 +1259,7 @@ const handleConfirmDelete = () => {
     >
       Cancel
     </Button>
-    <Button
+    <Button id="update4"
       variant="contained"
       onClick={handleUpdateRoute}
       startIcon={<SaveIcon sx={{ fontSize: '1rem' }} />}
@@ -1246,22 +1278,22 @@ const handleConfirmDelete = () => {
   </DialogActions>
 </Dialog>
      {/* Confirmation Dialog */}
-     <Dialog
+     <Dialog id="confirmdialog"
     open={confirmOpen}
     onClose={() => setConfirmOpen(false)}
     maxWidth="xs"
     fullWidth
     PaperProps={{ sx: { borderRadius: 1 } }}
   >
-    <DialogTitle sx={{ fontSize: '1rem', py: 1.5, fontWeight: 500 }}>
+    <DialogTitle sx={{ fontSize: '1rem', py: 1.5, fontWeight: 500 }} id="confirmtitle">
       Confirm Stop Deletion
     </DialogTitle>
-    <DialogContent sx={{ py: 1 }}>
+    <DialogContent sx={{ py: 1 }} id="confirmcontent">
       <Typography variant="body2">
         Are you sure you want to delete <strong>{stopToDelete?.name || 'this stop'}</strong>?
       </Typography>
     </DialogContent>
-    <DialogActions sx={{ px: 2, py: 1 }}>
+    <DialogActions sx={{ px: 2, py: 1 }} id="confirmactions">
       <Button
         onClick={() => setConfirmOpen(false)}
         size="small"
@@ -1269,7 +1301,7 @@ const handleConfirmDelete = () => {
       >
         Cancel
       </Button>
-      <Button
+      <Button id="confirmdelete"
         onClick={handleConfirmDelete}
         color="error"
         variant="contained"
