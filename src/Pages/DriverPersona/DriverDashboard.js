@@ -16,7 +16,7 @@ import NavBar from "../../Components/NavBar";
 import Breadcrumbs2 from "./Breadcrumbs2";
 // Import video
 //import GlobeVideo from '../Assets/videos/globe.mp4';
-
+import { GiSteeringWheel } from 'react-icons/gi';
 
 const DriverDashboard = () => {
   const navigate = useNavigate();

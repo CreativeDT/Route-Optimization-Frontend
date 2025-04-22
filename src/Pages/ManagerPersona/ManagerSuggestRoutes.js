@@ -58,6 +58,7 @@ import Select from "react-select";
 
 import "../../App.css";
 import Breadcrumbs1 from "./Breadcrumbs1";
+import ChatBot from "../ChatBot";
 const ManagerSuggestRoutes = () => {
   // const [startDate, setStartDate] = useState(null);
   // const [endDate, setEndDate] = useState(null);
@@ -78,7 +79,7 @@ const ManagerSuggestRoutes = () => {
   const [vehicles, setVehicles] = useState([]);
   const [riskFactors, setRiskFactors] = useState({});
   const [selectedVehicle, setSelectedVehicle] = useState(null);
-  const [preloadedDemand, setPreloadedDemand] = useState(2000);
+  const [preloadedDemand, setPreloadedDemand] = useState(20);
   const [suggestedRoutes, setSuggestedRoutes] = useState([]);
   const [selectedRouteIndex, setSelectedRouteIndex] = useState(null); // Track the selected route
   const [routeIDS, setRouteIDS] = useState(null); // Store route details from API
@@ -1765,7 +1766,7 @@ const isSubmitDisabled = useMemo(() => {
               </div>
               <StyledTextField
                 inputRef={preloadedDemandRef}
-                label="Preloaded Demand kgs "
+                label="Preloaded Demand tones "
                 type="number"
                 value={preloadedDemand}
                 onChange={handlePreloadedDemandChange}
@@ -1883,6 +1884,7 @@ const isSubmitDisabled = useMemo(() => {
             
            <Tabs
     value={selectedTab}
+     variant="fullWidth"
     onChange={(e, newValue) => setSelectedTab(newValue)}
     sx={{ borderBottom: 1, borderColor: "divider", backgroundColor: "#f5f5f5" }}
   >
@@ -1955,9 +1957,9 @@ const isSubmitDisabled = useMemo(() => {
                         <TableCell>Select</TableCell>
                         <TableCell>Route </TableCell>
                         <TableCell>Waypoints</TableCell>
-                        <TableCell>Distance (km)</TableCell>
+                        <TableCell>Distance (miles))</TableCell>
                         <TableCell>Duration (hrs)</TableCell>
-                        <TableCell>Carbon Emission (kg)</TableCell>
+                        <TableCell>Carbon Emission (lbs)</TableCell>
                         <TableCell>Fuel Consumption (liters)</TableCell>
                         <TableCell>Vehicle Type</TableCell>
                         <TableCell>Fuel Type</TableCell>
@@ -2030,6 +2032,8 @@ const isSubmitDisabled = useMemo(() => {
     </Box>
   )}
           </Box>
+          <ChatBot />
+
         </Stack>
         {/* </Container> */}
       </Box>

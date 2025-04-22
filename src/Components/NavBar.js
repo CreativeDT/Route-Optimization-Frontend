@@ -1,6 +1,8 @@
 // NavBar.js
 import React, { useContext, useState, useRef, useEffect } from 'react';
-import { FaUser, FaBell, FaCog, FaHome, FaTruckMoving, FaUserShield,FaUserTie,FaUserCog } from 'react-icons/fa';
+import { FaUser, FaBell, FaCog, FaHome, FaTruckMoving,FaUserShield,FaUserTie,FaUserCog } from 'react-icons/fa';
+import { GiSteeringWheel } from 'react-icons/gi';
+
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography ,Badge} from "@mui/material";
 import Menu from './Menu';
@@ -100,7 +102,7 @@ const NavBar = () => {
               };
           case 'driver':
               return {
-                  icon: <FaTruckMoving className="role-icon" />,
+                  icon: <GiSteeringWheel   className="role-icon" />,
                   label: "Driver",
                   color: "#3498db",
                   bgColor: "rgba(52, 152, 219, 0.1)",

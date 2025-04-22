@@ -1,15 +1,15 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useEffect, useState, useContext ,useMemo} from "react";
 import {
   Container,
   Typography,
   CircularProgress,
   Table,
   TableBody,
-  TableCell,
+  TableCell,TextField,
   TableContainer,
   TableHead,
-  TableRow,
-  Paper,Box,
+  TableRow,Tooltip,
+  Paper,Box,TablePagination,
   Alert,Select, MenuItem ,
   Switch,
 } from "@mui/material";
@@ -17,9 +17,11 @@ import axios from "axios";
 import { AuthContext } from "../../Context/AuthContext";
 import "./Table.css"; 
 import NavBar from "../../Components/NavBar";
-
+import { GiSteeringWheel } from 'react-icons/gi';
 import config from "../../config";
 import Breadcrumbs2 from "./Breadcrumbs2";
+import { faMapMarkerAlt, faFlagCheckered } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const DriverFleetDetails = () => {
   const [consignments, setConsignments] = useState([]);
@@ -27,6 +29,10 @@ const DriverFleetDetails = () => {
   const [error, setError] = useState(null);
   const { user } = useContext(AuthContext);
   const token = localStorage.getItem("token");
+  const [searchTerm, setSearchTerm] = useState('');
+  const [page, setPage] = useState(0);
+   const [rowsPerPage, setRowsPerPage] = useState(5);
+
   const tableHeadStyles = {
     position: "sticky",
     top: 0,
@@ -139,13 +145,47 @@ const DriverFleetDetails = () => {
       setError("Failed to update route status.");
     }
   };
+  const filteredConsignments = useMemo(() => {
+    return consignments.filter((consignment) =>
+      Object.values(consignment)
+        .join(' ')
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase())
+    );
+  }, [searchTerm, consignments]);
+  
+  const paginatedConsignments = useMemo(() => {
+    const start = page * rowsPerPage;
+    const end = start + rowsPerPage;
+    return filteredConsignments.slice(start, end);
+  }, [filteredConsignments, page, rowsPerPage]);
+  useEffect(() => {
+    setPage(0);
+  }, [searchTerm]);
   
   return (
     <>
       <NavBar />
       <Breadcrumbs2 />
-      <Box fullWidth>
-        <Typography variant="h6">Driver Fleet Details</Typography>
+      <Paper  id="paper" sx={{ border: "1px solid  #e0e0e0", margin: "auto",padding:2 }}>
+      <Box className="filter-container" id="filter-container">
+           <Box sx={{display:'flex',gap:1, 
+           justifyContent: "space-between",
+          alignItems: "center",
+          width: "100%",
+          flexWrap: "wrap",}} id="box">
+     <Typography variant="h6">    <GiSteeringWheel  className="role-icon" />Driver Fleet Details</Typography>
+     <TextField
+          label="Search"
+          variant="outlined"
+          size="small"
+          sx={{ minWidth: 250 }}
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+         
+        />
+</Box>
+        
         {loading ? (
           <CircularProgress />
         ) : error ? (
@@ -157,18 +197,29 @@ const DriverFleetDetails = () => {
                 <TableRow sx={tableHeadStyles}>
                   <TableCell sx={tableCellStyles}>Route ID</TableCell>
                   <TableCell sx={tableCellStyles}>Vehicle ID</TableCell>
-                  <TableCell sx={tableCellStyles}>Origin</TableCell>
-                  <TableCell sx={tableCellStyles}>Destination</TableCell>
+                  <TableCell sx={tableCellStyles}>
+                    <FontAwesomeIcon icon={faMapMarkerAlt} style={{ marginRight: 6 }} />Origin</TableCell>
+                  <TableCell sx={tableCellStyles}>
+                    <FontAwesomeIcon icon={faFlagCheckered} style={{ marginRight: 6 }} />Destination</TableCell>
                   <TableCell sx={tableCellStyles}>Status</TableCell>
-                  <TableCell sx={tableCellStyles}>Carbon Emission</TableCell>
+                  <TableCell sx={tableCellStyles}>Carbon Emission(lbs)</TableCell>
                   <TableCell sx={tableCellStyles}>Created Date</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {consignments.map((consignment) => (
+                {/* {consignments.map((consignment) => ( */}
+                {paginatedConsignments.map((consignment) => (
+
                   <TableRow key={consignment.routeID}>
-                    <TableCell>{consignment.routeID}</TableCell>
-                    <TableCell>{consignment.vehicle_id}</TableCell>
+                    <TableCell>
+                        <Tooltip title={consignment.routeID || "No routeid available"} arrow>
+                      <span>{consignment.routeID ? consignment.routeID.slice(-5) : "N/A"}</span></Tooltip>
+                      </TableCell>
+                    <TableCell>
+                    <Tooltip title={consignment.vehicle_id || "No routeid available"} arrow>
+                    <span>{consignment.vehicle_id ? consignment.vehicle_id.slice(-5) : "N/A"}</span></Tooltip>
+
+                    </TableCell>
                     <TableCell>{consignment.origin}</TableCell>
                     <TableCell>{consignment.destination}</TableCell>
                     {/* <TableCell>
@@ -224,11 +275,25 @@ const DriverFleetDetails = () => {
                 ))}
               </TableBody>
             </Table>
+            <TablePagination
+  component="div"
+  count={filteredConsignments.length}
+  page={page}
+  onPageChange={(event, newPage) => setPage(newPage)}
+  rowsPerPage={rowsPerPage}
+  onRowsPerPageChange={(event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0); // Reset to first page
+  }}
+  rowsPerPageOptions={[5, 10, 25]}
+/>
+
           </TableContainer>
         ) : (
           <Typography>No consignments found.</Typography>
         )}
       </Box>
+      </Paper>
     </>
   );
 };

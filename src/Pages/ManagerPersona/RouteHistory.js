@@ -54,11 +54,11 @@ const RouteHistory = ({ onLoadRoute }) => {
 
   return (
     <Paper elevation={0} sx={{ 
-      height: '80%',
+      // height: '100%',
       display: 'flex',
       flexDirection: 'column',
       p: 1,
-      borderRadius: 2
+       borderRadius: 2
     }}>
       <Box sx={{ 
         display: 'flex',
@@ -81,8 +81,10 @@ const RouteHistory = ({ onLoadRoute }) => {
           No saved routes found
         </Typography>
       ) : (
-        <List dense sx={{ overflowY: 'auto', flex: 1 }}>
-          {plannedRoutes.map((route) => (
+        <List dense sx={{ flex: 1 }}>
+        {[...plannedRoutes]
+          .sort((a, b) => new Date(b.start_date) - new Date(a.start_date))
+          .map((route) => (
             <React.Fragment key={route.route_id}>
               <ListItem sx={{ 
                 flexDirection: 'column',
@@ -92,7 +94,7 @@ const RouteHistory = ({ onLoadRoute }) => {
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.5 }}>
                   <CircleIcon sx={{ fontSize: 8, mr: 1, color: 'text.secondary' }} />
                   <Typography variant="body2" color="text.secondary">
-                    {new Date(route.created_at).toLocaleDateString()} • {new Date(route.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {new Date(route.start_date).toLocaleDateString()}
                   </Typography>
                 </Box>
                 
@@ -100,18 +102,19 @@ const RouteHistory = ({ onLoadRoute }) => {
                   {route.origin} → {route.destination}
                 </Typography>
 
-                <Box sx={{ ml: 2, width: '100%' }}>
+                <Box sx={{ ml: 2, width: '95%' }}>
                   {route.stop_demands?.map((stop, index) => (
                     <Stack 
                       key={index}
                       direction="row" 
                       spacing={1}
                       alignItems="center"
+                     
                       sx={{ 
                         mb: 1,
-                        p: 1,
+                        // p: 1,
                         borderRadius: 1,
-                        bgcolor: 'action.hover'
+                        bgcolor: 'action.hover',fontSize:'10px'
                       }}
                     >
                       <LocationIcon color="primary" fontSize="small" />
@@ -145,7 +148,7 @@ const RouteHistory = ({ onLoadRoute }) => {
                   <Tooltip title="Load route">
                     <IconButton
                       size="small"
-                      onClick={() => onLoadRoute(route)}
+                      // onClick={() => onLoadRoute(route)}
                       color="primary"
                     >
                       <DirectionsIcon fontSize="small" />

@@ -1004,12 +1004,12 @@ const AdminAdministration = () => {
                       <TableCell  id="vehicle-co2"
                         sx={{ color: "white", borderRight: "1px solid #bbb" }}
                       >
-                        CO2 Emissions(g/mile)
+                        CO2 Emissions(lbs)
                       </TableCell>
                       <TableCell id="vehicle-mileage"
                         sx={{ color: "white", borderRight: "1px solid #bbb" }}
                       >
-                        Mileage(km/l)
+                        Mileage(miles)
                       </TableCell>
                       <TableCell id="vehicle-capacity"
                         sx={{ color: "white", borderRight: "1px solid #bbb" }}
@@ -1521,7 +1521,7 @@ const AdminAdministration = () => {
                 </MenuItem>
               </Select>
             </FormControl>
-            <FormControl fullWidth size="small" sx={{ mb: 2.5 }}>
+            {/* <FormControl fullWidth size="small" sx={{ mb: 2.5 }}>
               <InputLabel
                 sx={{ transform: "translate(14px, -9px) scale(0.75)" }}
               >
@@ -1550,7 +1550,7 @@ const AdminAdministration = () => {
                   </Box>
                 </MenuItem>
               </Select>
-            </FormControl>
+            </FormControl> */}
 
             {/* Fuel Type */}
             <FormControl fullWidth size="small" sx={{ mb: 2.5 }}>
@@ -1591,19 +1591,14 @@ const AdminAdministration = () => {
               type="number"
               value={
                 newVehicle.ExhaustCO2
-                  ? (parseFloat(newVehicle.ExhaustCO2) * 1.60934).toFixed(2)
-                  : ""
+                
               }
               onChange={(e) => {
-                const value = e.target.value;
-                if (/^\d*\.?\d*$/.test(value)) {
-                  setNewVehicle({
-                    ...newVehicle,
-                    ExhaustCO2: value
-                      ? (parseFloat(value) / 1.60934).toFixed(2)
-                      : "",
-                  });
-                }
+                // just store exactly what the user typed
+                setNewVehicle(prev => ({
+                  ...prev,
+                  ExhaustCO2: e.target.value
+                }));
               }}
               InputProps={{
                 endAdornment: (
@@ -1624,19 +1619,14 @@ const AdminAdministration = () => {
               type="number"
               value={
                 newVehicle.Mileage
-                  ? (2.3521458 / parseFloat(newVehicle.Mileage)).toFixed(1)
-                  : ""
+                  
               }
               onChange={(e) => {
-                const value = e.target.value;
-                if (/^\d*\.?\d*$/.test(value)) {
-                  setNewVehicle({
-                    ...newVehicle,
-                    Mileage: value
-                      ? (2.3521458 / parseFloat(value)).toFixed(4)
-                      : "",
-                  });
-                }
+                // just store exactly what the user typed
+                setNewVehicle((prev) => ({
+                  ...prev,
+                  Mileage: e.target.value,
+                }));
               }}
               InputProps={{
                 endAdornment: (
@@ -1655,44 +1645,42 @@ const AdminAdministration = () => {
               variant="outlined"
               sx={{ mb: 2.5 }}
               type="number"
-              value={
-                newVehicle.VehicleCapacity
-                  ? (parseFloat(newVehicle.VehicleCapacity) * 2.20462).toFixed(
-                      0
-                    )
-                  : ""
-              }
+              value={newVehicle.VehicleCapacity || ""}
               onChange={(e) => {
-                const value = e.target.value;
-                if (/^\d*\.?\d*$/.test(value)) {
-                  const numericValue =
-                    value === "" ? "" : parseFloat(value) / 2.20462;
-                  setNewVehicle({
-                    ...newVehicle,
-                    VehicleCapacity: numericValue,
-                    VehicleType: getVehicleType(numericValue),
-                  });
+                const raw = e.target.value;
+                const tons = raw === "" ? "" : parseFloat(raw);
+              
+                if (tons === "" || (tons >= 3 && tons <= 40)) {
+                  setNewVehicle((prev) => ({
+                    ...prev,
+                    VehicleCapacity: tons,
+                    VehicleType:
+                      typeof tons === "number"
+                        ? tons <= 15
+                          ? "Light-duty trucks"
+                          : "Heavy-duty trucks"
+                        : "",
+                  }));
                 }
               }}
-              helperText={
-                <Box
-                  component="span"
-                  display="flex"
-                  alignItems="center"
-                  gap={1}
-                >
-                  <InfoIcon color="info" fontSize="small" />
-                  Light-duty: ≤ 33,069 lbs, Heavy-duty: > 33,069 lbs
-                </Box>
-              }
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <Scale />
-                  </InputAdornment>
-                ),
-              }}
-            />
+              inputProps={{ min: 3, max: 40, step: 1 }}
+  helperText={
+    <Box component="span" display="flex" alignItems="center" gap={1}>
+      <InfoIcon color="info" fontSize="small" />
+      3–15 t =&gt; Light‑duty | 16–40 t =&gt; Heavy‑duty
+    </Box>
+  }
+  InputProps={{
+    endAdornment: (
+      <InputAdornment position="end">
+        <Scale />
+      </InputAdornment>
+    ),
+  }}
+  FormHelperTextProps={{
+    sx: { fontSize: "0.75rem", mt: 0.5 }
+  }}
+/>
 
             {/* License Plate */}
             <TextField

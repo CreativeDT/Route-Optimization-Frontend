@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import { FaSearch } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import './Menu.css';
-
+import { useContext } from 'react';
+import { AuthContext } from '../Context/AuthContext';
 import routeIcon from '../Assets/images/road-map.png';
 import trackingIcon from '../Assets/images/tracking.png';
 import analyticsIcon from '../Assets/images/analysis.png';
 import adminIcon from '../Assets/images/admin.png';
 import userIcon from '../Assets/images/user_details.png';
 import vehicleIcon from '../Assets/images/vehicle_detail.png';
+import { FaTimes } from 'react-icons/fa'; // or FaArrowLeft
+import { HiOutlineArrowLeft } from "react-icons/hi";
 // import fleetIcon from '../Assets/images/fleet-icon.png';
 
 const Menu = () => {
@@ -22,6 +25,9 @@ const Menu = () => {
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
+ 
+const { user } = useContext(AuthContext);
+const userRole = user?.user_role;
 
   return (
     <div className="menu-container">
@@ -34,6 +40,9 @@ const Menu = () => {
       </div>
 
       <div className={`sidebar ${isMenuOpen ? 'open' : ''}`}>
+      <div className="sidebar-header">
+    <HiOutlineArrowLeft className="close-icon" onClick={handleMenuToggle} />
+  </div>
         {/* <h2 className="menu-title" style={{ textAlign: '-webkit-auto', fontSize: '19px', fontWeight: 'bold', borderBottom: '2px  #34495e', color: '#34495e' }}>Menu</h2> */}
 
         {/* <div className="search-container">
@@ -52,6 +61,12 @@ const Menu = () => {
             <img src={routeIcon} alt="Route Planning" className="icon-image" />
             <span>Route Planning</span>
           </Link> */}
+          {userRole === "manager" && (
+            <Link to="/route-planning" className="tile1">
+              <img src={routeIcon} alt="Route Planning" className="icon-image" />
+              <span>Route Planning</span>
+            </Link>
+          )}
 
           <Link to="/route-tracking" className="tile1">
             <img src={trackingIcon} alt="Route Tracking" className="icon-image" />

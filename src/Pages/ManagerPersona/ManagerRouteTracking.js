@@ -217,10 +217,10 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
               <Polyline
                   positions={coordinates.map(coord => [coord[1], coord[0]])}
                   color="blue"
-                  weight={5}
+                  weight={1}
                   eventHandlers={{
-                      mouseover: (e) => e.target.setStyle({ weight: 8, color: "#1e3a8a" }),
-                      mouseout: (e) => e.target.setStyle({ weight: 5, color: "#3b82f6" }),
+                      mouseover: (e) => e.target.setStyle({ weight: 1, color: "#1e3a8a" }),
+                      mouseout: (e) => e.target.setStyle({ weight: 1, color: "#3b82f6" }),
                   }}
               >
                   <Tooltip direction="top" offset={[0, -10]} opacity={1}>
@@ -480,7 +480,7 @@ const RouteTracking = () => {
           const coordsStr = trackedHistory.routes[0].route_coordinates;
           console.log("coordsStr:",coordsStr)
           try {
-            route.actual_coordinates = JSON.parse(coordsStr); // convert string to array
+            route.actual_coordinates=coordsStr
           } catch (error) {
             console.error("Failed to parse actual coordinates:", error);
             route.actual_coordinates = [];

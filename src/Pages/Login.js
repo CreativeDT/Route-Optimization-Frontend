@@ -32,6 +32,11 @@ const handleTogglePassword = () => {
 };
   let timeoutRef = useRef(null);
   useEffect(() => {
+    const handleSessionTimeout = () => {
+      setSessionExpired(true);
+      logout(); // Clear authentication
+      navigate("/sessionexpired"); // Redirect to login page
+    };
     const resetTimer = () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => {
@@ -42,11 +47,7 @@ const handleTogglePassword = () => {
     resetTimer(); // Start timer
 
   
-    const handleSessionTimeout = () => {
-      setSessionExpired(true);
-      logout(); // Clear authentication
-      navigate("/sessionexpired"); // Redirect to login page
-    };
+    
 
     resetTimer(); // Initialize timer on login
      // Listen for user activity to reset the timer

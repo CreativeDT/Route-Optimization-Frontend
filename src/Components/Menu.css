@@ -99,3 +99,19 @@
   background-color: rgba(0, 0, 0, 0.3);
   z-index: 999;
 }
+.sidebar-header {
+  display: flex;
+  justify-content: flex-end;
+  padding: 10px;
+}
+
+.close-icon {
+  font-size: 20px;
+  cursor: pointer;
+  color: #333;
+  transition: color 0.2s;
+}
+
+.close-icon:hover {
+  color: #ff4d4d;
+}

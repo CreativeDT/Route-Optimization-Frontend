@@ -9,6 +9,8 @@ import {
     InputAdornment
 } from "@mui/material";
 import { FormControl } from "@mui/material";
+import { faMapMarkerAlt, faFlagCheckered } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 import { NavLink } from "react-router-dom";
 import NavBar from "../../Components/NavBar";
@@ -221,7 +223,7 @@ useEffect(() => {
       rerouteFactor: consignment.summary?.rerouteFactor || "",
       accidentFactor: consignment.summary?.accidentFactor || "",
       stockMismatchFactor: consignment.summary?.stockMismatchFactor || "",
-      editedDate: consignment.summary?.editedDate || new Date().toISOString().split("T")[0], // Default to today if no date exists
+      // editedDate: consignment.summary?.editedDate || new Date().toISOString().split("T")[0], // Default to today if no date exists
     });
   
     // Check if the user is a manager
@@ -236,34 +238,60 @@ useEffect(() => {
     setSummary((prevSummary) => ({
       ...prevSummary,
       [name]: value,
-      editedDate: new Date().toISOString().split("T")[0], // Update date on edit
+      // editedDate: new Date().toISOString().split("T")[0], // Update date on edit
     }));
   };
   
+  // const handleSubmit = async () => {
+  //   if (!selectedConsignment) return;
+  
+  //   try {
+  //     const token = localStorage.getItem("token");
+  //     const response = await axios.post(
+  //       `${config.API_BASE_URL}/updateSummary`,
+  //       {
+  //         consignmentId: selectedConsignment.id,
+  //         summary,
+  //       },
+  //       {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       }
+  //     );
+  
+  //     alert("Summary updated successfully.");
+  //     setOpen(false);
+  //     fetchData(); // Refresh data after update
+  //   } catch (error) {
+  //     console.error("Error updating summary:", error);
+  //     alert("Failed to update summary.");
+  //   }
+  // };
   const handleSubmit = async () => {
     if (!selectedConsignment) return;
   
+    const payload = {
+      routeID: selectedConsignment.routeID,
+      status: selectedConsignment.status,
+      summary: summary   // this is your [{ summary, impact }, …] array
+    };
+  
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.post(
-        `${config.API_BASE_URL}/updateSummary`,
-        {
-          consignmentId: selectedConsignment.id,
-          summary,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+      await axios.post(
+        `${config.API_BASE_URL}/updateStatus`,
+        payload,
+        { headers: { Authorization: `Bearer ${token}` } }
       );
   
       alert("Summary updated successfully.");
       setOpen(false);
-      fetchData(); // Refresh data after update
-    } catch (error) {
-      console.error("Error updating summary:", error);
+      fetchData(); // reload your table
+    } catch (err) {
+      console.error("Error updating summary:", err);
       alert("Failed to update summary.");
     }
   };
+  
   
 //   const handleOpenAssignDialog = (routeId) => {
 //     setSelectedRoute(routeId);
@@ -657,9 +685,9 @@ const handleConfirmDelete = () => {
                       <TableCell id="vehicle-licenseno" sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Vehicle LicenseNo</TableCell>
                       <TableCell id="vehicle-name" sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Vehicle Name</TableCell>
                       <TableCell id="vehicle-fueltype" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Fuel Type</TableCell>
-                      <TableCell  id="vehicle-co2"sx={{ color: "white" , borderRight: "1px solid #bbb" }}>ExhaustCo2</TableCell>
-                      <TableCell id="vehicle-mileage" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Mileage</TableCell>
-                      <TableCell id="vehicle-capacity" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Vehicle Capacity</TableCell>
+                      <TableCell  id="vehicle-co2"sx={{ color: "white" , borderRight: "1px solid #bbb" }}>ExhaustCo2(lbs)</TableCell>
+                      <TableCell id="vehicle-mileage" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Mileage(miles)</TableCell>
+                      <TableCell id="vehicle-capacity" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Vehicle Capacity(tones)</TableCell>
                       <TableCell id="vehicle-status" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Vehicle Status</TableCell>
                       <TableCell id="vehicle-assigndriver" sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Assigned Driver</TableCell>
                     </>
@@ -670,10 +698,12 @@ const handleConfirmDelete = () => {
                         <TableCell id="routeid" sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Route ID</TableCell>
                         <TableCell id="vehicle-licenseno" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Vehicle LicenseNo</TableCell>
                        
-                        <TableCell id="origin" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Origin</TableCell>
-                        <TableCell id="destination" sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Destination</TableCell>
+                        <TableCell id="origin" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>
+                          <FontAwesomeIcon icon={faMapMarkerAlt} style={{ marginRight: 6 }} />Origin</TableCell>
+                        <TableCell id="destination" sx={{ color: "white", borderRight: "1px solid #bbb"  }}>
+                        <FontAwesomeIcon icon={faFlagCheckered} style={{ marginRight: 6 }} /> Destination</TableCell>
                         <TableCell id="status" sx={{ color: "white", borderRight: "1px solid #bbb"  }}>Status</TableCell>
-                        <TableCell id="co2" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Carbon Emission</TableCell>
+                        <TableCell id="co2" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Carbon Emission(lbs)</TableCell>
                         <TableCell id="crated-date" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Created Date</TableCell>
                         <TableCell id="updaed-route" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Update/Edit Route</TableCell>
                         <TableCell id="summary" sx={{ color: "white" , borderRight: "1px solid #bbb" }}>Summary</TableCell>
@@ -687,6 +717,7 @@ const handleConfirmDelete = () => {
               {Array.isArray(data) && data.length > 0 ? (
               <TableBody id="table-body">
                 {filteredData
+                  .sort((a, b) => new Date(b.joining_date) - new Date(a.joining_date))
                 .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                 .map((item, index) => (
                   <TableRow id="table-row" key={item.id || index}>
@@ -710,7 +741,11 @@ const handleConfirmDelete = () => {
                             ? "Available" 
                             : "Unavailable"}
                         </TableCell> */}
-                        <TableCell id="driver-status">{item.driver_status}</TableCell>
+                        <TableCell id="driver-status" sx={{
+                              color: item.driver_status === "In Transit" ?'#cf6473  !important' : '#7ade7a !important',
+                              fontWeight: 'bold !important',
+                             
+                            }}>{item.driver_status}</TableCell>
                       </>
 
                     )}
@@ -1034,7 +1069,7 @@ const handleConfirmDelete = () => {
           name={field}
           value={summary[field]}
           onChange={handleChange}
-          disabled={!isManager} // Only managers can edit
+          // disabled={!isManager} // Only managers can edit
         >
               <MenuItem value="low">Low</MenuItem>
               <MenuItem value="medium">Medium</MenuItem>
@@ -1043,18 +1078,18 @@ const handleConfirmDelete = () => {
           </FormControl>
         ))}
          {/* Date Field (Read-Only) */}
-    <TextField
+    {/* <TextField
       fullWidth
       margin="dense"
       label="Last Edited Date"
       type="date"
       value={summary.editedDate}
       InputProps={{ readOnly: true }}
-    />
+    /> */}
       </DialogContent>
       <DialogActions>
     <Button onClick={() => setOpen(false)} color="secondary">Close</Button>
-    {isManager && <Button onClick={handleSubmit} color="primary">Save</Button>}
+    { <Button onClick={handleSubmit} color="primary">Save</Button>}
   </DialogActions>
     </Dialog>
 
@@ -1151,7 +1186,7 @@ const handleConfirmDelete = () => {
                   size="small"
                   sx={{ width: 120 }}
                   InputProps={{
-                    endAdornment: <InputAdornment position="end">units</InputAdornment>,
+                    endAdornment: <InputAdornment position="end">tones</InputAdornment>,
                   }}
                 />
                 <TextField
@@ -1163,7 +1198,7 @@ const handleConfirmDelete = () => {
                   size="small"
                   sx={{ width: 120 }}
                   InputProps={{
-                    endAdornment: <InputAdornment position="end">units</InputAdornment>,
+                    endAdornment: <InputAdornment position="end">tones</InputAdornment>,
                   }}
                 />
                 <TextField
@@ -1182,19 +1217,17 @@ const handleConfirmDelete = () => {
                     ),
                   }}
                 />
-                 <IconButton id="deletestop"
-          color="error"
-          onClick={() => handleDeleteClick(index, stop)}
-          size="small"
-          sx={{
-            position: 'absolute',
-            right: 8,
-            top: 8,
-            '&:hover': { bgcolor: 'error.light' }
-          }}
-        >
-          <DeleteOutlineIcon sx={{ fontSize: '1.1rem' }} />
-        </IconButton>
+                <IconButton id="deletestop"
+  color="error"
+  onClick={() => handleDeleteClick(index, stop)}
+  size="small"
+  sx={{
+    ml: 'auto',
+    '&:hover': { bgcolor: 'error.light' }
+  }}
+>
+  <DeleteOutlineIcon sx={{ fontSize: '1.1rem' }} />
+</IconButton>
               </Box>
             </Paper>
           ))}
