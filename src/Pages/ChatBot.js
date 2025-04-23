@@ -146,12 +146,12 @@ const ChatBot = () => {
           }}>
             <Box sx={{
               bgcolor: "primary.main",
-              color: "white",
+              color: "black",
               p: 1.5,
               borderRadius: "18px 18px 4px 18px",
               maxWidth: "100%",
-              boxShadow: "0 2px 8px rgba(99, 102, 241, 0.2)",
-              background: "linear-gradient(135deg, #6366f1 0%, #818cf8 100%)",
+              border:"1px solid #a8bc7b",
+              background: "#a8bc7b5e",
               wordBreak: 'break-word'
             }}>
               <Typography variant="body1" sx={{ fontSize: '0.875rem' }}>{msg.message}</Typography>
@@ -189,23 +189,23 @@ const ChatBot = () => {
               <Avatar sx={{ 
                 width: 32, 
                 height: 32, 
-                bgcolor: 'secondary.main',
+                bgcolor: "#a8bc7b",
                 '& svg': { fontSize: '1rem' }
               }}>
                 <BotIcon />
               </Avatar>
               <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>AI Assistant</Typography>
-              <Chip 
+              {/* <Chip 
                 label="Online" 
                 size="small" 
-                color="success" 
+                color="#a8bc7b"
                 sx={{ 
                   height: 18,
                   fontSize: '0.65rem',
                   ml: 'auto',
                   '& .MuiChip-label': { px: 0.75 }
                 }} 
-              />
+              /> */}
             </Box>
             
             <Divider sx={{ mb: 2, opacity: 0.5 }} />
@@ -216,9 +216,10 @@ const ChatBot = () => {
             
             <List dense sx={{ p: 0 }}>
               {[
-                { icon: <RouteIcon />, text: "Plan a route", color: "primary" },
-                { icon: <FleetIcon />, text: "Get fleet status", color: "secondary" },
-                { icon: <UpdateIcon />, text: "Update fleet status", color: "info" },
+                { icon: <RouteIcon color="primary" />, text: "Plan a route" },
+                { icon: <FleetIcon color="success" />, text: "Get fleet status" },
+                { icon: <UpdateIcon color="info" />, text: "Update fleet status" },
+                
               
                 // { icon: <HelpIcon />, text: "Get help", color: "error" }
               ].map((item, index) => (
@@ -264,16 +265,16 @@ const ChatBot = () => {
           maxWidth: '90%'
         }}>
           <Avatar sx={{ 
-            width: 32, 
-            height: 32, 
-            bgcolor: 'secondary.main',
+            width: 20, 
+            height: 20, 
+            bgcolor: '#a8bc7b',
             '& svg': { fontSize: '1rem' }
           }}>
             <BotIcon />
           </Avatar>
           <Box sx={{
             bgcolor: "background.paper",
-            p: 1.5,
+            p: 1,
             borderRadius: "18px 18px 18px 4px",
             maxWidth: "100%",
             boxShadow: "0 2px 8px rgba(0, 0, 0, 0.05)",
@@ -307,10 +308,10 @@ const ChatBot = () => {
             sx={{
               bgcolor: "primary.main",
               color: "white",
-              width: 56,
-              height: 56,
+              width: 46,
+              height: 46,
               "&:hover": { 
-                bgcolor: "primary.dark",
+                bgcolor: "#539fb8",
                 transform: "scale(1.1)",
                 boxShadow: "0 8px 24px rgba(99, 102, 241, 0.4)"
               },
@@ -330,7 +331,7 @@ const ChatBot = () => {
             top: '50%',
             transform: 'translateY(-50%)',
             mr: 1,
-            bgcolor: 'background.paper',
+            bgcolor: "#a8bc7b",
             color: 'text.primary',
             px: 1.5,
             py: 0.5,
@@ -352,8 +353,8 @@ const ChatBot = () => {
       ) : (
         <Fade in={open}>
           <Paper elevation={10} sx={{ 
-            width: 380, 
-            height: 520, 
+            width: 333, 
+            height: 453, 
             display: "flex", 
             flexDirection: "column",
             borderRadius: "16px",
@@ -370,13 +371,13 @@ const ChatBot = () => {
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
-              background: "#5e87b0",
+              background: "#539fb8",
             }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Avatar sx={{ 
                   width: 32, 
                   height: 32, 
-                  bgcolor: 'primary.dark',
+                  bgcolor: "#a8bc7b",
                   '& svg': { fontSize: '1rem' }
                 }}>
                   <BotIcon />
@@ -404,12 +405,12 @@ const ChatBot = () => {
                 </Box>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <IconButton size="small" sx={{ color: "white", opacity: 0.8, '&:hover': { opacity: 1 } }}>
+                {/* <IconButton size="small" sx={{ color: "white", opacity: 0.8, '&:hover': { opacity: 1 } }}>
                   <HistoryIcon fontSize="small" />
-                </IconButton>
-                <IconButton size="small" sx={{ color: "white", opacity: 0.8, '&:hover': { opacity: 1 } }}>
+                </IconButton> */}
+                {/* <IconButton size="small" sx={{ color: "white", opacity: 0.8, '&:hover': { opacity: 1 } }}>
                   <MoreIcon fontSize="small" />
-                </IconButton>
+                </IconButton> */}
                 <IconButton 
                   size="small" 
                   onClick={handleToggleChat}
@@ -486,14 +487,16 @@ const ChatBot = () => {
                 </IconButton>
                 <TextField
                   fullWidth
+                 
                   size="small"
                   placeholder="Type your message..."
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && handleSend()}
                   sx={{
+                    
                     "& .MuiOutlinedInput-root": {
-                      borderRadius: "24px",
+                      borderRadius: "24px", fontSize:"10px",padding:"5px",
                       bgcolor: "background.default",
                       "& fieldset": {
                         borderColor: "rgba(0, 0, 0, 0.1)",
@@ -507,13 +510,13 @@ const ChatBot = () => {
                       },
                     },
                   }}
-                  InputProps={{
-                    startAdornment: (
-                      <IconButton size="small" sx={{ mr: -1, color: "text.secondary" }}>
-                        <MoodIcon fontSize="small" />
-                      </IconButton>
-                    ),
-                  }}
+                //   InputProps={{
+                //     startAdornment: (
+                //       <IconButton size="small" sx={{ mr: -1, color: "text.secondary" }}>
+                //         <MoodIcon fontSize="small" />
+                //       </IconButton>
+                //     ),
+                //   }}
                 />
                 {input ? (
                   <IconButton 
