@@ -217,7 +217,7 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
               <Polyline
                   positions={coordinates.map(coord => [coord[1], coord[0]])}
                   color="blue"
-                  weight={1}
+                  weight={5}
                   eventHandlers={{
                       mouseover: (e) => e.target.setStyle({ weight: 1, color: "#1e3a8a" }),
                       mouseout: (e) => e.target.setStyle({ weight: 1, color: "#3b82f6" }),
@@ -453,7 +453,7 @@ const RouteTracking = () => {
         updatedSelectedConsignments = selectedConsignments.filter(id => id !== consignment.routeID);
       } else {
         if (selectedConsignments.length >= 3) {
-          alert('You can select up to 3 consignments.');
+          // alert('You can select up to 3 consignments.');
           return;
         }
         updatedSelectedConsignments = [...selectedConsignments, consignment.routeID];
@@ -535,7 +535,7 @@ const RouteTracking = () => {
           setTrackedRoutes(res.data.routes);
           return res.data; 
         } else {
-          alert("No tracked route history found.");
+          // alert("No tracked route history found.");
           return { routes: [] }; 
         }
       } catch (err) {

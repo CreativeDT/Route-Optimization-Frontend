@@ -10,7 +10,7 @@ const GeofenceMap = ({ selectedRouteID }) => {
   const [error, setError] = useState(null);
   const center = [12.9716, 77.5946]; // Default map center
 
-  // 🔹 Function to Create Geofence
+  //  Function to Create Geofence
   const createGeofence = async (routeID) => {
     try {
       setLoading(true);
@@ -23,7 +23,7 @@ const GeofenceMap = ({ selectedRouteID }) => {
     }
   };
 
-  // 🔹 Function to Fetch Geofences
+  //  Function to Fetch Geofences
   const fetchGeofences = async (routeID) => {
     try {
       setLoading(true);
