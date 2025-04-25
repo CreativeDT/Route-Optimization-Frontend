@@ -33,6 +33,11 @@ const DriverFleetDetails = () => {
   const [page, setPage] = useState(0);
    const [rowsPerPage, setRowsPerPage] = useState(5);
 
+const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success",
+  });
   const tableHeadStyles = {
     position: "sticky",
     top: 0,
@@ -40,7 +45,9 @@ const DriverFleetDetails = () => {
     color: "#ffffff",
     zIndex: 2,
   };
-  
+  const currentDriverID = user?.user_id || user?.id; 
+
+
   const tableCellStyles = {
     borderRight: "1px solid #e0e0e0", // Light gray divider
     color: "#ffffff",
@@ -122,8 +129,52 @@ const DriverFleetDetails = () => {
   //     setError("Failed to update route status.");
   //   }
   // };
+  // const handleStatusChange = async (routeID, newStatus) => {
+  //   try {
+  //     const response = await axios.post(
+  //       `${config.API_BASE_URL}/updateStatus`,
+  //       { routeID, status: newStatus },
+  //       { headers: { Authorization: `Bearer ${token}` } }
+  //     );
+  
+  //     if (response.status === 200) {
+  //       // Update local state
+  //       setConsignments((prev) =>
+  //         prev.map((consignment) =>
+  //           consignment.routeID === routeID
+  //             ? { ...consignment, status: newStatus }
+  //             : consignment
+  //         )
+  //       );
+  //     }
+  //   } catch (err) {
+  //     console.error("Error updating route status:", err);
+  //     setError("Failed to update route status.");
+  //   }
+  // };
   const handleStatusChange = async (routeID, newStatus) => {
     try {
+      // Get the current driver ID from user context
+      const currentDriverID = user?.driverID || user?.id;
+      
+      // Check if driver is trying to start a new route
+      if (newStatus === "started") {
+        // Check if driver already has any active route
+        const activeRoute = consignments.find(
+          c => c.driverID === currentDriverID && c.status === "started"
+        );
+  
+        if (activeRoute) {
+          setSnackbar({
+            open: true,
+            message: `You're already on route ${activeRoute.routeID.slice(-5)}. Complete it before starting another.`,
+            severity: "warning"
+          });
+          return;
+        }
+      }
+  
+      // Rest of your status change logic...
       const response = await axios.post(
         `${config.API_BASE_URL}/updateStatus`,
         { routeID, status: newStatus },
@@ -131,18 +182,27 @@ const DriverFleetDetails = () => {
       );
   
       if (response.status === 200) {
-        // Update local state
-        setConsignments((prev) =>
-          prev.map((consignment) =>
+        setConsignments(prev =>
+          prev.map(consignment =>
             consignment.routeID === routeID
               ? { ...consignment, status: newStatus }
               : consignment
           )
         );
+        
+        setSnackbar({
+          open: true,
+          message: `Route status updated to ${newStatus}`,
+          severity: "success"
+        });
       }
     } catch (err) {
       console.error("Error updating route status:", err);
-      setError("Failed to update route status.");
+      setSnackbar({
+        open: true,
+        message: "Failed to update route status",
+        severity: "error"
+      });
     }
   };
   const filteredConsignments = useMemo(() => {
@@ -233,7 +293,7 @@ const DriverFleetDetails = () => {
                       {consignment.status}
                     </TableCell> */}
                    <TableCell>
-                      <Select
+                      {/* <Select
                         value={consignment.status}
                         onChange={(e) => handleStatusChange(consignment.routeID, e.target.value)}
                         variant="standard" // removes the default outlined border
@@ -263,7 +323,63 @@ const DriverFleetDetails = () => {
                         <MenuItem value="not started">Not Started</MenuItem>
                         <MenuItem value="rested">Rested</MenuItem>
                         <MenuItem value="completed">Completed</MenuItem>
-                      </Select>
+                      </Select> */}
+                      
+  <Tooltip
+    title={
+      consignments.some(c => 
+        c.driverID === currentDriverID && 
+        c.status === "started" &&
+        c.routeID !== consignment.routeID
+      )
+        ? "You already have an active route. Complete it first."
+        : ""
+    }
+    arrow
+  >
+    <span>
+      <Select
+        value={consignment.status}
+        onChange={(e) => handleStatusChange(consignment.routeID, e.target.value)}
+        disabled={
+          consignments.some(c => 
+            c.driverID === currentDriverID && 
+            c.status === "started" &&
+            c.routeID !== consignment.routeID
+          ) ||
+          consignment.status === "completed"
+        }
+        variant="standard"
+        disableUnderline
+        size="small"
+        sx={{
+          minWidth: 120,
+          backgroundColor:
+            consignment.status === "started"
+              ? "#ff980073"
+              : consignment.status === "not started"
+              ? "#ff00005e" 
+              : consignment.status === "rested"
+              ? "#03a9f485"
+              : consignment.status === "completed"
+              ? "#4caf50ab"
+              : "#e0e0e0",
+          color: "white",
+          borderRadius: 1,
+          fontSize: "10px",
+          "& .MuiSelect-select": {
+            padding: "2px 12px",
+          },
+        }}
+      >
+        <MenuItem value="started">Started</MenuItem>
+        <MenuItem value="not started">Not Started</MenuItem>
+        <MenuItem value="rested">Rested</MenuItem>
+        <MenuItem value="completed">Completed</MenuItem>
+      </Select>
+    </span>
+  </Tooltip>
+
                     </TableCell>
 
 

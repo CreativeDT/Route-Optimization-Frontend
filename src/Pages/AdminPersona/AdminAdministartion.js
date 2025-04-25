@@ -1650,19 +1650,19 @@ const AdminAdministration = () => {
                 const raw = e.target.value;
                 const tons = raw === "" ? "" : parseFloat(raw);
               
-                if (tons === "" || (tons >= 3 && tons <= 40)) {
-                  setNewVehicle((prev) => ({
-                    ...prev,
-                    VehicleCapacity: tons,
-                    VehicleType:
-                      typeof tons === "number"
-                        ? tons <= 15
-                          ? "Light-duty trucks"
-                          : "Heavy-duty trucks"
-                        : "",
-                  }));
-                }
+                setNewVehicle((prev) => ({
+                  ...prev,
+                  VehicleCapacity: tons,
+                  VehicleType:
+                    typeof tons === "number" && tons >= 3 && tons <= 40
+                      ? tons <= 15
+                        ? "Light-duty trucks"
+                        : "Heavy-duty trucks"
+                      : "",
+                }));
               }}
+              
+            
               inputProps={{ min: 3, max: 40, step: 1 }}
   helperText={
     <Box component="span" display="flex" alignItems="center" gap={1}>

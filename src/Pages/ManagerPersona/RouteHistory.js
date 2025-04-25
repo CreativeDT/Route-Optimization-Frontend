@@ -146,13 +146,18 @@ const RouteHistory = ({ onLoadRoute }) => {
                   gap: 1
                 }}>
                   <Tooltip title="Load route">
+                 
                     <IconButton
                       size="small"
-                      // onClick={() => onLoadRoute(route)}
+                       onClick={() =>{
+                        console.log("Route clicked:", route);
+                        onLoadRoute(route)}}
+                       
                       color="primary"
                     >
                       <DirectionsIcon fontSize="small" />
                     </IconButton>
+                     
                   </Tooltip>
                   <Tooltip title="Delete route">
                     <IconButton

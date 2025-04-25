@@ -95,6 +95,9 @@ const ManagerSuggestRoutes = () => {
   const [searchValue, setSearchValue] = useState("");
   const [selectedTab, setSelectedTab] = useState("history");
   const [mapContainer, setMapContainer] = useState(null);
+  const [vehicleOptions, setVehicleOptions] = useState([]);
+  const [loadedRouteData, setLoadedRouteData] = useState(null);
+
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -610,8 +613,14 @@ const ManagerSuggestRoutes = () => {
         preloaded_demand: preloadedDemand, // dynamic value
       })
       .then((response) => {
+        console.log("Full getAvailableVehicles Response:", response); // Log everything
+        console.log(" Vehicles:", response.data.vehicles); // Log only the vehicles list
+        const uniqueVehicles = Array.from(
+          new Map(response.data.vehicles.map(v => [v.VehicleID, v])).values()
+        );
         console.log("Available Vehicles:", response.data.vehicles); // Log the vehicles array
-        setVehicles(response.data.vehicles || []);
+        setVehicles(uniqueVehicles);
+        console.log("uniqueVehicles:",uniqueVehicles);
       })
       .catch((error) => {
         console.error("Error fetching vehicles:", error);
@@ -619,10 +628,11 @@ const ManagerSuggestRoutes = () => {
       });
   };
   useEffect(() => {
-    
+    if (startDate && preloadedDemand !== null) {
       getAvailableVehicles();
-   
-  }, []);
+    }
+  }, [startDate, preloadedDemand]);
+  
 
   const getRiskFactors = () => {
     axios
@@ -802,11 +812,11 @@ const ManagerSuggestRoutes = () => {
     const value = e.target.value ? Number(e.target.value) : 0; // Ensure number format
     console.log("Preloaded Demand Value:", value); // Log the formatted value
     
-    setPreloadedDemand(e.target.value); // Update the preloaded demand state
-    console.log("Updated Preloaded Demand:", e.target.value); // Log the updated preloaded demand
+    setPreloadedDemand(value); // Update the preloaded demand state
+    console.log("Updated Preloaded Demand:", value); // Log the updated preloaded demand
     
     if(selectedOrigin || selectedDestination) {
-      handleVehicleSelection(value);
+      filterVehiclesByDemand(value);
       console.log("Vehicle selection triggered with preloaded demand:", value);
     } else {
       console.warn("Origin/Destination not selected. Skipping vehicle selection update.");
@@ -819,6 +829,32 @@ const ManagerSuggestRoutes = () => {
   });
 };
 
+const filterVehiclesByDemand = (demand) => {
+  if (!Array.isArray(vehicles) || vehicles.length === 0) {
+    console.warn("Vehicle list empty or invalid");
+    return;
+  }
+
+  const filtered = vehicles.filter(v => v.Quantity >= demand);
+  console.log("Filtered Vehicles based on demand:", demand, filtered);
+
+  const options = filtered.map(vehicle => ({
+    value: vehicle.VehicleID,
+    label: `${vehicle.VehicleType} → ${vehicle.FuelType} → ${vehicle.Quantity}`,
+    vehicle_id: vehicle.VehicleID,
+  }));
+
+  setVehicleOptions(options);
+};
+
+
+useEffect(() => {
+  if (preloadedDemand) {
+    console.log("Updating vehicle options based on demand:", preloadedDemand);
+    filterVehiclesByDemand(preloadedDemand);
+  }
+}, [preloadedDemand]); // Triggered whenever preloadedDemand changes
+
 
   // const handleVehicleSelection = (event) => {
   //   const selectedVehicle = vehicles.find(vehicle => vehicle.capacity === event.target.value);
@@ -830,12 +866,25 @@ const ManagerSuggestRoutes = () => {
   
   
   // Convert vehicles array to options for react-select
-const vehicleOptions = vehicles.map(vehicle => ({
-  value: vehicle.VehicleID,
-  label: `${vehicle.VehicleType} → ${vehicle.FuelType} → ${vehicle.Quantity}`,
-  vehicleData: vehicle // Store full vehicle data for reference
+// const vehicleOptions = vehicles.map(vehicle => ({
+//   value: vehicle.VehicleID,
+//   label: `${vehicle.VehicleType} → ${vehicle.FuelType} → ${vehicle.Quantity}`,
+//   vehicle_id: vehicle.VehicleID,
+//   vehicleData: vehicle // Store full vehicle data for reference
   
-}));
+// }));
+
+useEffect(() => {
+  if (!vehicles.length) return;
+  const options = vehicles.map((vehicle) => ({
+    value: vehicle.VehicleID,
+    label: `${vehicle.VehicleType} → ${vehicle.FuelType} → ${vehicle.Quantity}`,
+    vehicle_id: vehicle.VehicleID,
+  }));
+  setVehicleOptions(options);
+  console.log("Vehicle Options Set:", options); // Debug
+}, [vehicles]);
+
 console.log("vehicles:",vehicles);
 
 // // Handle vehicle selection
@@ -860,6 +909,7 @@ console.log("vehicles:",vehicles);
 // };
 
 const handleVehicleSelection = (selectedOptionOrEvent) => {
+  console.log("Using preloaded demand:", preloadedDemand);
   let selectedVehicle;
   
   // Check if event comes from a select dropdown (DOM event)
@@ -888,10 +938,15 @@ const handleVehicleSelection = (selectedOptionOrEvent) => {
 
   //  getRiskFactors();
 };
-const uniqueVehicleOptions = Array.from(
-  new Map(vehicleOptions.map(vehicle => [vehicle.value, vehicle])).values()
-);
+// const uniqueVehicleOptions = Array.from(
+//   new Map(vehicleOptions.map(vehicle => [vehicle.value, vehicle])).values()
+// );
 
+const uniqueVehicleOptions = useMemo(() => {
+  return Array.from(
+    new Map(vehicleOptions.map(vehicle => [vehicle.value, vehicle])).values()
+  );
+}, [vehicleOptions]);
 
 // Log the vehicleOptions to the console
 console.log("Vehicle Options:", vehicleOptions);
@@ -1326,6 +1381,76 @@ const isSubmitDisabled = useMemo(() => {
       // Call your map init logic here, e.g. initMap() or drawRouteOnMap()
     }
   }, [selectedTab]);
+
+
+   // Add this useEffect to handle when a route is loaded
+   useEffect(() => {
+    if (loadedRouteData) {
+      console.log("Loaded Route Data in ManagerSuggestRoutes:", loadedRouteData);
+
+
+        // Check if stop_demands exists and is an array
+    if (Array.isArray(loadedRouteData.stop_demands) && loadedRouteData.stop_demands.length > 0) {
+      console.log("Stop Demands Data:", loadedRouteData.stop_demands);
+
+      // Format stop demands
+      const formattedStops = loadedRouteData.stop_demands.map((stop, index) => {
+        console.log(`Stop ${index + 1}:`, stop);  // Log individual stop data
+         console.log("Priority for Stop:", stop.priority );
+        return {
+          label: stop.name,  // Using stop name as the label
+          coordinates: stop.coordinates || [],
+          drop_demand: stop.drop_demand || 0,
+          pickup_demand: stop.pickup_demand || 0,
+          priority: stop.priority !== undefined ? stop.priority : 3  // Only use 3 if priority is undefined
+          
+        };
+       
+      });
+
+
+      console.log("Formatted Stops:", formattedStops);  // Check the formatted stops
+      setSelectedStops(formattedStops);  // Setting formatted stops
+    } else {
+      console.log("No stop demands available or invalid data.");
+    }
+      // Set origin
+      setSelectedOrigin({
+        name: loadedRouteData.origin,
+        coordinates: loadedRouteData.origin_coordinates || []
+      });
+
+      // Set destination
+      setSelectedDestination({
+        name: loadedRouteData.destination,
+        coordinates: loadedRouteData.destination_coordinates || []
+      });
+    
+    
+      // Set stops
+      // const formattedStops = loadedRouteData.stops?.map(stop => ({
+      //   label: stop.name,
+      //   coordinates: stop.coordinates || [],
+      //   drop_demand: stop.drop_demand || 0,
+      //   pickup_demand: stop.pickup_demand || 0,
+      //   priority: stop.priority || 3
+      // })) || [];
+      // setSelectedStops(formattedStops);
+
+      // Set other fields
+      // setStartDate(new Date(loadedRouteData.start_date));
+      setPreloadedDemand(loadedRouteData.preloaded_demand || 0);
+      setSelectedVehicle(loadedRouteData.vehicle_id ? { 
+        value: loadedRouteData.vehicle_id,
+        label: `${loadedRouteData.vehicle_type} → ID: ${loadedRouteData.vehicle_id.slice(-5)}`
+      } : null);
+
+      // Clear the loaded route after applying
+      setLoadedRouteData(null);
+    }
+  }, [loadedRouteData]);
+
+ 
   
   return (
     <div>
@@ -1766,7 +1891,7 @@ const isSubmitDisabled = useMemo(() => {
               </div>
               <StyledTextField
                 inputRef={preloadedDemandRef}
-                label="Preloaded Demand tones "
+                label="Preloaded Demand tons "
                 type="number"
                 value={preloadedDemand}
                 onChange={handlePreloadedDemandChange}
@@ -1790,7 +1915,7 @@ const isSubmitDisabled = useMemo(() => {
   className="select-container"
   sx={{ width: "100%", marginBottom: "1rem" }}
 >
-  <Select
+  <Select   key={vehicleOptions.length}
     options={uniqueVehicleOptions.map(vehicle => ({
       value: vehicle.value,
       label: `${vehicle.label} → ID: ${vehicle.value.slice(-5)}`, // Include vehicle_id in label
@@ -1957,10 +2082,10 @@ const isSubmitDisabled = useMemo(() => {
                         <TableCell>Select</TableCell>
                         <TableCell>Route </TableCell>
                         <TableCell>Waypoints</TableCell>
-                        <TableCell>Distance (miles))</TableCell>
+                        <TableCell>Distance (miles)</TableCell>
                         <TableCell>Duration (hrs)</TableCell>
                         <TableCell>Carbon Emission (lbs)</TableCell>
-                        <TableCell>Fuel Consumption (liters)</TableCell>
+                        <TableCell>Fuel Consumption (gallons)</TableCell>
                         <TableCell>Vehicle Type</TableCell>
                         <TableCell>Fuel Type</TableCell>
                         <TableCell>Action</TableCell>
@@ -2028,7 +2153,7 @@ const isSubmitDisabled = useMemo(() => {
 
 {selectedTab === "history" && (
     <Box sx={{ flex: 1, overflowY: "auto", p: 2 }}>
-      <RouteHistory />
+      <RouteHistory onLoadRoute={(route) => setLoadedRouteData(route)} />
     </Box>
   )}
           </Box>

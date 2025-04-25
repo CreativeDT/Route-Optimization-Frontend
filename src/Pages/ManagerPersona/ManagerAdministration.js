@@ -367,8 +367,8 @@ try {
 //           }
 //           }
 //           };
-const handleDriverSelectChange = async (event, newValue, routeId) => {
-  if (newValue) {
+const handleDriverSelectChange = async (event, newValue, routeId,item) => {
+  if (newValue ) {
     try {
       setLoading(true); // Show loading state
       
@@ -400,6 +400,18 @@ const handleDriverSelectChange = async (event, newValue, routeId) => {
     } finally {
       setLoading(false);
     }
+  } else if (item.status === "started") {
+    setSnackbar({
+      open: true,
+      message: "Route has already started, driver cannot be reassigned.",
+      severity: "info"
+    });
+  } else if (item.status === "completed") {
+    setSnackbar({
+      open: true,
+      message: "Route is completed, driver cannot be reassigned.",
+      severity: "info"
+    });
   }
 };
         
@@ -947,17 +959,40 @@ const handleConfirmDelete = () => {
     paper: { sx: { fontSize: "10px" } }, // Reduce font size in dropdown list
   }}
 /> */}
-
+<Tooltip
+   title={
+    item.status === "started"
+      ? "Route has already started, driver cannot be reassigned."
+      : item.status === "completed"
+      ? "Route is completed, driver cannot be reassigned."
+      : ""
+  }
+  arrow
+  disableInteractive
+>
+  <span>
 <Autocomplete
-  options={availableDrivers.filter((driver) => driver.
-    driver_status === "Available")}
-  // options={availableDrivers}
+  // options={availableDrivers.filter((driver) => driver. driver_status === "Available")}
+  options={availableDrivers}
   getOptionLabel={(option) => option.driver_name || ""}
   value={null} // Keeps dropdown empty after selection
-  onChange={(event, newValue) => {
+//   onChange={(event, newValue) => {
+//     handleDriverSelectChange(event, newValue, item.routeID);
+//  }}
+onChange={(event, newValue) => {
+  if (item.status === "started" || item.status === "completed") {
+    setSnackbar({
+      open: true,
+      message: item.status === "started" 
+        ? "Route has already started, driver cannot be reassigned." 
+        : "Route is completed, driver cannot be reassigned.",
+      severity: "info"
+    });
+  } else {
     handleDriverSelectChange(event, newValue, item.routeID);
- }}
-  disabled={item.status === "completed"} 
+  }
+}}
+  disabled={item.status === "completed"|| item.status === "started"} 
   sx={{
     fontSize: "10px",
     "& .MuiInputBase-root": { fontSize: "10px" },
@@ -975,6 +1010,8 @@ const handleConfirmDelete = () => {
   )}
   componentsProps={{ paper: { sx: { fontSize: "10px" } } }}
 />
+</span>
+</Tooltip>
 
     </TableCell>
 
