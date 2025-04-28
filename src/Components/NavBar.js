@@ -2,9 +2,9 @@
 import React, { useContext, useState, useRef, useEffect } from 'react';
 import { FaUser, FaBell, FaCog, FaHome, FaTruckMoving,FaUserShield,FaUserTie,FaUserCog } from 'react-icons/fa';
 import { GiSteeringWheel } from 'react-icons/gi';
-
+import axios from "axios";
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography ,Badge} from "@mui/material";
+import { Box, Typography ,Badge,Button} from "@mui/material";
 import Menu from './Menu';
 import './Navbar.css';
 import logo from '../Assets/images/white_logo.png';
@@ -19,13 +19,14 @@ const NavBar = () => {
     const profileRef = useRef(null);
     const [showNotifications, setShowNotifications] = useState(false);
     const [readNotifications, setReadNotifications] = useState([]); // Track read notifications
+   
 
     const userId = user?.user?.user_id;
     const userRole = user?.user_role;
 
-    const { notifications } = useNotificationWebSocket(userId);
-
-    const handleHomeClick = () => {
+    const { notifications, setNotifications } = useNotificationWebSocket(userId);
+    // const { notifications} = useNotificationWebSocket(userId);
+     const handleHomeClick = () => {
         if (userRole === "driver") {
             navigate("/driverdashboard");
         } else if (userRole === "admin") {
@@ -40,11 +41,30 @@ const NavBar = () => {
         setIsProfileOpen(!isProfileOpen);
     };
 
+    // const toggleNotifications = () => {
+    //     setShowNotifications(!showNotifications);
+    //     setReadNotifications(notifications.map(n => n.notification_id)); // Mark all as read when opened
+    // };
+   
     const toggleNotifications = () => {
         setShowNotifications(!showNotifications);
-        setReadNotifications(notifications.map(n => n.notification_id)); // Mark all as read when opened
     };
 
+    const markNotificationAsRead = async (notificationId) => {
+        try {
+            await axios.post("/notifications/read", { notification_id: notificationId });
+            // Update read status locally
+        setNotifications((prev) =>
+            prev.map((n) =>
+                n.notification_id === notificationId ? { ...n, read: true } : n
+            )
+        );
+        
+            setReadNotifications((prev) => [...prev, notificationId]);
+        } catch (error) {
+            console.error("Error marking notification as read:", error);
+        }
+    };
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (profileRef.current && !profileRef.current.contains(event.target)) {
@@ -147,7 +167,7 @@ const NavBar = () => {
                 },
                 }}
                  >
-                        <FaBell className="icon" onClick={toggleNotifications}  />
+                        <FaBell className="icon" onClick={() => toggleNotifications()} />
                     </Badge>
                    
                     
@@ -162,12 +182,34 @@ const NavBar = () => {
                                     <div key={index} className="notification-item">
                                         <div className="notification-icon">
                                             <FaBell />
+                                            
                                         </div>
                                         <div className="message">
                                             <div className="message-text">{msg.message}</div>
                                             {msg.creationDate && (
                                                 <div className="timestamp">
                                                     {new Date(msg.creationDate).toLocaleString()}
+                                                </div>
+                                            )}
+                                             {!readNotifications.includes(msg.notification_id) && (
+                                                <Button
+                                                    variant="contained"
+                                                    size="small"
+                                                    onClick={() => markNotificationAsRead(msg.notification_id)}
+                                                    sx={{
+                                                        marginTop: "5px",
+                                                        textTransform: "none",
+                                                        backgroundColor: "#3498db",
+                                                        "&:hover": { backgroundColor: "#2980b9" },
+                                                        fontSize: "12px"
+                                                    }}
+                                                >
+                                                    Mark as Read
+                                                </Button>
+                                            )}
+                                              {readNotifications.includes(msg.notification_id) && (
+                                                <div style={{ fontSize: "12px", marginTop: "5px", color: "gray" }}>
+                                                    Read
                                                 </div>
                                             )}
                                         </div>

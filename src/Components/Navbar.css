@@ -320,3 +320,64 @@
   visibility: visible;
   top: calc(100% + 5px);
 }
+
+
+/* Role toggle buttons */
+.MuiToggleButtonGroup-root {
+  background-color: white;
+}
+
+/* Status toggle container */
+.status-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+/* Rest period details popup */
+.rest-period-popup {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 100;
+  margin-top: 8px;
+}
+
+/* Profile section */
+.profile {
+  position: relative;
+  margin-left: 10px;
+}
+.notification-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.notification-icon {
+  position: relative;
+  margin-right: 10px;
+}
+
+.notification-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: red; /* Color for the unread dot */
+}
+
+.notification-item.read .notification-dot {
+  background-color: transparent; /* Remove the dot for read notifications */
+}
+
+.message {
+  flex: 1;
+}
+
+.timestamp {
+  font-size: 0.8em;
+  color: gray;
+}

@@ -52,7 +52,7 @@ const Dashboard = () => {
     //   "Manage user access and permissions. Add, edit and deactivate user accounts.",
     //   path: "/userlist",
     // },
-    {
+     {
       image: adminIcon,
       alt: "Admin",
       label: "Administration",
@@ -60,6 +60,14 @@ const Dashboard = () => {
       "Manage user access and permissions. Add, edit and deactivate user accounts.",
       path: "/adminadministration",
     },
+    // {
+    //   image: adminIcon,
+    //   alt: "Admin",
+    //   label: "Administration",
+    //   description:  
+    //   "Manage user access and permissions. Add, edit and deactivate user accounts.",
+    //   path: "/acgrid",
+    // },
   ];
 
   return (

@@ -97,6 +97,7 @@ const ManagerSuggestRoutes = () => {
   const [mapContainer, setMapContainer] = useState(null);
   const [vehicleOptions, setVehicleOptions] = useState([]);
   const [loadedRouteData, setLoadedRouteData] = useState(null);
+  const [inputValues, setInputValues] = useState({});
 
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -765,25 +766,37 @@ const ManagerSuggestRoutes = () => {
   //     }
   //   }, 0);
   // };
+  // const handleStopDemandChange = (index, field, value) => {
+  //   setSelectedStops((prevStops) => {
+  //     const newStops = prevStops.map((stop, i) =>
+  //       i === index ? { ...stop, [field]: value } : stop
+  //     );
+      
+  //     // Focus after state update completes
+  //     setTimeout(() => {
+  //       console.log('Attempting to focus:', `${index}-${field}`);
+  //       const inputEl = inputRefs.current[`${index}-${field}`];
+  //       console.log('Input element exists:', !!inputEl);
+  //       if (inputEl) {
+  //         inputEl.focus();
+  //         console.log('Focus called');
+  //       }
+  //     }, 10);
+  //     return newStops;
+  //   });
+  // };
   const handleStopDemandChange = (index, field, value) => {
     setSelectedStops((prevStops) => {
-      const newStops = prevStops.map((stop, i) =>
-        i === index ? { ...stop, [field]: value } : stop
-      );
-      
-      // Focus after state update completes
-      setTimeout(() => {
-        console.log('Attempting to focus:', `${index}-${field}`);
-        const inputEl = inputRefs.current[`${index}-${field}`];
-        console.log('Input element exists:', !!inputEl);
-        if (inputEl) {
-          inputEl.focus();
-          console.log('Focus called');
-        }
-      }, 10);
-      return newStops;
+      const updatedStops = [...prevStops];
+      updatedStops[index] = {
+        ...updatedStops[index],
+        [field]: value,
+      };
+      return updatedStops;
     });
   };
+  
+  
   // const handleStopDemandChange = (index, field, value) => {
   //   setSelectedStops((prevStops) => {
   //     const updatedStops = [...prevStops];
@@ -1714,12 +1727,12 @@ const isSubmitDisabled = useMemo(() => {
                   <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
                     <StyledTextField
                       inputRef={(el) =>
-                        (inputRefs.current[`${index}-drop_demand`] = el)
-                      }
+                        (inputRefs.current[`${index}-drop_demand`] = el)}
                       label="Drop Demand(tones)"
                       type="number"
-                      value={stop.drop_demand || 0}
-                      onChange={(e) => {
+                      // value={stop.drop_demand || 0}
+                      defaultValue={stop.drop_demand || 0}
+                      onBlur={(e) => {
                         const value = Math.max(0, Number(e.target.value)); // Ensure value is not negative
                         handleStopDemandChange(index, "drop_demand", value);
                       }}
@@ -1740,39 +1753,34 @@ const isSubmitDisabled = useMemo(() => {
                   </Grid2>
 
                   <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
-                    <StyledTextField
-                      inputRef={(el) =>
-                        (inputRefs.current[`${index}-pickup_demand`] = el)
-                      }
-                      label="Pickup Demand(tones)"
-                      type="number"
-                      value={stop.pickup_demand || 0}
-                      onChange={(e) => {
-                        const value = Math.max(0, Number(e.target.value)); // Ensure value is not negative
-                        handleStopDemandChange(index, "pickup_demand", value);
-                      }}
-                      size="small"
-                      fullWidth
-                      margin="dense"
-                      sx={{ height: "20px","& .MuiFormLabel-root": {
-                        fontSize: "10px", // Adjust input text size
-                      },
-                  
-                    "& .MuiInputBase-input": {
-                      fontSize: "12px", // Reduce input text size
-                    },
-                  }}
-                    />
+                  <StyledTextField
+  inputRef={(el) => (inputRefs.current[`${index}-pickup_demand`] = el)}
+  label="Pickup Demand(tones)"
+  type="number"
+  defaultValue={stop.pickup_demand || 0}
+  onBlur={(e) => {
+    const value = Math.max(0, Number(e.target.value));
+    handleStopDemandChange(index, "pickup_demand", value);
+  }}
+  size="small"
+  fullWidth
+  margin="dense"
+  sx={{
+    height: "20px",
+    "& .MuiFormLabel-root": { fontSize: "10px" },
+    "& .MuiInputBase-input": { fontSize: "12px" },
+  }}
+/>
+
                   </Grid2>
                   <Grid2 item xs={4} sx={{ minWidth: "30%" }}>
                     <StyledTextField
                       inputRef={(el) =>
-                        (inputRefs.current[`${index}-priority`] = el)
-                      }
-                      label="Priority"
+                        (inputRefs.current[`${index}-priority`] = el)}
+                      label="Priority (1, 2 or 3)"
                       type="number"
-                      value={stop.priority || 3}
-                      onChange={(e) => {
+                      defaultValue={stop.priority || 3}
+                      onBlur={(e) => {
                         const value = Math.max(
                           0,
                           Math.min(Number(e.target.value), 3)

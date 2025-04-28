@@ -25,6 +25,7 @@ import AdminAdministration from './Pages/AdminPersona/AdminAdministartion';
 import SessionExpiryPage from './Pages/SessionExpiryPage';
 import SessionExpired from './Pages/SessionExpired';
 import UpdateProfile from './Components/UpdateProfile/UpdateProfile';
+import ACGrid from './Pages/AdminPersona/ACGrid';
 
 
 
@@ -62,6 +63,8 @@ const App = () => {
         <Route path ="/updateprofile" element={<UpdateProfile />} />
         <Route path ="/sessionexpiraypage" element={<SessionExpiryPage />} />
         <Route path ="/sessionexpired" element={<SessionExpired />} />
+        <Route path ="/acgrid" element={<ACGrid />} />
+
        
    
       </Routes>

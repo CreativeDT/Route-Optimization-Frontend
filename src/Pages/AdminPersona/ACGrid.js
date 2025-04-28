@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import {
   FaUser,
@@ -11,13 +11,6 @@ import {
   FaUserCog,
 } from "react-icons/fa";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   Alert,
   Avatar,
   Switch,
@@ -68,7 +61,7 @@ import {
   InputAdornment,
   FormControl,
   InputLabel,
-  Select,
+  Select,Paper,
   MenuItem,
   LinearProgress,
 } from "@mui/material";
@@ -78,8 +71,11 @@ import SearchIcon from "@mui/icons-material/Search";
 import config from "../../config";
 import "./../Form.css";
 import Breadcrumbs from "../Breadcrumbs/Breadcrumbs";
+import { AgGridReact } from 'ag-grid-react';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
 
-const AdminAdministration = () => {
+const ACGrid = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [userPage, setUserPage] = useState(0);
@@ -100,15 +96,14 @@ const AdminAdministration = () => {
   const [editingUser, setEditingUser] = useState(null);
   const [user, setUser] = useState(null);
   const [sortField, setSortField] = useState("name");
-  const [sortOrder, setSortOrder] = useState("asc"); // "asc" or "desc"
+  const [sortOrder, setSortOrder] = useState("asc");
   const [openDialog, setOpenDialog] = useState(false);
   const [openUserDialog, setOpenUserDialog] = useState(false);
   const [openVehicleDialog, setOpenVehicleDialog] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [selectedVehicle, setSelectedVehicle] = useState(null);
-  const [deletedUsers, setDeletedUsers] = useState([]);
-  const [editingVehicle, setEditingVehicle] = React.useState(false);
-  const [newVehicle, setNewVehicle] = React.useState({
+  const [editingVehicle, setEditingVehicle] = useState(false);
+  const [newVehicle, setNewVehicle] = useState({
     VehicleType: "",
     FuelType: "",
     ExhaustCO2: "",
@@ -122,7 +117,6 @@ const AdminAdministration = () => {
     role: "driver",
     email: "",
     password: "",
-    //  status: true,
   });
   const [errorMessage, setErrorMessage] = useState("");
   const [snackbar, setSnackbar] = useState({
@@ -130,46 +124,155 @@ const AdminAdministration = () => {
     message: "",
     severity: "success",
   });
-  const sortedUsers = [...users].sort((a, b) => {
-    if (!a[sortField] || !b[sortField]) return 0; // Handle missing values
-    return sortOrder === "asc"
-      ? a[sortField].localeCompare(b[sortField])
-      : b[sortField].localeCompare(a[sortField]);
-  });
-  const handleSort = (field) => {
-    setSortOrder(sortField === field && sortOrder === "asc" ? "desc" : "asc");
-    setSortField(field);
+
+  // AG Grid column definitions
+  const userColumnDefs = useMemo(() => [
+    { 
+      headerName: "SNo", 
+      valueGetter: (params) => params.node.rowIndex + 1,
+      width: 80,
+      sortable: false,
+      filter: false
+    },
+    { 
+      field: "name", 
+      headerName: "Name",
+      sortable: true,
+      filter: true 
+    },
+    { 
+      field: "role", 
+      headerName: "Role",
+      sortable: true,
+      cellRenderer: (params) => (
+        <Box sx={{ display: "flex", alignItems: "center" }}>
+          <Avatar sx={{ width: 32, height: 32, marginRight: 1 }} />
+          <Typography variant="body2">{params.value}</Typography>
+        </Box>
+      )
+    },
+    { field: "email", headerName: "Email", sortable: true },
+    { 
+      field: "status", 
+      headerName: "Activity Status",
+      sortable: true 
+    },
+    {
+      headerName: "Action",
+      cellRenderer: (params) => (
+        <IconButton 
+          onClick={() => handleDeleteUser(params.data.id)}
+          color="error"
+          size="small"
+        >
+          <Delete fontSize="small" />
+        </IconButton>
+      ),
+      sortable: false,
+      filter: false
+    }
+  ], []);
+
+  const vehicleColumnDefs = useMemo(() => [
+    { 
+      headerName: "SNo", 
+      valueGetter: (params) => params.node.rowIndex + 1,
+      width: 80,
+      sortable: false,
+      filter: false
+    },
+    { field: "license_no", headerName: "License No", sortable: true },
+    { field: "vehicle_type", headerName: "Type", sortable: true },
+    { field: "fuel_type", headerName: "Fuel Type", sortable: true },
+    { 
+      field: "exhaust_co2", 
+      headerName: "CO2 (lbs)", 
+      sortable: true,
+      type: 'numericColumn'
+    },
+    { 
+      field: "mileage", 
+      headerName: "Mileage", 
+      sortable: true,
+      type: 'numericColumn'
+    },
+    { 
+      field: "capacity", 
+      headerName: "Capacity (lbs)", 
+      sortable: true,
+      type: 'numericColumn'
+    },
+    { field: "status", headerName: "Status", sortable: true },
+    {
+      headerName: "Action",
+      cellRenderer: (params) => (
+        <>
+          <IconButton
+            onClick={() => handleEditVehicle(params.data)}
+            color="primary"
+            size="small"
+            disabled={params.data.status === "In Transit"}
+          >
+            <Edit fontSize="small" />
+          </IconButton>
+          <IconButton
+            onClick={() => handleDeleteVehicle(params.data.vehicle_id)}
+            color="error"
+            size="small"
+            disabled={params.data.status === "In Transit"}
+          >
+            <Delete fontSize="small" />
+          </IconButton>
+        </>
+      ),
+      sortable: false,
+      filter: false
+    }
+  ], []);
+
+  // Grid options
+  const gridOptions = {
+    pagination: true,
+    paginationPageSize: 10,
+    suppressCellFocus: true,
+    defaultColDef: {
+      resizable: true,
+      sortable: true,
+      filter: true,
+      flex: 1,
+      minWidth: 100
+    },
+    onGridReady: (params) => {
+      params.api.sizeColumnsToFit();
+    },
+    onFirstDataRendered: (params) => {
+      params.api.sizeColumnsToFit();
+    }
   };
 
   useEffect(() => {
     console.log("Fetching data with filter:", filter);
     fetchData();
   }, [tabIndex, filter]);
+
   useEffect(() => {
-    // Retrieve the user object from localStorage
     const storedUser = JSON.parse(localStorage.getItem("user"));
     const role = storedUser?.role || "";
     setLoggedInUserRole(role.toLowerCase());
     fetchData();
   }, [tabIndex]);
+
   const fetchData = async () => {
     setLoading(true);
     setError("");
-    // let apiUrl = tabIndex === 0
-    //     ? `${config.API_BASE_URL}/users/usersList`
-    //     : `${config.API_BASE_URL}/getVehicles`;
     let apiUrl = "";
+    
     if (tabIndex === 0) {
-      if (filter === "deleted") {
-        apiUrl = `${config.API_BASE_URL}/users/deletedUsersList`;
-      } else {
-        apiUrl = `${config.API_BASE_URL}/users/usersList`;
-      }
+      apiUrl = `${config.API_BASE_URL}/users/usersList`;
     } else {
       apiUrl = `${config.API_BASE_URL}/getVehicles`;
     }
-    console.log("Current filter:", filter);
-
+   
     const token = localStorage.getItem("token");
     if (!token) {
       setError("No token found. Please log in.");
@@ -185,29 +288,7 @@ const AdminAdministration = () => {
       console.log("API Response:", response.data);
       let responseData = [];
     
-      // if (tabIndex === 0 && Array.isArray(response.data.users)) {
-      //   responseData = response.data.users.map((user) => ({
-      //     id: user.user_id,
-      //     name: user.username,
-      //     email: user.email,
-      //     role: user.role.toLowerCase(), // Convert role to lowercase
-      //     status: user.status,
-      //     deleted: user.deleted ?? false,
-      //   }));
-      // } 
-      if (tabIndex === 0 && filter === "deleted" && Array.isArray(response.data.users)) {
-        responseData = response.data.users.map((user) => ({
-          id: user.user_id,
-          name: user.username,
-          email: user.email,
-          role:  user.role.toLowerCase(),
-          status: user.status,
-          deleted: true,
-        }));
-        setDeletedUsers(response.data.users.map.user || []);
-      }
-      
-     else if (tabIndex === 0 && Array.isArray(response.data.users)) {
+      if (tabIndex === 0 && Array.isArray(response.data.users)) {
         responseData = response.data.users.map((user) => ({
           id: user.user_id,
           name: user.username,
@@ -216,10 +297,7 @@ const AdminAdministration = () => {
           status: user.status,
           deleted: user.deleted ?? false,
         }));
-      }
-      
-      
-      else if (tabIndex === 1 && Array.isArray(response.data.vehicles)) {
+      } else if (tabIndex === 1 && Array.isArray(response.data.vehicles)) {
         responseData = response.data.vehicles.map((vehicle) => ({
           vehicle_id: vehicle.VehicleID,
           vehicle_type: vehicle.VehicleType,
@@ -228,7 +306,7 @@ const AdminAdministration = () => {
           mileage: vehicle.Mileage,
           capacity: vehicle.VehicleCapacity,
           license_no: vehicle.LicenseNo,
-          status: vehicle["Vehicle Status"], // Correcting the key
+          status: vehicle["Vehicle Status"],
         }));
       }
       setData(responseData);
@@ -240,48 +318,21 @@ const AdminAdministration = () => {
     }
   };
 
-  // const handleChangePage = (event, newPage) => setPage(newPage);
-  // const handleChangeRowsPerPage = (event) => {
-  //     setRowsPerPage(parseInt(event.target.value, 10));
-  //     setPage(0);
-  // };
-  useEffect(() => {
-    setPage(0);
-  }, [tabIndex, searchQuery]);
-  // const loggedInUserRole = localStorage.getItem("user_role");
-
-  // Other state and useEffect code
-
-  // Function to handle status toggle
   const handleToggle = async (userId, currentStatus) => {
-    // Retrieve the user object from localStorage
     const storedUser = JSON.parse(localStorage.getItem("user"));
-
-    // Extract the user role and ID from the stored object
-    const loggedInUserRole = storedUser?.role; // Use optional chaining to handle null
+    const loggedInUserRole = storedUser?.role;
     const loggedInUserId = storedUser?.id;
 
-    console.log("Logged-in User Role:", loggedInUserRole);
-    console.log("Logged-in User ID:", loggedInUserId);
-    console.log("Target User ID:", userId);
-    console.log("Current Status:", currentStatus);
-
-    // Prevent admin from changing other users' statuses
     if (loggedInUserRole === "admin" && userId !== loggedInUserId) {
-      console.log(
-        "Admin is trying to change another user's status. Blocking..."
-      );
       setSnackbar({
         open: true,
         message: "Admins cannot change other users' statuses.",
         severity: "warning",
       });
-      return; // Stop execution
+      return;
     }
 
-    console.log("Proceeding with status update...");
-
-    const newStatus = currentStatus === "active" ? false : true; // Toggle the status
+    const newStatus = currentStatus === "active" ? false : true;
 
     try {
       const token = localStorage.getItem("token");
@@ -292,7 +343,6 @@ const AdminAdministration = () => {
       );
 
       if (response.status === 200) {
-        console.log("Status updated successfully:", newStatus);
         setUsers((prevUsers) =>
           prevUsers.map((user) =>
             user.id === userId
@@ -318,6 +368,7 @@ const AdminAdministration = () => {
       });
     }
   };
+
   const handleDeleteUser = (id) => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -336,35 +387,13 @@ const AdminAdministration = () => {
       })
       .catch((error) => console.error("Error removing user:", error));
   };
-  
-  // Open Dialog for Add/Edit
-  //   const handleOpenDialog = (user = null) => {
-  //     console.log("Opening dialog, user:", user); // Log the user object
-  //     setEditingUser(user);
-  //     setNewUser(
-  //       user
-  //         ? { ...user, password: "" }
-  //         : { name: "", role: "driver", email: "", password: "", status: false }
-  //     );
-  //     setSearchTerm(""); // Reset search term to avoid filtering issues
-  //     setOpenDialog(true);
-  //   };
 
-  //   // Close Dialog
-  //   const handleCloseDialog = () => {
-  //     setOpenDialog(false);
-  //     setEditingUser(null);
-  //     setErrorMessage(""); // Clear error message when closing
-  //   };
-
-  // Save User (Add or Edit)
   const handleSaveUser = () => {
-    setErrorMessage(""); // Reset error message
+    setErrorMessage("");
 
-    // Validation: Check if all fields are filled
     if (!newUser.name || !newUser.email || !newUser.password || !newUser.role) {
       setErrorMessage("Please fill in all fields.");
-      return; // Stop execution if validation fails
+      return;
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUser.email)) {
       setErrorMessage("Enter a valid email address.");
@@ -378,21 +407,22 @@ const AdminAdministration = () => {
       setErrorMessage("Name must be at most 15 characters.");
       return;
     }
-    const userPayload = {
-      username: newUser.name,
-      password: newUser.password,
-      user_role: newUser.role.toLowerCase(),
-      email: newUser.email,
-      status: newUser.status,
-    };
 
-    const userPayload1 = {
-      user_id: editingUser?.user_id, // Ensure ID is sent when editing
-      username: newUser.name,
-      password: newUser.password,
-      email: newUser.email,
-      user_role: newUser.user_role,
-    };
+    const userPayload = editingUser
+      ? {
+          user_id: editingUser?.user_id,
+          username: newUser.name,
+          password: newUser.password,
+          email: newUser.email,
+          user_role: newUser.user_role,
+        }
+      : {
+          username: newUser.name,
+          password: newUser.password,
+          user_role: newUser.role.toLowerCase(),
+          email: newUser.email,
+          status: newUser.status,
+        };
 
     const token = localStorage.getItem("token");
     if (!token) {
@@ -402,56 +432,35 @@ const AdminAdministration = () => {
 
     const headers = { Authorization: `Bearer ${token}` };
 
-    if (editingUser) {
-      // Update user
-      axios
-        .put(`${config.API_BASE_URL}/users/updateUserProfile`, userPayload1, {
-          headers,
-        })
-        .then(() => {
-          fetchData(); // Re-fetch users after update
-          handleCloseUserDialog();
-          setSnackbar({
-            open: true,
-            message: "User updated successfully!",
-            severity: "success",
-          });
-        })
-        .catch((error) => console.error("Error updating user:", error));
-    } else {
-      // Create new user
-      axios
-        .post(`${config.API_BASE_URL}/createUser`, userPayload, { headers })
-        .then(() => {
-          fetchData(); // Re-fetch users after creation
-          handleCloseUserDialog();
-          console.log("UserPayload:", userPayload);
-          setSnackbar({
-            open: true,
-            message: "User added successfully!",
-            severity: "success",
-          });
-        })
-        .catch((error) => {
-          console.error("Error creating user:", error);
-          if (error.response && error.response.status === 400) {
-            const backendError = error.response.data.detail;
-            if (backendError === "Username already exists") {
-              setErrorMessage(
-                "Username already exists. Please choose a different username."
-              );
-            } else if (backendError === "Email already exists") {
-              setErrorMessage(
-                "Email already exists. Please use a different email."
-              );
-            } else {
-              setErrorMessage(backendError); // Generic error from backend
-            }
-          } else {
-            setErrorMessage("An unexpected error occurred. Please try again.");
-          }
+    const apiCall = editingUser
+      ? axios.put(`${config.API_BASE_URL}/users/updateUserProfile`, userPayload, { headers })
+      : axios.post(`${config.API_BASE_URL}/createUser`, userPayload, { headers });
+
+    apiCall
+      .then(() => {
+        fetchData();
+        handleCloseUserDialog();
+        setSnackbar({
+          open: true,
+          message: `User ${editingUser ? "updated" : "added"} successfully!`,
+          severity: "success",
         });
-    }
+      })
+      .catch((error) => {
+        console.error(`Error ${editingUser ? "updating" : "creating"} user:`, error);
+        if (error.response && error.response.status === 400) {
+          const backendError = error.response.data.detail;
+          if (backendError === "Username already exists") {
+            setErrorMessage("Username already exists. Please choose a different username.");
+          } else if (backendError === "Email already exists") {
+            setErrorMessage("Email already exists. Please use a different email.");
+          } else {
+            setErrorMessage(backendError);
+          }
+        } else {
+          setErrorMessage("An unexpected error occurred. Please try again.");
+        }
+      });
   };
 
   const handleChangePage = (event, newPage) => {
@@ -471,6 +480,7 @@ const AdminAdministration = () => {
       setVehiclePage(0);
     }
   };
+
   const handleOpenDialog = () => {
     setOpenDialog(true);
   };
@@ -478,41 +488,6 @@ const AdminAdministration = () => {
   const handleCloseDialog = () => {
     setOpenDialog(false);
   };
-
-  // Add this helper function in your component
-  const getVehicleType = (capacity) => {
-    return capacity > 15000 ? "Heavy-duty trucks" : "Light-duty trucks";
-  };
-  const filteredVehicles =
-    filter === "All"
-      ? data
-      : data.filter(
-          (v) => v.fuel_type?.trim().toLowerCase() === filter.toLowerCase()
-        );
-
-  const paginatedData =
-    tabIndex === 0
-      ? data.slice(
-          userPage * userRowsPerPage,
-          userPage * userRowsPerPage + userRowsPerPage
-        )
-      : filteredVehicles.slice(
-          vehiclePage * vehicleRowsPerPage,
-          vehiclePage * vehicleRowsPerPage + vehicleRowsPerPage
-        );
-  const allCountVehicles = data.length;
-  const dieselCount = data.filter(
-    (v) => v.fuel_type?.trim().toLowerCase() === "diesel"
-  ).length;
-  const gasolineCount = data.filter(
-    (v) => v.fuel_type?.trim().toLowerCase() === "gasoline"
-  ).length;
-
-  // Debugging logs
-  console.log("allCountVehicles:", allCountVehicles);
-  console.log("Diesel Count:", dieselCount);
-  console.log("Gasoline Count:", gasolineCount);
-  console.log("Data:", data);
 
   const handleSaveVehicle = () => {
     if (
@@ -527,44 +502,6 @@ const AdminAdministration = () => {
       setSnackbar({
         open: true,
         message: "Please fill in all fields.",
-        severity: "error",
-      });
-      return;
-    }
-    if (
-      data.some(
-        (vehicle) =>
-          vehicle.LicenseNo === newVehicle.LicenseNo &&
-          (!editingVehicle || vehicle.VehicleID !== editingVehicle.VehicleID)
-      )
-    ) {
-      setSnackbar({
-        open: true,
-        message: "License number already registered.",
-        severity: "error",
-      });
-      return;
-    }
-  
-    const isDuplicate = data.some((vehicle) => {
-      console.log("vehicle.LicenseNo:", vehicle.LicenseNo);
-      console.log("newVehicle.LicenseNo:", newVehicle.LicenseNo);
-
-      // Check if LicenseNo exists for both vehicles
-      if (!vehicle.LicenseNo || !newVehicle.LicenseNo) {
-        return false; // Skip this vehicle if LicenseNo is missing
-      }
-
-      return (
-        vehicle.LicenseNo.toLowerCase() ===
-          newVehicle.LicenseNo.toLowerCase() &&
-        (editingVehicle ? vehicle.VehicleID !== editingVehicle.VehicleID : true)
-      );
-    });
-    if (isDuplicate) {
-      setSnackbar({
-        open: true,
-        message: "License number already registered.",
         severity: "error",
       });
       return;
@@ -591,8 +528,6 @@ const AdminAdministration = () => {
       vehicle_status: newVehicle.VehicleStatus,
     };
 
-    console.log("vehiclePayload:", vehiclePayload);
-
     const apiCall = editingVehicle
       ? axios.post(
           `${config.API_BASE_URL}/vehicles/updateVehicle?vehicle_id=${editingVehicle.VehicleID}`,
@@ -602,24 +537,19 @@ const AdminAdministration = () => {
       : axios.post(`${config.API_BASE_URL}/addNewVehicle`, vehiclePayload, {
           headers,
         });
-    console.log("vehiclePayload:", vehiclePayload);
+
     apiCall
       .then((response) => {
         fetchData();
         handleCloseVehicleDialog();
         setSnackbar({
           open: true,
-          message: `Vehicle ${
-            editingVehicle ? "updated" : "added"
-          } successfully`,
+          message: `Vehicle ${editingVehicle ? "updated" : "added"} successfully`,
           severity: "success",
         });
       })
       .catch((error) => {
-        console.error(
-          `Error ${editingVehicle ? "updating" : "creating"} vehicle:`,
-          error
-        );
+        console.error(`Error ${editingVehicle ? "updating" : "adding"} vehicle:`, error);
         setSnackbar({
           open: true,
           message: `Failed to ${editingVehicle ? "update" : "add"} vehicle`,
@@ -659,11 +589,12 @@ const AdminAdministration = () => {
         });
       });
   };
-  //edit vehicle data
+
   const handleEditVehicle = (vehicle) => {
     setSelectedVehicle(vehicle);
     setEditOpen(true);
   };
+
   const updateVehicleDetails = () => {
     const token = localStorage.getItem("token");
     axios
@@ -683,7 +614,7 @@ const AdminAdministration = () => {
           severity: "success",
         });
         setEditOpen(false);
-        fetchData(); // refresh the table
+        fetchData();
       })
       .catch((error) => {
         setSnackbar({
@@ -697,23 +628,67 @@ const AdminAdministration = () => {
 
   const handleOpenUserDialog = () => {
     setOpenUserDialog(true);
-    setEditingUser(null); // optional: reset edit
+    setEditingUser(null);
   };
 
   const handleOpenVehicleDialog = () => {
     setOpenVehicleDialog(true);
-    setEditingVehicle(null); // optional: reset edit
+    setEditingVehicle(null);
   };
 
   const handleCloseUserDialog = () => setOpenUserDialog(false);
   const handleCloseVehicleDialog = () => setOpenVehicleDialog(false);
 
+  // Filter data based on search term and filter
+  const filteredData = useMemo(() => {
+    return data.filter((item) => {
+      const searchMatch = JSON.stringify(item)
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+
+      let roleMatch = true;
+      if (tabIndex === 0 && filter !== "All") {
+        if (filter === "deleted") {
+          roleMatch = item.deleted === true;
+        } else {
+          roleMatch = item.role?.trim().toLowerCase() === filter.toLowerCase();
+        }
+      }
+
+      let fuelTypeMatch = true;
+      if (tabIndex === 1 && filter !== "All") {
+        fuelTypeMatch =
+          item.fuel_type?.trim().toLowerCase() === filter.toLowerCase();
+      }
+
+      return searchMatch && roleMatch && fuelTypeMatch;
+    });
+  }, [data, searchTerm, filter, tabIndex]);
+
+  // Paginated data
+  const paginatedData = useMemo(() => {
+    const startIndex = (tabIndex === 0 ? userPage : vehiclePage) * 
+                      (tabIndex === 0 ? userRowsPerPage : vehicleRowsPerPage);
+    const endIndex = startIndex + 
+                    (tabIndex === 0 ? userRowsPerPage : vehicleRowsPerPage);
+    return filteredData.slice(startIndex, endIndex);
+  }, [filteredData, userPage, vehiclePage, userRowsPerPage, vehicleRowsPerPage, tabIndex]);
+
+  // Counts for filters
+  const allCountVehicles = data.length;
+  const dieselCount = data.filter(
+    (v) => v.fuel_type?.trim().toLowerCase() === "diesel"
+  ).length;
+  const gasolineCount = data.filter(
+    (v) => v.fuel_type?.trim().toLowerCase() === "gasoline"
+  ).length;
+
   return (
     <>
       <NavBar id="navbar"/>
-      <Breadcrumbs  id="breadcrumbs"/>
+      <Breadcrumbs id="breadcrumbs"/>
       <Paper id="dashboard-container" sx={{ padding: 2, margin: "auto" }}>
-        <Box  id="header-container"
+        <Box id="header-container"
           sx={{
             display: "flex",
             justifyContent: "space-between",
@@ -721,11 +696,11 @@ const AdminAdministration = () => {
             marginBottom: 2,
           }}
         >
-          <Typography  id="admin-dashboard-title"  variant="h5" sx={{ color: "#156272" }}>
+          <Typography id="admin-dashboard-title" variant="h5" sx={{ color: "#156272" }}>
             <FaUserShield className="role-icon" /> Admin Dashboard
           </Typography>
 
-          <Tabs  id="main-tab-selector"
+          <Tabs id="main-tab-selector"
             value={tabIndex}
             className="tab-links"
             onChange={(e, newValue) => setTabIndex(newValue)}
@@ -736,103 +711,95 @@ const AdminAdministration = () => {
               className="tab-link"
               sx={{ "&.MuiTab-root": { minHeight: "37px!important" } }}
             />
-            <Tab label="Vehicles" id="tab-vehicles"  className="tab-link" />
+            <Tab label="Vehicles" id="tab-vehicles" className="tab-link" />
           </Tabs>
         </Box>
         <Box id="content-container">
           {tabIndex === 0 ? (
             <Box className="filter-container" id="user-tab-content">
-              <Button  id="create-user-btn"
-                variant="contained"
-                color="primary"
-                startIcon={<Add />}
-                onClick={() => handleOpenUserDialog()} // Replace with your handleOpenDialog function
-              >
-                Create User
-              </Button>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+                <Button id="create-user-btn"
+                  variant="contained"
+                  color="primary"
+                  startIcon={<Add />}
+                  onClick={handleOpenUserDialog}
+                >
+                  Create User
+                </Button>
+                <Button
+                  id="filter-deleted-users"
+                  sx={{
+                    backgroundColor: filter === "deleted" ? "#d32f2f" : "#d32f2f!important",
+                    color: "white",
+                    border: "1px solid #dcdcdc",
+                    padding: "5px 15px",
+                    minHeight: "39px",
+                    textTransform: "none",
+                  }}
+                >
+                  Deleted Users ({data.filter((u) => u.role?.trim().toLowerCase() === "deleted").length})
+                </Button>
+              </Box>
               <Box sx={{ display: "flex", gap: 1 }}>
-                <TextField    id="search-users"
+                <TextField id="search-users"
                   className="search-add-container"
                   placeholder="Search"
                   size="small"
+                  value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                  }}
                 />
                 <Tabs id="user-filter-tabs"
                   value={filter}
                   onChange={(e, newValue) => {
-                    setFilter(newValue); // Update the filter
-                    setUserPage(0); // Reset pagination to first page
+                    setFilter(newValue);
+                    setUserPage(0);
                   }}
                 >
-                  <Tab  id="filter-all-users"
+                  <Tab id="filter-all-users"
                     label={`All (${data.length})`}
                     value="All"
                     className="tab"
                     sx={{
-                      backgroundColor:
-                        filter === "All" ? "#388e3c" : "#dcdcdc4a!important",
+                      backgroundColor: filter === "All" ? "#388e3c" : "#dcdcdc4a!important",
                       color: filter === "All" ? "white" : "#1976d2",
                       border: "1px solid #dcdcdc",
                       padding: "5px 15px",
-                      "&.MuiTab-root": {
-                        minHeight: "39px !important",
-                      },
+                      "&.MuiTab-root": { minHeight: "39px !important" },
                     }}
                   />
-                  <Tab  id="filter-managers"
+                  <Tab id="filter-managers"
                     label={`Managers (${
-                      data.filter(
-                        (u) => u.role?.trim().toLowerCase() === "manager"
-                      ).length
+                      data.filter((u) => u.role?.trim().toLowerCase() === "manager").length
                     })`}
                     className="tab"
                     value="manager"
                     sx={{
-                      backgroundColor:
-                        filter === "manager"
-                          ? "#388e3c"
-                          : "#dcdcdc4a!important",
+                      backgroundColor: filter === "manager" ? "#388e3c" : "#dcdcdc4a!important",
                       color: filter === "manager" ? "white" : "#1976d2",
                       border: "1px solid #dcdcdc",
                       padding: "5px 15px",
-                      "&.MuiTab-root": {
-                        minHeight: "39px !important",
-                      },
+                      "&.MuiTab-root": { minHeight: "39px !important" },
                     }}
                   />
-                  <Tab  id="filter-drivers"
+                  <Tab id="filter-drivers"
                     label={`Drivers (${
                       data.filter((u) => u.role === "driver").length
                     })`}
                     value="driver"
                     className="tab"
                     sx={{
-                      backgroundColor:
-                        filter === "driver" ? "#388e3c" : "#dcdcdc4a!important",
+                      backgroundColor: filter === "driver" ? "#388e3c" : "#dcdcdc4a!important",
                       color: filter === "driver" ? "white" : "#1976d2",
                       border: "1px solid #dcdcdc",
                       padding: "5px 15px",
-                      "&.MuiTab-root": {
-                        minHeight: "39px !important",
-                      },
-                    }}
-                  />
-                  <Tab  id="filter-deleted-users"
-                   label={`Deleted Users  (${deletedUsers.length})`}
-                    onClick={() => setFilter("deleted")}
-                    value="deleted"
-                    className="tab"
-                    sx={{
-                      backgroundColor:
-                        filter === "deleted"
-                          ? "#388e3c"
-                          : "#dcdcdc4a!important",
-                      color: filter === "deleted" ? "white" : "#1976d2",
-                      border: "1px solid #dcdcdc",
-                      padding: "5px 15px",
-                      "&.MuiTab-root": {
-                        minHeight: "39px !important",
-                      },
+                      "&.MuiTab-root": { minHeight: "39px !important" },
                     }}
                   />
                 </Tabs>
@@ -844,7 +811,7 @@ const AdminAdministration = () => {
                 variant="contained"
                 color="primary"
                 startIcon={<Add />}
-                onClick={() => handleOpenVehicleDialog()}
+                onClick={handleOpenVehicleDialog}
               >
                 Add Vehicle
               </Button>
@@ -854,13 +821,21 @@ const AdminAdministration = () => {
                   variant="outlined"
                   placeholder="Search Vehicle"
                   size="small"
+                  value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    ),
+                  }}
                 />
-                <Tabs  id="vehicle-filter-tabs"
+                <Tabs id="vehicle-filter-tabs"
                   value={filter}
                   onChange={(e, newValue) => {
-                    setFilter(newValue); // Update the filter
-                    setUserPage(0); // Reset pagination to first page
+                    setFilter(newValue);
+                    setVehiclePage(0);
                   }}
                 >
                   <Tab id="filter-all-vehicles"
@@ -868,8 +843,7 @@ const AdminAdministration = () => {
                     value="All"
                     className="tab"
                     sx={{
-                      backgroundColor:
-                        filter === "All" ? "#388e3c" : "#dcdcdc4a",
+                      backgroundColor: filter === "All" ? "#388e3c" : "#dcdcdc4a",
                       color: filter === "All" ? "white" : "#1976d2",
                       border: "1px solid #dcdcdc",
                       padding: "5px 15px",
@@ -880,8 +854,7 @@ const AdminAdministration = () => {
                     value="Diesel"
                     className="tab"
                     sx={{
-                      backgroundColor:
-                        filter === "Diesel" ? "#388e3c" : "#dcdcdc4a",
+                      backgroundColor: filter === "Diesel" ? "#388e3c" : "#dcdcdc4a",
                       color: filter === "Diesel" ? "white" : "#1976d2",
                       border: "1px solid #dcdcdc",
                       padding: "5px 15px",
@@ -892,8 +865,7 @@ const AdminAdministration = () => {
                     value="Gasoline"
                     className="tab"
                     sx={{
-                      backgroundColor:
-                        filter === "Gasoline" ? "#388e3c" : "#dcdcdc4a",
+                      backgroundColor: filter === "Gasoline" ? "#388e3c" : "#dcdcdc4a",
                       color: filter === "Gasoline" ? "white" : "#1976d2",
                       border: "1px solid #dcdcdc",
                       padding: "5px 15px",
@@ -906,300 +878,62 @@ const AdminAdministration = () => {
         </Box>
 
         {loading ? (
-          <CircularProgress  id="loading-indicator"/>
+          <CircularProgress id="loading-indicator"/>
         ) : error ? (
-          <Typography  id="error-message" color="error">{error}</Typography>
+          <Typography id="error-message" color="error">{error}</Typography>
         ) : data.length === 0 ? (
           <Typography id="no-data-message">No data found.</Typography>
         ) : (
-          <TableContainer
-            component={Paper} id="data-table-container"
-            sx={{
-              maxHeight: "60vh",
-              overflowY: "auto",
-              "&::-webkit-scrollbar": {
-                width: "6px", // Width of the scrollbar
-                height: "6px",
-              },
-              "&::-webkit-scrollbar-track": {
-                background: "#f1f1f1", // Track color
-                borderRadius: "10px",
-              },
-              "&::-webkit-scrollbar-thumb": {
-                background: "#888", // Scrollbar color
-                borderRadius: "10px",
-              },
-              "&::-webkit-scrollbar-thumb:hover": {
-                background: "#555", // Scrollbar color on hover
-              },
+          <div 
+            className="ag-theme-alpine"
+            style={{
+              width: '100%',
+              height: '60vh',
+              marginTop: '16px'
             }}
           >
-            <Table id="data-table"  sx={{ borderCollapse: "collapse" }}>
-              <TableHead
-                sx={{
-                  position: "sticky",
-                  top: 0,
-                  backgroundColor: "#5e87b0 ",
-                  zIndex: 1,
-                  "& th": { padding: "4px" },
-                }}
-              >
-                <TableRow id="table-header-row">
-                  {tabIndex === 0 ? (
-                    <>
-                      <TableCell id="header-sno"
-                        sx={{ color: "white", borderRight: "1px solid #bbb" }}
-                      >
-                        SNo
-                      </TableCell>
-                      {/* <TableCell sx={{ color: "white", borderRight: "1px solid #bbb" }}>ID</TableCell> */}
-                      <TableCell  id="header-name"
-                        sx={{ color: "white", borderRight: "1px solid #bbb" }}
-                      >
-                        Name
-                      </TableCell>
-
-                      <TableCell id="header-role"
-                        sx={{ color: "white", borderRight: "1px solid #bbb" }}
-                      >
-                        Role
-                      </TableCell>
-                      <TableCell id="header-email" 
-                        sx={{ color: "white", borderRight: "1px solid #bbb" }}
-                      >
-                        Email
-                      </TableCell>
-                      <TableCell id="header-status"
-                        sx={{ color: "white", borderRight: "1px solid #bbb" }}
-                      >
-                        Activity Status
-                      </TableCell>
-                      <TableCell  id="header-action"
-                        sx={{ color: "white", borderRight: "1px solid #bbb" }}
-                      >
-                        Action
-                      </TableCell>
-                    </>
-                  ) : (
-                    <>
-                      <TableCell id="header-sno"
-                        sx={{ color: "white", borderRight: "1px solid #bbb" }}
-                      >
-                        SNo
-                      </TableCell>
-
-                      <TableCell id="vehicle-license"
-                        sx={{ color: "white", borderRight: "1px solid #bbb" }}
-                      >
-                        Vehicle LicenseNo
-                      </TableCell>
-                      <TableCell id="vehicle-type"
-                        sx={{ color: "white", borderRight: "1px solid #bbb" }}
-                      >
-                        Vehicle Type
-                      </TableCell>
-                      <TableCell id="vehicle-fuel"
-                        sx={{ color: "white", borderRight: "1px solid #bbb" }}
-                      >
-                        Fuel Type
-                      </TableCell>
-                      <TableCell  id="vehicle-co2"
-                        sx={{ color: "white", borderRight: "1px solid #bbb" }}
-                      >
-                        CO2 Emissions(lbs)
-                      </TableCell>
-                      <TableCell id="vehicle-mileage"
-                        sx={{ color: "white", borderRight: "1px solid #bbb" }}
-                      >
-                        Mileage(miles)
-                      </TableCell>
-                      <TableCell id="vehicle-capacity"
-                        sx={{ color: "white", borderRight: "1px solid #bbb" }}
-                      >
-                        Capacity(lbs)
-                      </TableCell>
-                      <TableCell id="vehicle-status"
-                        sx={{ color: "white", borderRight: "1px solid #bbb" }}
-                      >
-                        Status
-                      </TableCell>
-                      <TableCell id="vehicle-action"
-                        sx={{ color: "white", borderRight: "1px solid #bbb" }}
-                      >
-                        Action
-                      </TableCell>
-                    </>
-                  )}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {/* {paginatedData */}
-                {(() => {
-                 const filteredData = data .filter((item) => {
-                    // Convert everything to lowercase for case-insensitive search
-                    const searchMatch = JSON.stringify(item)
-                      .toLowerCase()
-                      .includes(searchTerm.toLowerCase());
-
-                    // Role-based filtering (for users only)
-                    let roleMatch = true;
-                    // if (tabIndex === 0 && filter !== "All") {
-                    //   roleMatch =
-                    //     item.role?.trim().toLowerCase() ===
-                    //     filter.toLowerCase();
-                    // }
-                   if (tabIndex === 0) {
-    if (filter === "deleted") {
-      return searchMatch && item.deleted;
-    } else if (filter !== "All") {
-      return searchMatch && item.role?.trim().toLowerCase() === filter.toLowerCase();
-    }
-    return searchMatch;
-  }
-
-                    // Fuel-type filtering (for vehicles only)
-                    let fuelTypeMatch = true;
-                    if (tabIndex === 1 && filter !== "All") {
-                      fuelTypeMatch =
-                        item.fuel_type?.trim().toLowerCase() ===
-                        filter.toLowerCase();
-                    }
-
-                    return searchMatch && roleMatch && fuelTypeMatch;
-                  })
-                   /* Paginate the filteredData */
-        const paginatedData = filteredData.slice(
-          (tabIndex === 0 ? userPage : vehiclePage) * (tabIndex === 0 ? userRowsPerPage : vehicleRowsPerPage),
-          (tabIndex === 0 ? userPage : vehiclePage) * (tabIndex === 0 ? userRowsPerPage : vehicleRowsPerPage) +
-          (tabIndex === 0 ? userRowsPerPage : vehicleRowsPerPage)
-        );
-
-        return paginatedData
-                  .map((item, index) => (
-                    <TableRow key={index} id="table-row">
-                      {tabIndex === 0 ? (
-                        <>
-                          <TableCell  id={`user-sno-${index}`}>
-                            {userPage * userRowsPerPage + index + 1}
-                          </TableCell>
-                          {/* <TableCell>{item.user_id}</TableCell> */}
-                          <TableCell id={`user-name-${index}`}>{item.name}</TableCell>
-                          <TableCell id={`user-role-${index}`}>
-                            <Box sx={{ display: "flex", alignItems: "center" }}>
-                              <Avatar
-                                sx={{ width: 32, height: 32, marginRight: 1 }}
-                              />
-                              <Typography variant="body2">
-                                {item.role}
-                              </Typography>
-                            </Box>
-                          </TableCell>
-                          <TableCell id={`user-email-${index}`}>{item.email}</TableCell>
-                          <TableCell id={`user-status-${index}`}>{item.status}</TableCell>
-
-                          <TableCell id={`user-action-${index}`}>
-                            <IconButton  id={`delete-user-${item.id}`}
-                              onClick={() => handleDeleteUser(item.id)}
-                              color="error"
-                            >
-                              <Delete />
-                            </IconButton>
-                          </TableCell>
-                        </>
-                      ) : (
-                        <>
-                          <TableCell id={`vehicle-sno-${index}`}>
-                            {vehiclePage * vehicleRowsPerPage + index + 1}
-                          </TableCell>
-                          <TableCell id={`vehicle-license-${index}`}>{item.license_no}</TableCell>
-                          <TableCell  id={`vehicle-type-${index}`}>{item.vehicle_type}</TableCell>
-                          <TableCell id={`vehicle-fuel-${index}`}>{item.fuel_type}</TableCell>
-                          <TableCell  id={`vehicle-co2-${index}`}>{item.exhaust_co2}</TableCell>
-                          <TableCell id={`vehicle-mileage-${index}`}>{item.mileage}</TableCell>
-                          <TableCell id={`vehicle-capacity-${index}`}>{item.capacity}</TableCell>
-                          <TableCell id={`vehicle-status-${index}`}>{item.status}</TableCell>
-                          <TableCell id={`vehicle-action-${index}`}>
-                            {item.status === "In Transit" ? (
-                              <>
-                                <Tooltip title="Vehicle is in transit,cant able to edit/delete">
-                                  <span>
-                                    <IconButton disabled color="primary" id={`edit-vehicle-${item.id}`}>
-                                      <Edit />
-                                    </IconButton>
-                                  </span>
-                                </Tooltip>
-                                <Tooltip title="Vehicle is in transit,cant able to edit/delete">
-                                  <span>
-                                    <IconButton disabled color="error" id={`delete-vehicle-${item.id}`}>
-                                      <Delete />
-                                    </IconButton>
-                                  </span>
-                                </Tooltip>
-                              </>
-                            ) : (
-                              <>
-                                <IconButton
-                                  onClick={() => handleEditVehicle(item)}
-                                  color="primary"
-                                >
-                                  <Edit />
-                                </IconButton>
-                                <IconButton
-                                  onClick={() =>
-                                    handleDeleteVehicle(item.vehicle_id)
-                                  }
-                                  color="error"
-                                >
-                                  <Delete />
-                                </IconButton>
-                              </>
-                            )}
-                          </TableCell>
-                         
-                        </>
-                      )}
-                    </TableRow>
-                  ));
-                })()}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          
+            <AgGridReact
+              columnDefs={tabIndex === 0 ? userColumnDefs : vehicleColumnDefs}
+              rowData={filteredData}
+              gridOptions={gridOptions}
+              pagination={true}
+              paginationPageSize={tabIndex === 0 ? userRowsPerPage : vehicleRowsPerPage}
+              suppressPaginationPanel={true}
+            />
+          </div>
         )}
-         {/* Snackbar for success messages */}
-         <Snackbar
-                            open={snackbar.open}
-                            autoHideDuration={3000}
-                            onClose={() =>
-                              setSnackbar({ ...snackbar, open: false })
-                            }
-                            anchorOrigin={{
-                              vertical: "top",
-                              horizontal: "right",
-                            }}
-                          >
-                            <Alert
-                              onClose={() =>
-                                setSnackbar({ ...snackbar, open: false })
-                              }
-                              severity={snackbar.severity}
-                              sx={{ width: "100%" }}
-                            >
-                              {snackbar.message}
-                            </Alert>
-                          </Snackbar>
+
+        {/* Custom Pagination Controls */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+          <TablePagination
+            rowsPerPageOptions={[5, 10, 25]}
+            component="div"
+            count={filteredData.length}
+            rowsPerPage={tabIndex === 0 ? userRowsPerPage : vehicleRowsPerPage}
+            page={tabIndex === 0 ? userPage : vehiclePage}
+            onPageChange={handleChangePage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+          />
+        </Box>
+
+        {/* Snackbar for success messages */}
+        <Snackbar
+          open={snackbar.open}
+          autoHideDuration={3000}
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          anchorOrigin={{ vertical: "top", horizontal: "right" }}
+        >
+          <Alert
+            onClose={() => setSnackbar({ ...snackbar, open: false })}
+            severity={snackbar.severity}
+            sx={{ width: "100%" }}
+          >
+            {snackbar.message}
+          </Alert>
+        </Snackbar>
       </Paper>
 
-      {/* Pagination */}
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
-        component="div"
-        count={tabIndex === 0 ? data.length : data.length}
-        rowsPerPage={tabIndex === 0 ? userRowsPerPage : vehicleRowsPerPage}
-        page={tabIndex === 0 ? userPage : vehiclePage}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
+      {/* User Dialog */}
       <Dialog
         open={openUserDialog}
         onClose={handleCloseUserDialog}
@@ -1246,7 +980,7 @@ const AdminAdministration = () => {
                   setNewUser({ ...newUser, name: value });
                 }
               }}
-              ErrorIcon={
+              error={
                 newUser.name.length > 15 || newUser.name.startsWith(" ")
               }
               helperText={
@@ -1295,7 +1029,7 @@ const AdminAdministration = () => {
               onChange={(e) =>
                 setNewUser({ ...newUser, email: e.target.value.trim() })
               }
-              ErrorIcon={
+              error={
                 newUser.email.length > 0 &&
                 !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUser.email)
               }
@@ -1347,7 +1081,7 @@ const AdminAdministration = () => {
                   setNewUser({ ...newUser, password: value });
                 }
               }}
-              ErrorIcon={
+              error={
                 newUser.password.length > 0 &&
                 (newUser.password.length < 6 || newUser.password.length > 10)
               }
@@ -1393,8 +1127,8 @@ const AdminAdministration = () => {
               }}
             />
 
-            {/* Password Strength Indicator */}
-            {newUser.password.length > 0 && (
+                       {/* Password Strength Indicator */}
+                       {newUser.password.length > 0 && (
               <Box sx={{ mb: 2, ml: 1 }}>
                 <LinearProgress
                   variant="determinate"
@@ -1478,13 +1212,14 @@ const AdminAdministration = () => {
               newUser.password.length > 10
             }
             startIcon={<Save />}
-            g
             sx={{ minWidth: 120 }}
           >
             {editingUser ? "Update" : "Create"}
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Vehicle Dialog */}
       <Dialog
         open={openVehicleDialog}
         onClose={handleCloseVehicleDialog}
@@ -1535,36 +1270,6 @@ const AdminAdministration = () => {
                 </MenuItem>
               </Select>
             </FormControl>
-            {/* <FormControl fullWidth size="small" sx={{ mb: 2.5 }}>
-              <InputLabel
-                sx={{ transform: "translate(14px, -9px) scale(0.75)" }}
-              >
-                Vehicle Type
-              </InputLabel>
-              <Select
-                value={newVehicle.VehicleType}
-                disabled
-                sx={{
-                  "& .MuiSelect-select": {
-                    display: "flex",
-                    alignItems: "center",
-                  },
-                }}
-              >
-                <MenuItem value="Heavy-duty trucks">
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <LocalShipping />
-                    Heavy-duty trucks
-                  </Box>
-                </MenuItem>
-                <MenuItem value="Light-duty trucks">
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <DirectionsCar />
-                    Light-duty trucks
-                  </Box>
-                </MenuItem>
-              </Select>
-            </FormControl> */}
 
             {/* Fuel Type */}
             <FormControl fullWidth size="small" sx={{ mb: 2.5 }}>
@@ -1595,7 +1300,7 @@ const AdminAdministration = () => {
               </Select>
             </FormControl>
 
-            {/* Emissions (converted to US units) */}
+            {/* Emissions */}
             <TextField
               fullWidth
               size="small"
@@ -1603,12 +1308,8 @@ const AdminAdministration = () => {
               variant="outlined"
               sx={{ mb: 2.5 }}
               type="number"
-              value={
-                newVehicle.ExhaustCO2
-                
-              }
+              value={newVehicle.ExhaustCO2}
               onChange={(e) => {
-                // just store exactly what the user typed
                 setNewVehicle(prev => ({
                   ...prev,
                   ExhaustCO2: e.target.value
@@ -1623,7 +1324,7 @@ const AdminAdministration = () => {
               }}
             />
 
-            {/* Fuel Efficiency (converted to mpg) */}
+            {/* Fuel Efficiency */}
             <TextField
               fullWidth
               size="small"
@@ -1631,12 +1332,8 @@ const AdminAdministration = () => {
               variant="outlined"
               sx={{ mb: 2.5 }}
               type="number"
-              value={
-                newVehicle.Mileage
-                  
-              }
+              value={newVehicle.Mileage}
               onChange={(e) => {
-                // just store exactly what the user typed
                 setNewVehicle((prev) => ({
                   ...prev,
                   Mileage: e.target.value,
@@ -1651,7 +1348,7 @@ const AdminAdministration = () => {
               }}
             />
 
-            {/* Vehicle Capacity (converted to lbs) */}
+            {/* Vehicle Capacity */}
             <TextField
               fullWidth
               size="small"
@@ -1675,26 +1372,24 @@ const AdminAdministration = () => {
                       : "",
                 }));
               }}
-              
-            
               inputProps={{ min: 3, max: 40, step: 1 }}
-  helperText={
-    <Box component="span" display="flex" alignItems="center" gap={1}>
-      <InfoIcon color="info" fontSize="small" />
-      3–15 t =&gt; Light‑duty | 16–40 t =&gt; Heavy‑duty
-    </Box>
-  }
-  InputProps={{
-    endAdornment: (
-      <InputAdornment position="end">
-        <Scale />
-      </InputAdornment>
-    ),
-  }}
-  FormHelperTextProps={{
-    sx: { fontSize: "0.75rem", mt: 0.5 }
-  }}
-/>
+              helperText={
+                <Box component="span" display="flex" alignItems="center" gap={1}>
+                  <InfoIcon color="info" fontSize="small" />
+                  3–15 t =&gt; Light-duty | 16–40 t =&gt; Heavy-duty
+                </Box>
+              }
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <Scale />
+                  </InputAdornment>
+                ),
+              }}
+              FormHelperTextProps={{
+                sx: { fontSize: "0.75rem", mt: 0.5 }
+              }}
+            />
 
             {/* License Plate */}
             <TextField
@@ -1772,7 +1467,7 @@ const AdminAdministration = () => {
         </DialogActions>
       </Dialog>
 
-      {/* //edit vehicle data */}
+      {/* Edit Vehicle Dialog */}
       <Dialog
         open={editOpen}
         onClose={() => setEditOpen(false)}
@@ -1797,6 +1492,7 @@ const AdminAdministration = () => {
             label="Mileage"
             fullWidth
             margin="dense"
+            type="number"
             value={selectedVehicle?.mileage || ""}
             onChange={(e) =>
               setSelectedVehicle({
@@ -1805,11 +1501,43 @@ const AdminAdministration = () => {
               })
             }
           />
-          {/* Add other fields as needed */}
+          <TextField
+            label="CO2 Emissions"
+            fullWidth
+            margin="dense"
+            type="number"
+            value={selectedVehicle?.exhaust_co2 || ""}
+            onChange={(e) =>
+              setSelectedVehicle({
+                ...selectedVehicle,
+                exhaust_co2: e.target.value,
+              })
+            }
+          />
+          <FormControl fullWidth margin="dense">
+            <InputLabel>Status</InputLabel>
+            <Select
+              value={selectedVehicle?.status || ""}
+              onChange={(e) =>
+                setSelectedVehicle({
+                  ...selectedVehicle,
+                  status: e.target.value,
+                })
+              }
+              label="Status"
+            >
+              <MenuItem value="Available">Available</MenuItem>
+              <MenuItem value="In Transit">In Transit</MenuItem>
+            </Select>
+          </FormControl>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setEditOpen(false)}>Cancel</Button>
-          <Button variant="contained" onClick={() => updateVehicleDetails()}>
+          <Button 
+            variant="contained" 
+            color="primary"
+            onClick={updateVehicleDetails}
+          >
             Update
           </Button>
         </DialogActions>
@@ -1818,4 +1546,4 @@ const AdminAdministration = () => {
   );
 };
 
-export default AdminAdministration;
+export default ACGrid;
