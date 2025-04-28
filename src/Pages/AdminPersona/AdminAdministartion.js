@@ -159,16 +159,14 @@ const AdminAdministration = () => {
     //     : `${config.API_BASE_URL}/getVehicles`;
     let apiUrl = "";
     if (tabIndex === 0) {
-      if (filter === "deleted") {
-        apiUrl = `${config.API_BASE_URL}/users/deletedUsersList`;
-      } else {
-        apiUrl = `${config.API_BASE_URL}/users/usersList`;
-      }
+       // apiUrl = `${config.API_BASE_URL}/users/deletedUsersList`;
+     apiUrl = `${config.API_BASE_URL}/users/usersList`;
+      
     } else {
       apiUrl = `${config.API_BASE_URL}/getVehicles`;
     }
     console.log("Current filter:", filter);
-
+   
     const token = localStorage.getItem("token");
     if (!token) {
       setError("No token found. Please log in.");
@@ -184,38 +182,28 @@ const AdminAdministration = () => {
       console.log("API Response:", response.data);
       let responseData = [];
     
+      if (tabIndex === 0 && Array.isArray(response.data.users)) {
+        responseData = response.data.users.map((user) => ({
+          id: user.user_id,
+          name: user.username,
+          email: user.email,
+          role: user.role.toLowerCase(), // Convert role to lowercase
+          status: user.status,
+          deleted: user.deleted ?? false,
+        }));
+      } 
       // if (tabIndex === 0 && Array.isArray(response.data.users)) {
       //   responseData = response.data.users.map((user) => ({
       //     id: user.user_id,
       //     name: user.username,
       //     email: user.email,
-      //     role: user.role.toLowerCase(), // Convert role to lowercase
+      //     role: "deleted",
       //     status: user.status,
-      //     deleted: user.deleted ?? false,
+      //     deleted: true,
       //   }));
-      // } 
-      if (tabIndex === 0 && filter === "deleted" && Array.isArray(response.data.users)) {
-        responseData = response.data.users.map((user) => ({
-          id: user.user_id,
-          name: user.username,
-          email: user.email,
-          role: "deleted",
-          status: user.status,
-          deleted: true,
-        }));
-      }
       
-     else if (tabIndex === 0 && Array.isArray(response.data.users)) {
-        responseData = response.data.users.map((user) => ({
-          id: user.user_id,
-          name: user.username,
-          email: user.email,
-          role: user.role.toLowerCase(),
-          status: user.status,
-          deleted: user.deleted ?? false,
-        }));
-      }
       
+    //}
       
       else if (tabIndex === 1 && Array.isArray(response.data.vehicles)) {
         responseData = response.data.vehicles.map((vehicle) => ({
@@ -740,6 +728,7 @@ const AdminAdministration = () => {
         <Box id="content-container">
           {tabIndex === 0 ? (
             <Box className="filter-container" id="user-tab-content">
+               <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
               <Button  id="create-user-btn"
                 variant="contained"
                 color="primary"
@@ -748,6 +737,40 @@ const AdminAdministration = () => {
               >
                 Create User
               </Button>
+              <Button  
+              // id="filter-deleted-users"
+              //       label={`Deleted Users (${data.filter((u) => u.role?.trim().toLowerCase() === "deleted").length})`}
+              //       onClick={() => setFilter("deleted")}
+              //       value="deleted"
+              //       className="tab"
+              //       sx={{
+              //         backgroundColor:
+              //           filter === "deleted"
+              //             ? "#388e3c"
+              //             : "#dcdcdc4a!important",
+              //         color: filter === "deleted" ? "white" : "#1976d2",
+              //         border: "1px solid #dcdcdc",
+              //         padding: "5px 15px",
+              //         "&.MuiTab-root": {
+              //           minHeight: "39px !important",
+              //         },
+              //       }}
+              //     />
+                     id="filter-deleted-users"
+                      // onClick={() => setFilter("deleted")}
+                      value="deleted"
+                      sx={{
+                        backgroundColor: filter === "deleted" ? "#d32f2f" : "#d32f2f!important",
+                        color: filter === "deleted" ? "white" : "white",
+                        border: "1px solid #dcdcdc",
+                        padding: "5px 15px",
+                        minHeight: "39px",
+                        textTransform: "none",
+                      }}
+                    >
+                      Deleted Users ({data.filter((u) => u.role?.trim().toLowerCase() === "deleted").length})
+      </Button>
+                  </Box>
               <Box sx={{ display: "flex", gap: 1 }}>
                 <TextField    id="search-users"
                   className="search-add-container"
@@ -815,24 +838,7 @@ const AdminAdministration = () => {
                       },
                     }}
                   />
-                  <Tab  id="filter-deleted-users"
-                    label={`Deleted Users (${data.filter((u) => u.role?.trim().toLowerCase() === "deleted").length})`}
-                    onClick={() => setFilter("deleted")}
-                    value="deleted"
-                    className="tab"
-                    sx={{
-                      backgroundColor:
-                        filter === "deleted"
-                          ? "#388e3c"
-                          : "#dcdcdc4a!important",
-                      color: filter === "deleted" ? "white" : "#1976d2",
-                      border: "1px solid #dcdcdc",
-                      padding: "5px 15px",
-                      "&.MuiTab-root": {
-                        minHeight: "39px !important",
-                      },
-                    }}
-                  />
+                 
                 </Tabs>
               </Box>
             </Box>
@@ -1031,8 +1037,9 @@ const AdminAdministration = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {paginatedData
-                  .filter((item) => {
+                {/* {paginatedData */}
+                {(() => {
+                 const filteredData = data .filter((item) => {
                     // Convert everything to lowercase for case-insensitive search
                     const searchMatch = JSON.stringify(item)
                       .toLowerCase()
@@ -1064,6 +1071,14 @@ const AdminAdministration = () => {
 
                     return searchMatch && roleMatch && fuelTypeMatch;
                   })
+                   /* Paginate the filteredData */
+        const paginatedData = filteredData.slice(
+          (tabIndex === 0 ? userPage : vehiclePage) * (tabIndex === 0 ? userRowsPerPage : vehicleRowsPerPage),
+          (tabIndex === 0 ? userPage : vehiclePage) * (tabIndex === 0 ? userRowsPerPage : vehicleRowsPerPage) +
+          (tabIndex === 0 ? userRowsPerPage : vehicleRowsPerPage)
+        );
+
+        return paginatedData
                   .map((item, index) => (
                     <TableRow key={index} id="table-row">
                       {tabIndex === 0 ? (
@@ -1144,8 +1159,19 @@ const AdminAdministration = () => {
                               </>
                             )}
                           </TableCell>
-                          {/* Snackbar for success messages */}
-                          <Snackbar
+                         
+                        </>
+                      )}
+                    </TableRow>
+                  ));
+                })()}  
+              </TableBody>
+            </Table>
+          </TableContainer>
+          
+        )}
+         {/* Snackbar for success messages */}
+         <Snackbar
                             open={snackbar.open}
                             autoHideDuration={3000}
                             onClose={() =>
@@ -1166,14 +1192,6 @@ const AdminAdministration = () => {
                               {snackbar.message}
                             </Alert>
                           </Snackbar>
-                        </>
-                      )}
-                    </TableRow>
-                  ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
       </Paper>
 
       {/* Pagination */}

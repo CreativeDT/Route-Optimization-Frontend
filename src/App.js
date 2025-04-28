@@ -21,9 +21,10 @@ import ManagerAnalytics from './Pages/ManagerPersona/ManagerAnalytics';
 import DriverRouteTracking from './Pages/DriverPersona/DriverRouteTracking';
 import DriverAnalytics from './Pages/DriverPersona/DriverAnalytics';
 import AdminAdministration from './Pages/AdminPersona/AdminAdministartion';
-import UpdateProfile from './Pages/DriverPersona/UpdateProfile/UpdateProfile';
+
 import SessionExpiryPage from './Pages/SessionExpiryPage';
 import SessionExpired from './Pages/SessionExpired';
+import UpdateProfile from './Components/UpdateProfile/UpdateProfile';
 
 
 

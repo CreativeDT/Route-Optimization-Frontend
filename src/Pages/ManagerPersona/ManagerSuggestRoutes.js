@@ -1716,7 +1716,7 @@ const isSubmitDisabled = useMemo(() => {
                       inputRef={(el) =>
                         (inputRefs.current[`${index}-drop_demand`] = el)
                       }
-                      label="Drop Demand"
+                      label="Drop Demand(tones)"
                       type="number"
                       value={stop.drop_demand || 0}
                       onChange={(e) => {
@@ -1744,7 +1744,7 @@ const isSubmitDisabled = useMemo(() => {
                       inputRef={(el) =>
                         (inputRefs.current[`${index}-pickup_demand`] = el)
                       }
-                      label="Pickup Demand"
+                      label="Pickup Demand(tones)"
                       type="number"
                       value={stop.pickup_demand || 0}
                       onChange={(e) => {

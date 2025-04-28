@@ -1,7 +1,7 @@
 import React, { useState,useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import config from '../../../config';
+import config from '../../config.js'
 import './UpdateProfile.css';
 import Snackbar from '@mui/material/Snackbar';
 import MuiAlert from '@mui/material/Alert';
@@ -15,8 +15,8 @@ import {
   faIdCard,
   faCalendarAlt
 } from '@fortawesome/free-solid-svg-icons';
-import NavBar from '../../../Components/NavBar';
-import Breadcrumbs2 from '../Breadcrumbs2';
+import NavBar from '../NavBar';
+import Breadcrumbs2 from '../../Pages/DriverPersona/Breadcrumbs2';
 
   const UpdateProfile = () => {
   const location = useLocation();
