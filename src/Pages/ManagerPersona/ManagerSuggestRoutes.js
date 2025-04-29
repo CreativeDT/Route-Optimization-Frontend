@@ -98,6 +98,7 @@ const ManagerSuggestRoutes = () => {
   const [vehicleOptions, setVehicleOptions] = useState([]);
   const [loadedRouteData, setLoadedRouteData] = useState(null);
   const [inputValues, setInputValues] = useState({});
+  const [demandErrors, setDemandErrors] = useState({});
 
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -1712,7 +1713,17 @@ const isSubmitDisabled = useMemo(() => {
       </Typography>
     )}
 
+{(stop.drop_demand < 3 || stop.drop_demand > 40) && stop.drop_demand !== 0 && (
+  <Typography sx={{ color: "red", fontSize: "8px" }}>
+    Drop Demand must be between 3 and 40 tons.
+  </Typography>
+)}
 
+{(stop.pickup_demand < 3 || stop.pickup_demand > 40) && stop.pickup_demand !== 0 && (
+  <Typography sx={{ color: "red", fontSize: "8px" }}>
+    Pickup Demand must be between 3 and 40 tons.
+  </Typography>
+)}
 
 <Grid2
                   container
