@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+// import { Scal Info as InfoIcon, LocalShipping, DirectionsCar } from "@mui/icons-material";
 import {
   FaUser,
   FaBell,
@@ -108,6 +109,7 @@ const AdminAdministration = () => {
   const [selectedVehicle, setSelectedVehicle] = useState(null);
   const [deletedUsers, setDeletedUsers] = useState([]);
   const [editingVehicle, setEditingVehicle] = React.useState(false);
+  const [capacityError, setCapacityError] = useState("");
   const [newVehicle, setNewVehicle] = React.useState({
     VehicleType: "",
     FuelType: "",
@@ -759,6 +761,28 @@ const AdminAdministration = () => {
   const handleCloseUserDialog = () => setOpenUserDialog(false);
   const handleCloseVehicleDialog = () => setOpenVehicleDialog(false);
 
+  // validation for vehicle capacity
+  const handleCapacityChange = (e) => {
+    const raw = e.target.value;
+    const tons = raw === "" ? "" : parseFloat(raw);
+
+    if (tons !== "" && (tons < 3 || tons > 40)) {
+      setCapacityError("Vehicle capacity must be between 3 and 40 tons.");
+    } else {
+      setCapacityError("");
+    }
+
+    setNewVehicle((prev) => ({
+      ...prev,
+      VehicleCapacity: tons,
+      VehicleType:
+        typeof tons === "number" && tons >= 3 && tons <= 40
+          ? tons <= 15
+            ? "Light-duty trucks"
+            : "Heavy-duty trucks"
+          : "",
+    }));
+  };
   return (
     <>
       <NavBar id="navbar"/>
@@ -1696,50 +1720,37 @@ const AdminAdministration = () => {
               }}
             />
 
-            {/* Vehicle Capacity (converted to lbs) */}
+            {/* Vehicle Capacity (converted to tones) */}
             <TextField
-              fullWidth
-              size="small"
-              label="Vehicle Capacity (lbs)"
-              variant="outlined"
-              sx={{ mb: 2.5 }}
-              type="number"
-              value={newVehicle.VehicleCapacity || ""}
-              onChange={(e) => {
-                const raw = e.target.value;
-                const tons = raw === "" ? "" : parseFloat(raw);
-              
-                setNewVehicle((prev) => ({
-                  ...prev,
-                  VehicleCapacity: tons,
-                  VehicleType:
-                    typeof tons === "number" && tons >= 3 && tons <= 40
-                      ? tons <= 15
-                        ? "Light-duty trucks"
-                        : "Heavy-duty trucks"
-                      : "",
-                }));
-              }}
-              
-            
-              inputProps={{ min: 3, max: 40, step: 1 }}
-  helperText={
-    <Box component="span" display="flex" alignItems="center" gap={1}>
-      <InfoIcon color="info" fontSize="small" />
-      3–15 t =&gt; Light‑duty | 16–40 t =&gt; Heavy‑duty
-    </Box>
-  }
-  InputProps={{
-    endAdornment: (
-      <InputAdornment position="end">
-        <Scale />
-      </InputAdornment>
-    ),
-  }}
-  FormHelperTextProps={{
-    sx: { fontSize: "0.75rem", mt: 0.5 }
-  }}
-/>
+        fullWidth
+        size="small"
+        label="Vehicle Capacity (tons)"
+        variant="outlined"
+        type="number"
+        value={newVehicle.VehicleCapacity || ""}
+        onChange={handleCapacityChange}
+        inputProps={{ min: 3, max: 40, step: 1 }}
+        error={Boolean(capacityError)}
+        helperText={
+          capacityError || (
+            <Box component="span" display="flex" alignItems="center" gap={1}>
+              <InfoIcon color="info" fontSize="small" />
+              3–15 t ⇒ Light‑duty | 16–40 t ⇒ Heavy‑duty
+            </Box>
+          )
+        }
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <Scale />
+            </InputAdornment>
+          ),
+        }}
+        FormHelperTextProps={{
+          sx: { fontSize: "0.75rem", mt: 0.5 },
+        }}
+        sx={{ mb: 2.5 }}
+      />
  <FormControl fullWidth size="small" sx={{ mb: 2.5 }}>
               <InputLabel >Vehicle Type</InputLabel>
               <Select
