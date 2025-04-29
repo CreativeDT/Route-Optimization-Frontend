@@ -1234,7 +1234,7 @@ const AdminAdministration = () => {
               margin="normal"
               variant="outlined"
               type="text"
-              placeholder="e.g. John Doe"
+              placeholder="e.g. john doe"
               value={newUser.name}
               onChange={(e) => {
                 let value = e.target.value;

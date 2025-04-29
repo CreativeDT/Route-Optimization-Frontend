@@ -93,7 +93,7 @@ const ManagerSuggestRoutes = () => {
   const[label,setLabel] =useState([]);
   const [stopsError, setStopsError] = useState("");
   const [searchValue, setSearchValue] = useState("");
-  const [selectedTab, setSelectedTab] = useState("history");
+  const [selectedTab, setSelectedTab] = useState("map");
   const [mapContainer, setMapContainer] = useState(null);
   const [vehicleOptions, setVehicleOptions] = useState([]);
   const [loadedRouteData, setLoadedRouteData] = useState(null);

@@ -571,8 +571,8 @@ const RouteTracking = () => {
             height: "80vh", // Adjust based on navbar height
             border: "1px solid #ccc",
     borderRadius: "2px",
-    boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",overflow:"hidden",margin:"1px 0px 5px 0px!important",width:"100%!important"
-    
+    boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",overflow:"hidden",margin:"1px 0px 5px 0px!important",width:"100%!important",
+ 
           }}
         >
            
@@ -594,8 +594,8 @@ const RouteTracking = () => {
                 flex: 1, // Makes it fill available space
                 display: "flex",
                 flexDirection: "column",
-                gap: 2,
-                overflowY: "auto", // Enables scrolling if content overflows
+                gap: 2,   padding:2,
+                // overflowY: "auto", // Enables scrolling if content overflows
               }}
             >
               {/* Search Field */}
@@ -606,15 +606,18 @@ const RouteTracking = () => {
                 size="small"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
+                sx={{marginTop: 1}}
                
               />
               <Tabs id="tabs"
                             value={filter}
+                            
+                size="small"
                             sx={{
                               '& .MuiTabs-indicator': {
                                 display: 'none', // Hide the default indicator
                               },
-                              mb: 2,
+                              // mb: 2,
                             }}
                             onChange={(e, newValue) => setFilter(newValue)}
                         >
@@ -628,7 +631,7 @@ const RouteTracking = () => {
                              value="All" 
                              sx={{backgroundColor:"rgba(255, 255, 255, 0.2) !important", border:"none!important",
                                "&.MuiButtonBase-root": { 
-                              minHeight: "30px !important",fontSize:"10px",padding:"8px 13px"
+                              minHeight: "30px !important",fontSize:"10px",ppadding:"8px 0px!important"
                             },
                             "&.MuiButtonBase-root.Mui-selected": { // Increase specificity
                               backgroundColor:  "rgba(255, 255, 255, 0.2) !important", 
@@ -661,7 +664,7 @@ const RouteTracking = () => {
                             },
                             
                                  "&.MuiButtonBase-root": { 
-                                minHeight: "30px !important",fontSize:"10px",padding:"8px 13px",border:"1px solid #beb7b7c9"
+                                minHeight: "30px !important",fontSize:"10px",padding:"8px 0px!important",border:"1px solid #beb7b7c9"
                               },}}/>
                             <Tab  id="tab-notstarted"
                             label={
@@ -685,7 +688,7 @@ const RouteTracking = () => {
                                   color: "red !important",borderBottom:"2px solid rgb(253, 211, 218)!important"
                               },
                                                 "&.MuiButtonBase-root": { 
-                              minHeight: "30px !important",fontSize:"10px",padding:"8px 13px",border:"1px solid #beb7b7c9"
+                              minHeight: "30px !important",fontSize:"10px",padding:"8px 0px!important",border:"1px solid #beb7b7c9"
                             },}} />
                              <Tab  id="tab_complted"
                              label={
@@ -701,7 +704,7 @@ const RouteTracking = () => {
                               color: "green  !important",borderBottom:"2px solid rgb(211, 253, 218)!important"
                           },
                                "&.MuiButtonBase-root": { 
-                              minHeight: "30px !important",fontSize:"10px",padding:"8px 13px"
+                              minHeight: "30px !important",fontSize:"10px",padding:"8px 0px!important"
                             },}} />
                         </Tabs>
 
