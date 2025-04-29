@@ -49,10 +49,10 @@ const NavBar = () => {
     const toggleNotifications = () => {
         setShowNotifications(!showNotifications);
     };
-
+   
     const markNotificationAsRead = async (notificationId) => {
         try {
-            await axios.post("/notifications/read", { notification_id: notificationId });
+            await axios.post("${config.API_BASE_URL}/notifications/read", { notification_id: notificationId });
             // Update read status locally
         setNotifications((prev) =>
             prev.map((n) =>
