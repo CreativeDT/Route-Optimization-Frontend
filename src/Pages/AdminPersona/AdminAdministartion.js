@@ -318,12 +318,49 @@ const AdminAdministration = () => {
       });
     }
   };
-  const handleDeleteUser = (id) => {
-    const token = localStorage.getItem("token");
-    if (!token) return;
+  // const handleDeleteUser = (id) => {
+  //   const token = localStorage.getItem("token");
+  //   if (!token) return;
 
+  //   axios
+  //     .delete(`${config.API_BASE_URL}/users/removeUser?user_id=${id}`, {
+  //       headers: { Authorization: `Bearer ${token}` },
+  //     })
+  //     .then(() => {
+  //       fetchData();
+  //       setSnackbar({
+  //         open: true,
+  //         message: "User removed successfully!",
+  //         severity: "success",
+  //       });
+  //     })
+  //     .catch((error) => console.error("Error removing user:", error));
+  // };
+  const [deleteDialog, setDeleteDialog] = useState({
+    open: false,
+    userId: null,
+    loading: false
+  });
+  
+  // Updated delete handler
+  const handleDeleteUser = (id) => {
+    setDeleteDialog({
+      open: true,
+      userId: id,
+      loading: false
+    });
+  };
+  
+  // Actual delete function
+  const confirmDeleteUser = () => {
+    const { userId } = deleteDialog;
+    const token = localStorage.getItem("token");
+    if (!token || !userId) return;
+  
+    setDeleteDialog(prev => ({ ...prev, loading: true }));
+  
     axios
-      .delete(`${config.API_BASE_URL}/users/removeUser?user_id=${id}`, {
+      .delete(`${config.API_BASE_URL}/users/removeUser?user_id=${userId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(() => {
@@ -334,7 +371,21 @@ const AdminAdministration = () => {
           severity: "success",
         });
       })
-      .catch((error) => console.error("Error removing user:", error));
+      .catch((error) => {
+        console.error("Error removing user:", error);
+        setSnackbar({
+          open: true,
+          message: error.response?.data?.message || "Failed to delete user",
+          severity: "error",
+        });
+      })
+      .finally(() => {
+        setDeleteDialog({
+          open: false,
+          userId: null,
+          loading: false
+        });
+      });
   };
   
   // Open Dialog for Add/Edit
@@ -1190,11 +1241,32 @@ const AdminAdministration = () => {
                           </Snackbar>
       </Paper>
 
+    
       {/* Pagination */}
       <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"
-        count={tabIndex === 0 ? data.length : data.length}
+        count={
+          (() => {
+            if (tabIndex === 0) {
+              if (filter === "deleted") {
+                return data.filter((item) => item.deleted).length;
+              } else if (filter !== "All") {
+                return data.filter(
+                  (item) => item.role?.trim().toLowerCase() === filter.toLowerCase()
+                ).length;
+              }
+              return data.length; // For "All" users
+            } else {
+              if (filter !== "All") {
+                return data.filter(
+                  (item) => item.fuel_type?.trim().toLowerCase() === filter.toLowerCase()
+                ).length;
+              }
+              return data.length; // For "All" vehicles
+            }
+          })()
+        }
         rowsPerPage={tabIndex === 0 ? userRowsPerPage : vehicleRowsPerPage}
         page={tabIndex === 0 ? userPage : vehiclePage}
         onPageChange={handleChangePage}
@@ -1509,32 +1581,7 @@ const AdminAdministration = () => {
         <DialogContent sx={{ py: 3 }}>
           <Box component="form" noValidate sx={{ mt: 1 }}>
             {/* Vehicle Type - Auto-determined by capacity */}
-            <FormControl fullWidth size="small" sx={{ mb: 2.5 }}>
-              <InputLabel shrink>Vehicle Type</InputLabel>
-              <Select
-                value={newVehicle.VehicleType}
-                disabled
-                sx={{
-                  "& .MuiSelect-select": {
-                    display: "flex",
-                    alignItems: "center",
-                  },
-                }}
-              >
-                <MenuItem value="Heavy-duty trucks">
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <LocalShipping />
-                    Heavy-duty trucks
-                  </Box>
-                </MenuItem>
-                <MenuItem value="Light-duty trucks">
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <DirectionsCar />
-                    Light-duty trucks
-                  </Box>
-                </MenuItem>
-              </Select>
-            </FormControl>
+           
             {/* <FormControl fullWidth size="small" sx={{ mb: 2.5 }}>
               <InputLabel
                 sx={{ transform: "translate(14px, -9px) scale(0.75)" }}
@@ -1568,9 +1615,7 @@ const AdminAdministration = () => {
 
             {/* Fuel Type */}
             <FormControl fullWidth size="small" sx={{ mb: 2.5 }}>
-              <InputLabel
-                sx={{ transform: "translate(14px, -9px) scale(0.75)" }}
-              >
+              <InputLabel>
                 Fuel Type
               </InputLabel>
               <Select
@@ -1695,6 +1740,33 @@ const AdminAdministration = () => {
     sx: { fontSize: "0.75rem", mt: 0.5 }
   }}
 />
+ <FormControl fullWidth size="small" sx={{ mb: 2.5 }}>
+              <InputLabel >Vehicle Type</InputLabel>
+              <Select
+                value={newVehicle.VehicleType}
+                label="Vehicle Type"
+                disabled
+                sx={{
+                  "& .MuiSelect-select": {
+                    display: "flex",
+                    alignItems: "center",
+                  },
+                }}
+              >
+                <MenuItem value="Heavy-duty trucks">
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <LocalShipping />
+                    Heavy-duty trucks
+                  </Box>
+                </MenuItem>
+                <MenuItem value="Light-duty trucks">
+                  <Box display="flex" alignItems="center" gap={1}>
+                    <DirectionsCar />
+                    Light-duty trucks
+                  </Box>
+                </MenuItem>
+              </Select>
+            </FormControl>
 
             {/* License Plate */}
             <TextField
@@ -1718,9 +1790,7 @@ const AdminAdministration = () => {
 
             {/* Vehicle Status */}
             <FormControl fullWidth size="small" sx={{ mb: 1 }}>
-              <InputLabel
-                sx={{ transform: "translate(14px, -9px) scale(0.75)" }}
-              >
+              <InputLabel>
                 Vehicle Status
               </InputLabel>
               <Select
@@ -1814,6 +1884,37 @@ const AdminAdministration = () => {
           </Button>
         </DialogActions>
       </Dialog>
+    {/* confirmation box for delete user */}
+<Dialog
+  open={deleteDialog.open}
+  onClose={() => setDeleteDialog({ open: false, userId: null })}
+  aria-labelledby="alert-dialog-title"
+  aria-describedby="alert-dialog-description"
+>
+  <DialogTitle id="alert-dialog-title">Confirm Deletion</DialogTitle>
+  <DialogContent id="alert-dialog-description">
+    
+      Are you sure you want to delete this user? This action cannot be undone.
+   
+  </DialogContent>
+  <DialogActions>
+    <Button 
+      onClick={() => setDeleteDialog({ open: false, userId: null })}
+      color="primary"
+      disabled={deleteDialog.loading}
+    >
+      Cancel
+    </Button>
+    <Button
+      onClick={confirmDeleteUser}
+      color="error"
+      autoFocus
+      disabled={deleteDialog.loading}
+    >
+      {deleteDialog.loading ? 'Deleting...' : 'Delete'}
+    </Button>
+  </DialogActions>
+</Dialog>
     </>
   );
 };

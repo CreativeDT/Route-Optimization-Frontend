@@ -1127,256 +1127,295 @@ const ACGrid = () => {
               }}
             />
 
-                       {/* Password Strength Indicator */}
-                       {newUser.password.length > 0 && (
-              <Box sx={{ mb: 2, ml: 1 }}>
-                <LinearProgress
-                  variant="determinate"
-                  value={Math.min((newUser.password.length / 10) * 100, 100)}
-                  color={
-                    newUser.password.length < 6
-                      ? "error"
-                      : newUser.password.length < 8
-                      ? "warning"
-                      : "success"
-                  }
-                  sx={{ height: 4, borderRadius: 2 }}
-                />
-                <Typography variant="caption" color="text.secondary">
-                  Password strength:{" "}
-                  {newUser.password.length < 6
-                    ? "Weak"
-                    : newUser.password.length < 8
-                    ? "Moderate"
-                    : "Strong"}
-                </Typography>
-              </Box>
-            )}
-
-            {/* Role Field */}
-            <TextField
-              label="User Role"
-              fullWidth
-              size="small"
-              select
-              margin="normal"
-              variant="outlined"
-              SelectProps={{ native: true }}
-              value={newUser.role}
-              onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <PersonOutline />
-                  </InputAdornment>
-                ),
-              }}
-            >
-              <option value="Driver">Driver</option>
-              <option value="Manager">Manager</option>
-              <option value="Admin">Administrator</option>
-            </TextField>
-
-            {errorMessage && (
-              <Alert
-                severity="error"
-                sx={{ mt: 2, display: "flex", alignItems: "center" }}
-              >
-                <ErrorOutline />
-                <Box sx={{ ml: 1 }}>{errorMessage}</Box>
-              </Alert>
-            )}
-          </Box>
-        </DialogContent>
-
-        <DialogActions sx={{ p: 3, borderTop: 1, borderColor: "divider" }}>
-          <Button
-            onClick={handleCloseUserDialog}
-            variant="outlined"
-            startIcon={<Cancel />}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSaveUser}
-            variant="contained"
-            color="primary"
-            disabled={
-              !newUser.name ||
-              !newUser.email ||
-              !newUser.password ||
-              newUser.name.length > 15 ||
-              newUser.name.startsWith(" ") ||
-              !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUser.email) ||
-              newUser.password.length < 6 ||
-              newUser.password.length > 10
-            }
-            startIcon={<Save />}
-            sx={{ minWidth: 120 }}
-          >
-            {editingUser ? "Update" : "Create"}
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Vehicle Dialog */}
-      <Dialog
-        open={openVehicleDialog}
-        onClose={handleCloseVehicleDialog}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle
-          sx={{
-            bgcolor: "primary.main",
-            color: "white",
-            py: 1,
-            marginBottom: 2,
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-          }}
-        >
-          <DirectionsCar sx={{ fontSize: "1.5rem" }} />
-          {editingVehicle ? "Edit Vehicle Details" : "Add New Vehicle"}
-        </DialogTitle>
-
-        <DialogContent sx={{ py: 3 }}>
-          <Box component="form" noValidate sx={{ mt: 1 }}>
-            {/* Vehicle Type - Auto-determined by capacity */}
-            <FormControl fullWidth size="small" sx={{ mb: 2.5 }}>
-              <InputLabel shrink>Vehicle Type</InputLabel>
-              <Select
-                value={newVehicle.VehicleType}
-                disabled
-                sx={{
-                  "& .MuiSelect-select": {
-                    display: "flex",
-                    alignItems: "center",
-                  },
-                }}
-              >
-                <MenuItem value="Heavy-duty trucks">
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <LocalShipping />
-                    Heavy-duty trucks
-                  </Box>
-                </MenuItem>
-                <MenuItem value="Light-duty trucks">
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <DirectionsCar />
-                    Light-duty trucks
-                  </Box>
-                </MenuItem>
-              </Select>
-            </FormControl>
-
-            {/* Fuel Type */}
-            <FormControl fullWidth size="small" sx={{ mb: 2.5 }}>
-              <InputLabel
-                sx={{ transform: "translate(14px, -9px) scale(0.75)" }}
-              >
-                Fuel Type
-              </InputLabel>
-              <Select
-                value={newVehicle.FuelType}
-                onChange={(e) =>
-                  setNewVehicle({ ...newVehicle, FuelType: e.target.value })
-                }
-                label="Fuel Type"
-              >
-                <MenuItem value="Diesel">
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <OilBarrel />
-                    Diesel
-                  </Box>
-                </MenuItem>
-                <MenuItem value="Gasoline">
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <LocalGasStation />
-                    Gasoline
-                  </Box>
-                </MenuItem>
-              </Select>
-            </FormControl>
-
-            {/* Emissions */}
-            <TextField
-              fullWidth
-              size="small"
-              label="Exhaust CO₂ Emissions (g/mile)"
-              variant="outlined"
-              sx={{ mb: 2.5 }}
-              type="number"
-              value={newVehicle.ExhaustCO2}
-              onChange={(e) => {
-                setNewVehicle(prev => ({
-                  ...prev,
-                  ExhaustCO2: e.target.value
-                }));
-              }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <Co2 />
-                  </InputAdornment>
-                ),
-              }}
-            />
-
-            {/* Fuel Efficiency */}
-            <TextField
-              fullWidth
-              size="small"
-              label="Fuel Efficiency (mpg)"
-              variant="outlined"
-              sx={{ mb: 2.5 }}
-              type="number"
-              value={newVehicle.Mileage}
-              onChange={(e) => {
-                setNewVehicle((prev) => ({
-                  ...prev,
-                  Mileage: e.target.value,
-                }));
-              }}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <Speed />
-                  </InputAdornment>
-                ),
-              }}
-            />
-
-            {/* Vehicle Capacity */}
-            <TextField
-              fullWidth
-              size="small"
-              label="Vehicle Capacity (lbs)"
-              variant="outlined"
-              sx={{ mb: 2.5 }}
-              type="number"
-              value={newVehicle.VehicleCapacity || ""}
-              onChange={(e) => {
-                const raw = e.target.value;
-                const tons = raw === "" ? "" : parseFloat(raw);
-              
-                setNewVehicle((prev) => ({
-                  ...prev,
-                  VehicleCapacity: tons,
-                  VehicleType:
-                    typeof tons === "number" && tons >= 3 && tons <= 40
-                      ? tons <= 15
-                        ? "Light-duty trucks"
-                        : "Heavy-duty trucks"
-                      : "",
-                }));
-              }}
-              inputProps={{ min: 3, max: 40, step: 1 }}
+            {/* Password Strength Indicator */}
+             {newUser.password.length > 0 && (
+                          <Box sx={{ mb: 2, ml: 1 }}>
+                            <LinearProgress
+                              variant="determinate"
+                              value={Math.min((newUser.password.length / 10) * 100, 100)}
+                              color={
+                                newUser.password.length < 6
+                                  ? "error"
+                                  : newUser.password.length < 8
+                                  ? "warning"
+                                  : "success"
+                              }
+                              sx={{ height: 4, borderRadius: 2 }}
+                            />
+                            <Typography variant="caption" color="text.secondary">
+                              Password strength:{" "}
+                              {newUser.password.length < 6
+                                ? "Weak"
+                                : newUser.password.length < 8
+                                ? "Moderate"
+                                : "Strong"}
+                            </Typography>
+                          </Box>
+                        )}
+            
+                        {/* Role Field */}
+                        <TextField
+                          label="User Role"
+                          fullWidth
+                          size="small"
+                          select
+                          margin="normal"
+                          variant="outlined"
+                          SelectProps={{ native: true }}
+                          value={newUser.role}
+                          onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <PersonOutline />
+                              </InputAdornment>
+                            ),
+                          }}
+                        >
+                          <option value="Driver">Driver</option>
+                          <option value="Manager">Manager</option>
+                          <option value="Admin">Administrator</option>
+                        </TextField>
+            
+                        {errorMessage && (
+                          <Alert
+                            severity="error"
+                            sx={{ mt: 2, display: "flex", alignItems: "center" }}
+                          >
+                            <ErrorOutline />
+                            <Box sx={{ ml: 1 }}>{errorMessage}</Box>
+                          </Alert>
+                        )}
+                      </Box>
+                    </DialogContent>
+            
+                    <DialogActions sx={{ p: 3, borderTop: 1, borderColor: "divider" }}>
+                      <Button
+                        onClick={handleCloseUserDialog}
+                        variant="outlined"
+                        startIcon={<Cancel />}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleSaveUser}
+                        variant="contained"
+                        color="primary"
+                        disabled={
+                          !newUser.name ||
+                          !newUser.email ||
+                          !newUser.password ||
+                          newUser.name.length > 15 ||
+                          newUser.name.startsWith(" ") ||
+                          !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(newUser.email) ||
+                          newUser.password.length < 6 ||
+                          newUser.password.length > 10
+                        }
+                        startIcon={<Save />}
+                        g
+                        sx={{ minWidth: 120 }}
+                      >
+                        {editingUser ? "Update" : "Create"}
+                      </Button>
+                    </DialogActions>
+                  </Dialog>
+                  <Dialog
+                    open={openVehicleDialog}
+                    onClose={handleCloseVehicleDialog}
+                    maxWidth="sm"
+                    fullWidth
+                  >
+                    <DialogTitle
+                      sx={{
+                        bgcolor: "primary.main",
+                        color: "white",
+                        py: 1,
+                        marginBottom: 2,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 1,
+                      }}
+                    >
+                      <DirectionsCar sx={{ fontSize: "1.5rem" }} />
+                      {editingVehicle ? "Edit Vehicle Details" : "Add New Vehicle"}
+                    </DialogTitle>
+            
+                    <DialogContent sx={{ py: 3 }}>
+                      <Box component="form" noValidate sx={{ mt: 1 }}>
+                        {/* Vehicle Type - Auto-determined by capacity */}
+                        <FormControl fullWidth size="small" sx={{ mb: 2.5 }}>
+                          <InputLabel shrink>Vehicle Type</InputLabel>
+                          <Select
+                            value={newVehicle.VehicleType}
+                            disabled
+                            sx={{
+                              "& .MuiSelect-select": {
+                                display: "flex",
+                                alignItems: "center",
+                              },
+                            }}
+                          >
+                            <MenuItem value="Heavy-duty trucks">
+                              <Box display="flex" alignItems="center" gap={1}>
+                                <LocalShipping />
+                                Heavy-duty trucks
+                              </Box>
+                            </MenuItem>
+                            <MenuItem value="Light-duty trucks">
+                              <Box display="flex" alignItems="center" gap={1}>
+                                <DirectionsCar />
+                                Light-duty trucks
+                              </Box>
+                            </MenuItem>
+                          </Select>
+                        </FormControl>
+                        {/* <FormControl fullWidth size="small" sx={{ mb: 2.5 }}>
+                          <InputLabel
+                            sx={{ transform: "translate(14px, -9px) scale(0.75)" }}
+                          >
+                            Vehicle Type
+                          </InputLabel>
+                          <Select
+                            value={newVehicle.VehicleType}
+                            disabled
+                            sx={{
+                              "& .MuiSelect-select": {
+                                display: "flex",
+                                alignItems: "center",
+                              },
+                            }}
+                          >
+                            <MenuItem value="Heavy-duty trucks">
+                              <Box display="flex" alignItems="center" gap={1}>
+                                <LocalShipping />
+                                Heavy-duty trucks
+                              </Box>
+                            </MenuItem>
+                            <MenuItem value="Light-duty trucks">
+                              <Box display="flex" alignItems="center" gap={1}>
+                                <DirectionsCar />
+                                Light-duty trucks
+                              </Box>
+                            </MenuItem>
+                          </Select>
+                        </FormControl> */}
+            
+                        {/* Fuel Type */}
+                        <FormControl fullWidth size="small" sx={{ mb: 2.5 }}>
+                          <InputLabel
+                            sx={{ transform: "translate(14px, -9px) scale(0.75)" }}
+                          >
+                            Fuel Type
+                          </InputLabel>
+                          <Select
+                            value={newVehicle.FuelType}
+                            onChange={(e) =>
+                              setNewVehicle({ ...newVehicle, FuelType: e.target.value })
+                            }
+                            label="Fuel Type"
+                          >
+                            <MenuItem value="Diesel">
+                              <Box display="flex" alignItems="center" gap={1}>
+                                <OilBarrel />
+                                Diesel
+                              </Box>
+                            </MenuItem>
+                            <MenuItem value="Gasoline">
+                              <Box display="flex" alignItems="center" gap={1}>
+                                <LocalGasStation />
+                                Gasoline
+                              </Box>
+                            </MenuItem>
+                          </Select>
+                        </FormControl>
+            
+                        {/* Emissions (converted to US units) */}
+                        <TextField
+                          fullWidth
+                          size="small"
+                          label="Exhaust CO₂ Emissions (g/mile)"
+                          variant="outlined"
+                          sx={{ mb: 2.5 }}
+                          type="number"
+                          value={
+                            newVehicle.ExhaustCO2
+                            
+                          }
+                          onChange={(e) => {
+                            // just store exactly what the user typed
+                            setNewVehicle(prev => ({
+                              ...prev,
+                              ExhaustCO2: e.target.value
+                            }));
+                          }}
+                          InputProps={{
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                <Co2 />
+                              </InputAdornment>
+                            ),
+                          }}
+                        />
+            
+                        {/* Fuel Efficiency (converted to mpg) */}
+                        <TextField
+                          fullWidth
+                          size="small"
+                          label="Fuel Efficiency (mpg)"
+                          variant="outlined"
+                          sx={{ mb: 2.5 }}
+                          type="number"
+                          value={
+                            newVehicle.Mileage
+                              
+                          }
+                          onChange={(e) => {
+                            // just store exactly what the user typed
+                            setNewVehicle((prev) => ({
+                              ...prev,
+                              Mileage: e.target.value,
+                            }));
+                          }}
+                          InputProps={{
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                <Speed />
+                              </InputAdornment>
+                            ),
+                          }}
+                        />
+            
+                        {/* Vehicle Capacity (converted to lbs) */}
+                        <TextField
+                          fullWidth
+                          size="small"
+                          label="Vehicle Capacity (lbs)"
+                          variant="outlined"
+                          sx={{ mb: 2.5 }}
+                          type="number"
+                          value={newVehicle.VehicleCapacity || ""}
+                          onChange={(e) => {
+                            const raw = e.target.value;
+                            const tons = raw === "" ? "" : parseFloat(raw);
+                          
+                            setNewVehicle((prev) => ({
+                              ...prev,
+                              VehicleCapacity: tons,
+                              VehicleType:
+                                typeof tons === "number" && tons >= 3 && tons <= 40
+                                  ? tons <= 15
+                                    ? "Light-duty trucks"
+                                    : "Heavy-duty trucks"
+                                  : "",
+                            }));
+                          }}
+                          
+                        
+                          inputProps={{ min: 3, max: 40, step: 1 }}
               helperText={
                 <Box component="span" display="flex" alignItems="center" gap={1}>
                   <InfoIcon color="info" fontSize="small" />
-                  3–15 t =&gt; Light-duty | 16–40 t =&gt; Heavy-duty
+                  3–15 t =&gt; Light‑duty | 16–40 t =&gt; Heavy‑duty
                 </Box>
               }
               InputProps={{
@@ -1390,160 +1429,128 @@ const ACGrid = () => {
                 sx: { fontSize: "0.75rem", mt: 0.5 }
               }}
             />
-
-            {/* License Plate */}
-            <TextField
-              fullWidth
-              size="small"
-              label="License Plate Number"
-              variant="outlined"
-              sx={{ mb: 2.5 }}
-              value={newVehicle.LicenseNo}
-              onChange={(e) =>
-                setNewVehicle({ ...newVehicle, LicenseNo: e.target.value })
-              }
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Receipt />
-                  </InputAdornment>
-                ),
-              }}
-            />
-
-            {/* Vehicle Status */}
-            <FormControl fullWidth size="small" sx={{ mb: 1 }}>
-              <InputLabel
-                sx={{ transform: "translate(14px, -9px) scale(0.75)" }}
-              >
-                Vehicle Status
-              </InputLabel>
-              <Select
-                value={newVehicle.VehicleStatus}
-                onChange={(e) =>
-                  setNewVehicle({
-                    ...newVehicle,
-                    VehicleStatus: e.target.value,
-                  })
-                }
-                label="Vehicle Status"
-              >
-                <MenuItem value="In Transit">
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <Moving />
-                    In Transit
-                  </Box>
-                </MenuItem>
-                <MenuItem value="Available">
-                  <Box display="flex" alignItems="center" gap={1}>
-                    <CheckCircle />
-                    Available
-                  </Box>
-                </MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
-        </DialogContent>
-
-        <DialogActions sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
-          <Button
-            onClick={handleCloseVehicleDialog}
-            variant="outlined"
-            startIcon={<Cancel />}
-            sx={{ minWidth: 100 }}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSaveVehicle}
-            variant="contained"
-            color="primary"
-            startIcon={<Save />}
-            sx={{ minWidth: 100 }}
-            disabled={!newVehicle.LicenseNo || !newVehicle.FuelType}
-          >
-            Save
-          </Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Edit Vehicle Dialog */}
-      <Dialog
-        open={editOpen}
-        onClose={() => setEditOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Edit Vehicle Details</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="License No"
-            fullWidth
-            margin="dense"
-            value={selectedVehicle?.license_no || ""}
-            onChange={(e) =>
-              setSelectedVehicle({
-                ...selectedVehicle,
-                license_no: e.target.value,
-              })
-            }
-          />
-          <TextField
-            label="Mileage"
-            fullWidth
-            margin="dense"
-            type="number"
-            value={selectedVehicle?.mileage || ""}
-            onChange={(e) =>
-              setSelectedVehicle({
-                ...selectedVehicle,
-                mileage: e.target.value,
-              })
-            }
-          />
-          <TextField
-            label="CO2 Emissions"
-            fullWidth
-            margin="dense"
-            type="number"
-            value={selectedVehicle?.exhaust_co2 || ""}
-            onChange={(e) =>
-              setSelectedVehicle({
-                ...selectedVehicle,
-                exhaust_co2: e.target.value,
-              })
-            }
-          />
-          <FormControl fullWidth margin="dense">
-            <InputLabel>Status</InputLabel>
-            <Select
-              value={selectedVehicle?.status || ""}
-              onChange={(e) =>
-                setSelectedVehicle({
-                  ...selectedVehicle,
-                  status: e.target.value,
-                })
-              }
-              label="Status"
-            >
-              <MenuItem value="Available">Available</MenuItem>
-              <MenuItem value="In Transit">In Transit</MenuItem>
-            </Select>
-          </FormControl>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setEditOpen(false)}>Cancel</Button>
-          <Button 
-            variant="contained" 
-            color="primary"
-            onClick={updateVehicleDetails}
-          >
-            Update
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </>
-  );
-};
-
-export default ACGrid;
+            
+                        {/* License Plate */}
+                        <TextField
+                          fullWidth
+                          size="small"
+                          label="License Plate Number"
+                          variant="outlined"
+                          sx={{ mb: 2.5 }}
+                          value={newVehicle.LicenseNo}
+                          onChange={(e) =>
+                            setNewVehicle({ ...newVehicle, LicenseNo: e.target.value })
+                          }
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position="start">
+                                <Receipt />
+                              </InputAdornment>
+                            ),
+                          }}
+                        />
+            
+                        {/* Vehicle Status */}
+                        <FormControl fullWidth size="small" sx={{ mb: 1 }}>
+                          <InputLabel
+                            sx={{ transform: "translate(14px, -9px) scale(0.75)" }}
+                          >
+                            Vehicle Status
+                          </InputLabel>
+                          <Select
+                            value={newVehicle.VehicleStatus}
+                            onChange={(e) =>
+                              setNewVehicle({
+                                ...newVehicle,
+                                VehicleStatus: e.target.value,
+                              })
+                            }
+                            label="Vehicle Status"
+                          >
+                            <MenuItem value="In Transit">
+                              <Box display="flex" alignItems="center" gap={1}>
+                                <Moving />
+                                In Transit
+                              </Box>
+                            </MenuItem>
+                            <MenuItem value="Available">
+                              <Box display="flex" alignItems="center" gap={1}>
+                                <CheckCircle />
+                                Available
+                              </Box>
+                            </MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Box>
+                    </DialogContent>
+            
+                    <DialogActions sx={{ p: 2, borderTop: 1, borderColor: "divider" }}>
+                      <Button
+                        onClick={handleCloseVehicleDialog}
+                        variant="outlined"
+                        startIcon={<Cancel />}
+                        sx={{ minWidth: 100 }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={handleSaveVehicle}
+                        variant="contained"
+                        color="primary"
+                        startIcon={<Save />}
+                        sx={{ minWidth: 100 }}
+                        disabled={!newVehicle.LicenseNo || !newVehicle.FuelType}
+                      >
+                        Save
+                      </Button>
+                    </DialogActions>
+                  </Dialog>
+            
+                  {/* //edit vehicle data */}
+                  <Dialog
+                    open={editOpen}
+                    onClose={() => setEditOpen(false)}
+                    maxWidth="sm"
+                    fullWidth
+                  >
+                    <DialogTitle>Edit Vehicle Details</DialogTitle>
+                    <DialogContent>
+                      <TextField
+                        label="License No"
+                        fullWidth
+                        margin="dense"
+                        value={selectedVehicle?.license_no || ""}
+                        onChange={(e) =>
+                          setSelectedVehicle({
+                            ...selectedVehicle,
+                            license_no: e.target.value,
+                          })
+                        }
+                      />
+                      <TextField
+                        label="Mileage"
+                        fullWidth
+                        margin="dense"
+                        value={selectedVehicle?.mileage || ""}
+                        onChange={(e) =>
+                          setSelectedVehicle({
+                            ...selectedVehicle,
+                            mileage: e.target.value,
+                          })
+                        }
+                      />
+                      {/* Add other fields as needed */}
+                    </DialogContent>
+                    <DialogActions>
+                      <Button onClick={() => setEditOpen(false)}>Cancel</Button>
+                      <Button variant="contained" onClick={() => updateVehicleDetails()}>
+                        Update
+                      </Button>
+                    </DialogActions>
+                  </Dialog>
+                </>
+              );
+            };
+            
+            export default ACGrid;
+            
