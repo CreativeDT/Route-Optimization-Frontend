@@ -50,22 +50,27 @@ const NavBar = () => {
     const toggleNotifications = () => {
         setShowNotifications(!showNotifications);
     };
-   
     const markNotificationAsRead = async (notificationId) => {
         try {
-            await axios.post(`${config.API_BASE_URL}/notifications/read`, { notification_id: notificationId });
+            await axios.post(`${config.API_BASE_URL}/notifications/read`, null, {
+                params: {
+                    notification_id: notificationId
+                }
+            });
+    
             // Update read status locally
-        setNotifications((prev) =>
-            prev.map((n) =>
-                n.notification_id === notificationId ? { ...n, read: true } : n
-            )
-        );
-        
+            setNotifications((prev) =>
+                prev.map((n) =>
+                    n.notification_id === notificationId ? { ...n, read: true } : n
+                )
+            );
+    
             setReadNotifications((prev) => [...prev, notificationId]);
         } catch (error) {
             console.error("Error marking notification as read:", error);
         }
     };
+    
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (profileRef.current && !profileRef.current.contains(event.target)) {
