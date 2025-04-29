@@ -52,7 +52,7 @@ const NavBar = () => {
    
     const markNotificationAsRead = async (notificationId) => {
         try {
-            await axios.post("${config.API_BASE_URL}/notifications/read", { notification_id: notificationId });
+            await axios.post(`${config.API_BASE_URL}/notifications/read`, { notification_id: notificationId });
             // Update read status locally
         setNotifications((prev) =>
             prev.map((n) =>
