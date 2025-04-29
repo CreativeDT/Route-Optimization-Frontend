@@ -3,12 +3,12 @@ import {
   Container,
   Typography,
   CircularProgress,
-  Table,
+  Table,  Snackbar,
   TableBody,
   TableCell,TextField,
   TableContainer,
   TableHead,
-  TableRow,Tooltip,
+  TableRow,Tooltip,  FormControlLabel,
   Paper,Box,TablePagination,
   Alert,Select, MenuItem ,
   Switch,
@@ -32,7 +32,7 @@ const DriverFleetDetails = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(0);
    const [rowsPerPage, setRowsPerPage] = useState(5);
-
+   const [isInTransit, setIsInTransit] = useState(true); // Default status
 const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
@@ -222,11 +222,65 @@ const [snackbar, setSnackbar] = useState({
   useEffect(() => {
     setPage(0);
   }, [searchTerm]);
-  
+  const handleToggle = (event) => {
+    const newStatus = event.target.checked;
+    setIsInTransit(newStatus);
+    const token = localStorage.getItem('token');
+    // Send updated status to backend  
+    axios.post(
+      `${config.API_BASE_URL}/driver/restPeriod?rest=${newStatus}`, // sending boolean true/false
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    )
+      .then(() => {
+        setSnackbar({ open: true, message: 'Driver status updated', severity: 'success' });
+      })
+      .catch(() => {
+        setSnackbar({ open: true, message: 'Failed to update status', severity: 'error' });
+        setIsInTransit(!newStatus); // Revert toggle on failure
+      });
+  };
   return (
     <>
       <NavBar />
       <Breadcrumbs2 />
+      {/* <Paper elevation={3} sx={{ p: 3, maxWidth: 400, mx: 'auto', mt: 5 }}>
+      <Typography variant="h6" gutterBottom>
+        Driver Status
+      </Typography>
+
+      <Box display="flex" alignItems="center" justifyContent="space-between">
+        <Typography variant="body1">
+          Current Status: <strong>{isInTransit ? 'In Transit' : 'Rested'}</strong>
+        </Typography>
+
+        <FormControlLabel
+          control={
+            <Switch
+              checked={isInTransit}
+              onChange={handleToggle}
+              color="primary"
+            />
+          }
+          label={isInTransit ? 'In Transit' : 'Rested'}
+        />
+      </Box>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+      
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity={snackbar.severity}>
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Paper> */}
       <Paper  id="paper" sx={{ border: "1px solid  #e0e0e0", margin: "auto",padding:2 }}>
       <Box className="filter-container" id="filter-container">
            <Box sx={{display:'flex',gap:1, 
@@ -359,8 +413,7 @@ const [snackbar, setSnackbar] = useState({
               ? "#ff980073"
               : consignment.status === "not started"
               ? "#ff00005e" 
-              : consignment.status === "rested"
-              ? "#03a9f485"
+              
               : consignment.status === "completed"
               ? "#4caf50ab"
               : "#e0e0e0",
