@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Typography ,Badge,Button} from "@mui/material";
 import Menu from './Menu';
 import './Navbar.css';
+import config from "../config";
 import logo from '../Assets/images/white_logo.png';
 import useNotificationWebSocket from "../WebSockets/UseNotificationWebSockets";
 import { AuthContext } from '../Context/AuthContext';
