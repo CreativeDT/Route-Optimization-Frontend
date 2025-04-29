@@ -374,7 +374,7 @@ const [snackbar, setSnackbar] = useState({
       >
         <MenuItem value="started">Started</MenuItem>
         <MenuItem value="not started">Not Started</MenuItem>
-        <MenuItem value="rested">Rested</MenuItem>
+        {/* <MenuItem value="rested">Rested</MenuItem> */}
         <MenuItem value="completed">Completed</MenuItem>
       </Select>
     </span>

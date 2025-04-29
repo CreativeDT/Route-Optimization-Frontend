@@ -20,12 +20,35 @@ const ProfileDropdown = ({ isOpen, onClose }) => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const handleLogout = () => {
-    logout();
-    navigate("/login");
-    onClose();
+  // const handleLogout = () => {
+  //   logout();
+  //   navigate("/login");
+  //   onClose();
+  // };
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      
+      if (token) {
+        await axios.post(`${config.API_BASE_URL}/logout`, null, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+      }
+  
+      logout(); // Clear context and local storage
+      navigate("/login");
+      onClose();
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Still logout locally even if API fails
+      logout();
+      navigate("/login");
+      onClose();
+    }
   };
-
+  
   const token = localStorage.getItem("token");
 
   useEffect(() => {
