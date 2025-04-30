@@ -282,13 +282,26 @@ useEffect(() => {
         payload,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-  
-      alert("Summary updated successfully.");
+      setSnackbar({
+        open: true,
+        message: selectedConsignment.summaryAdded
+        ? "Summary updated successfully."
+        : "Summary added successfully.",
+        severity: "success",
+      });
+
       setOpen(false);
-      fetchData(); // reload your table
+       // Wait a bit to ensure the backend updates before re-fetching
+    setTimeout(() => {
+      fetchData(); // refresh table data including updated summaryAdded flag
+    }, 500);
     } catch (err) {
       console.error("Error updating summary:", err);
-      alert("Failed to update summary.");
+      setSnackbar({
+        open: true,
+        message: "Failed to update summary.",
+        severity: "error",
+      });
     }
   };
   
@@ -857,7 +870,7 @@ const handleConfirmDelete = () => {
                             color={item.summaryAdded ? "secondary" : "primary"}
                             disabled={item.status !== "completed"} // Disable for "not started" & "started"
                           >
-                            {item.summaryAdded ? "Summary Added" : "Add Summary"}
+                            {item.summaryAdded ? "Edit Summary" : "Add Summary"}
                           </Button>
                         </TableCell>
 
@@ -1094,7 +1107,7 @@ onChange={(event, newValue) => {
 
 
 
-      <Dialog id="dialog1" open={open} onClose={() => setOpen(false)}>
+      <Dialog id="dialog1" open={open} onClose={() => setOpen(false)} fullWidth   maxWidth="xs">
       <DialogTitle id="dialogetitle1">
             {selectedConsignment?.summaryAdded ? "View/Edit Summary" : "Add Consignment Summary"}
         </DialogTitle>
@@ -1105,6 +1118,7 @@ onChange={(event, newValue) => {
             <Select
           name={field}
           value={summary[field]}
+          label={field.replace(/([A-Z])/g, " $1").trim()}
           onChange={handleChange}
           // disabled={!isManager} // Only managers can edit
         >

@@ -900,8 +900,8 @@ useEffect(() => {
   if (!vehicles.length) return;
   const options = vehicles.map((vehicle) => ({
     value: vehicle.VehicleID,
-    label: `${vehicle.VehicleType} → ${vehicle.FuelType} → ${vehicle.Quantity}`,
-    vehicle_id: vehicle.VehicleID,
+    label: `${vehicle.VehicleType} → ${vehicle.FuelType} → ${vehicle.Quantity}tones → LicenceNo:${vehicle.LicenseNo}`,
+    // vehicle_id: vehicle.VehicleID,
   }));
   setVehicleOptions(options);
   console.log("Vehicle Options Set:", options); // Debug
@@ -1946,8 +1946,9 @@ const isSubmitDisabled = useMemo(() => {
   <Select   key={vehicleOptions.length}
     options={uniqueVehicleOptions.map(vehicle => ({
       value: vehicle.value,
-      label: `${vehicle.label} → ID: ${vehicle.value.slice(-5)}  → LicenseNo:${vehicle.LicenseNo}`, 
-      vehicle_id: vehicle.vehicle_id, // Add vehicle_id for further use
+      label: `${vehicle.label}`
+      // label: `${vehicle.label} → ID: ${vehicle.value.slice(-5)}`, 
+      // vehicle_id: vehicle.vehicle_id, // Add vehicle_id for further use
     }))}
     value={selectedVehicle}
     onChange={handleVehicleSelection}

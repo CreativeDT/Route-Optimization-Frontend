@@ -17,8 +17,8 @@ const useNotificationWebSocket = (userId) => { // Receive userId as prop
       console.log(`Attempting WebSocket connection (Try ${reconnectAttempts.current + 1})`);
 
       console.log("User ID for WebSocket:", userId);
-
-      const wsUrl = `ws://localhost:8000/ws/notifications/${userId}`;
+      const wsUrl = `${config.WEBSOCKET_URL}/notifications/${userId}`;
+      // const wsUrl = `ws://localhost:8000/ws/notifications/${userId}`;
       console.log("WebSocket Notification URL:", wsUrl);
       console.log("User ID for WebSocket:", userId);
       socketRef.current = new WebSocket(wsUrl);
