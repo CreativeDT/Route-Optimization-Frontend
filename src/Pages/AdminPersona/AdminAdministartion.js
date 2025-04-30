@@ -747,12 +747,18 @@ const handleSaveUser = () => {
     value="driver"
     className="tab"
     sx={{
-      backgroundColor: showDeletedUsers ? "#f4433652!important" : 
-                      filter === "driver" ? "#388e3c!important" : "#dcdcdc4a!important",
+      backgroundColor: 
+        showDeletedUsers && filter === "driver" ? "#f44336!important" : // Red when selected in deleted view
+        showDeletedUsers ? "#f4433652!important" : // Semi-transparent red when showing deleted but not selected
+        filter === "driver" ? "#388e3c!important" : // Green when selected in normal view
+        "#dcdcdc4a!important", // Default light gray
       color: "white",
       border: "1px solid #dcdcdc",
       padding: "5px 15px",
       "&.MuiTab-root": { minHeight: "39px !important" },
+      "&.MuiTab-root &.Mui-selected": {
+        backgroundColor: showDeletedUsers ? "#f44336!important" : "#388e3c!important"
+      }
     }}
   />
 </Tabs>
@@ -883,7 +889,7 @@ const handleSaveUser = () => {
                     {deletedUsers
                       .filter(user => {
                         const matchesSearch = JSON.stringify(user).toLowerCase().includes(searchTerm.toLowerCase());
-                        const matchesFilter = filter === "All" || user.user_role?.toLowerCase() === filter.toLowerCase();
+                        const matchesFilter = filter === "All" || user.role?.toLowerCase() === filter.toLowerCase();
                         return matchesSearch && matchesFilter;
                       })
 
@@ -897,7 +903,7 @@ const handleSaveUser = () => {
                             <Box sx={{ display: "flex", alignItems: "center" }}>
                               <Avatar sx={{ width: 32, height: 32, marginRight: 1 }} />
                               <Typography variant="body2">
-                                {user.user_role}
+                                {user.role}
                               </Typography>
                             </Box>
                           </TableCell>

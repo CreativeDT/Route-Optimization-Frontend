@@ -19,7 +19,7 @@ const configurations = {
 };
 
 
-const env = 'development'; 
+const env = 'production'; 
 const config = configurations[env];
 
 // Fallback logic
