@@ -972,8 +972,8 @@ const handleConfirmDelete = () => {
 >
   <span>
 <Autocomplete
-  // options={availableDrivers.filter((driver) => driver. driver_status === "Available")}
-  options={availableDrivers}
+  options={availableDrivers.filter((driver) => driver. driver_status === "Available")}
+  //options={availableDrivers}
   getOptionLabel={(option) => option.driver_name || ""}
   value={null} // Keeps dropdown empty after selection
 //   onChange={(event, newValue) => {

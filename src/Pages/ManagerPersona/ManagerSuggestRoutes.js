@@ -825,7 +825,15 @@ const ManagerSuggestRoutes = () => {
   const handlePreloadedDemandChange = (e) => {
     const value = e.target.value ? Number(e.target.value) : 0; // Ensure number format
     console.log("Preloaded Demand Value:", value); // Log the formatted value
-    
+    if (value < 3 || value > 40) {
+      setSnackbar({
+        open: true,
+        message: "Preloaded demand must be between 3 and 40 tons.",
+        severity: "error",
+      });
+      setPreloadedDemand(""); // Clear invalid input
+      return;
+    }
     setPreloadedDemand(value); // Update the preloaded demand state
     console.log("Updated Preloaded Demand:", value); // Log the updated preloaded demand
     
@@ -1910,17 +1918,17 @@ const isSubmitDisabled = useMemo(() => {
               </div>
               <StyledTextField
                 inputRef={preloadedDemandRef}
-                label="Preloaded Demand tons "
+                label="Preloaded Demand(tons) "
                 type="number"
-                value={preloadedDemand}
-                onChange={handlePreloadedDemandChange}
+                defaultValue={preloadedDemand}
+                onBlur={handlePreloadedDemandChange}
                 fullWidth
                 size="small"
                 margin="dense"
                 className="mb-3"
                 sx={{
                   width: "100%",
-                  marginTop: "16px",
+                  marginTop: "16px",fontSize:"8px",
                   // padding: "0 1rem",
                   marginBottom: "1rem",
                   "& .MuiInputBase-input": { padding: "16px" },

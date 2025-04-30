@@ -3,7 +3,7 @@ import { useEffect, useRef, useContext } from "react";
 import { AuthContext } from "../Context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-const SESSION_TIMEOUT = 1 * 60 * 1000; 
+const SESSION_TIMEOUT = 5 * 60 * 1000; 
 
 const useAutoLogout = () => {
   const { logout } = useContext(AuthContext);
