@@ -82,7 +82,12 @@ const AdminAdministration = () => {
     userId: null,
     loading: false
   });
-
+ // Reset filter to "All" when switching to Vehicles tab
+ useEffect(() => {
+  if (tabIndex === 1) {
+    setFilter("All");
+  }
+}, [tabIndex]);
   // Fetch data based on tab
   useEffect(() => {
     fetchData();
@@ -336,7 +341,13 @@ const AdminAdministration = () => {
       setVehiclePage(newPage);
     }
   };
-
+  useEffect(() => {
+    if (tabIndex === 0) {
+      setUserPage(0);
+    } else {
+      setVehiclePage(0);
+    }
+  }, [searchTerm, filter, tabIndex]);
   const handleChangeRowsPerPage = (event) => {
     if (tabIndex === 0) {
       setUserRowsPerPage(parseInt(event.target.value, 10));
@@ -572,6 +583,30 @@ const handleSaveUser = () => {
       });
   }
 };
+const normalizedSearchTerm = searchTerm.trim().toLowerCase();
+
+const filteredVehicles = data.filter(vehicle => {
+  const matchesSearch = JSON.stringify(vehicle).toLowerCase().includes(normalizedSearchTerm);
+  const matchesFilter = filter === "All" || vehicle.fuel_type?.trim().toLowerCase() === filter.toLowerCase();
+  return matchesSearch && matchesFilter;
+});
+const filteredUsers = data.filter(user => {
+  const matchesSearch = JSON.stringify(user).toLowerCase().includes(normalizedSearchTerm);
+  const matchesFilter = filter === "All" || user.role?.trim().toLowerCase() === filter.toLowerCase();
+  return matchesSearch && matchesFilter;
+});
+const paginatedUsers = filteredUsers.slice(
+userPage * userRowsPerPage, userPage * userRowsPerPage + userRowsPerPage
+);
+const paginatedVehicles = filteredVehicles.slice(
+  vehiclePage * vehicleRowsPerPage,
+  vehiclePage * vehicleRowsPerPage + vehicleRowsPerPage
+);
+
+useEffect(() => {
+  setVehiclePage(0);
+}, [searchTerm, filter]);
+
   return (
     <>
       <NavBar />
@@ -641,12 +676,23 @@ const handleSaveUser = () => {
 </Button>
               </Box>
               <Box sx={{ display: "flex", gap: 1 }}>
-                <TextField
+                {/* <TextField
                   className="search-add-container"
                   placeholder="Search"
                   size="small"
                   onChange={(e) => setSearchTerm(e.target.value)}
-                />
+                /> */}
+                <TextField
+  value={searchTerm}
+  onChange={(e) => setSearchTerm(e.target.value.trimStart())} // Trim only leading spaces for a better UX
+  onPaste={(e) => {
+    const pasted = e.clipboardData.getData('Text');
+    e.preventDefault();
+    setSearchTerm(pasted.trim()); // Set trimmed paste content
+  }}
+  placeholder="Search..."
+/>
+
                 {/* <Tabs
                   value={filter}
                   onChange={(e, newValue) => {
@@ -923,14 +969,16 @@ const handleSaveUser = () => {
                   </TableBody>
                 ) : (
                   <TableBody>
-                    {data
+
+                    
+                    {/* {data
                       .filter(user => {
                         const matchesSearch = JSON.stringify(user).toLowerCase().includes(searchTerm.toLowerCase());
                         const matchesFilter = filter === "All" || user.role === filter.toLowerCase();
                         return matchesSearch && matchesFilter;
                       })
-                      .slice(userPage * userRowsPerPage, userPage * userRowsPerPage + userRowsPerPage)
-                      .map((user, index) => (
+                      .slice(userPage * userRowsPerPage, userPage * userRowsPerPage + userRowsPerPage) */}
+                     {paginatedUsers .map((user, index) => (
                         <TableRow key={index}>
                           <TableCell>{userPage * userRowsPerPage + index + 1}</TableCell>
                           <TableCell>{user.name}</TableCell>
@@ -958,14 +1006,8 @@ const handleSaveUser = () => {
                 )
               ) : (
                 <TableBody>
-                  {data
-                    .filter(vehicle => {
-                      const matchesSearch = JSON.stringify(vehicle).toLowerCase().includes(searchTerm.toLowerCase());
-                      const matchesFilter = filter === "All" || vehicle.fuel_type?.trim().toLowerCase() === filter.toLowerCase();
-                      return matchesSearch && matchesFilter;
-                    })
-                    .slice(vehiclePage * vehicleRowsPerPage, vehiclePage * vehicleRowsPerPage + vehicleRowsPerPage)
-                    .map((vehicle, index) => (
+
+{paginatedVehicles.map((vehicle, index) => (
                       <TableRow key={index}>
                         <TableCell>{vehiclePage * vehicleRowsPerPage + index + 1}</TableCell>
                         <TableCell>{vehicle.license_no}</TableCell>
@@ -1034,7 +1076,7 @@ const handleSaveUser = () => {
         </Snackbar>
       </Paper>
 
-      <TablePagination
+      {/* <TablePagination
         rowsPerPageOptions={[5, 10, 25]}
         component="div"
         count={
@@ -1042,11 +1084,11 @@ const handleSaveUser = () => {
             ? showDeletedUsers
               ? deletedUsers.filter(user => 
                   JSON.stringify(user).toLowerCase().includes(searchTerm.toLowerCase()) &&
-                  (filter === "All" || user.user_role?.toLowerCase() === filter.toLowerCase())
+                  (filter === "All" || user.role?.toLowerCase() === filter.toLowerCase())
                 ).length
               : data.filter(user => 
                   JSON.stringify(user).toLowerCase().includes(searchTerm.toLowerCase()) &&
-                  (filter === "All" || user.role === filter.toLowerCase())
+                  (filter === "All" || user.role?.trim().toLowerCase() === filter.toLowerCase())
                 ).length
             : data.filter(vehicle => 
                 JSON.stringify(vehicle).toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -1057,8 +1099,25 @@ const handleSaveUser = () => {
         page={tabIndex === 0 ? userPage : vehiclePage}
         onPageChange={handleChangePage}
         onRowsPerPageChange={handleChangeRowsPerPage}
-      />
-
+      /> */}
+<TablePagination
+  rowsPerPageOptions={[5, 10, 25]}
+  component="div"
+  count={
+    tabIndex === 0
+      ? showDeletedUsers
+        ? deletedUsers.filter(user => 
+            JSON.stringify(user).toLowerCase().includes(normalizedSearchTerm) &&
+            (filter === "All" || (user.role || user.user_role)?.toLowerCase() === filter.toLowerCase())
+          ).length
+        : filteredUsers.length
+      : filteredVehicles.length
+  }
+  rowsPerPage={tabIndex === 0 ? userRowsPerPage : vehicleRowsPerPage}
+  page={tabIndex === 0 ? userPage : vehiclePage}
+  onPageChange={handleChangePage}
+  onRowsPerPageChange={handleChangeRowsPerPage}
+/>
       {/* User Dialog */}
       <Dialog
         open={openUserDialog}
