@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import config from "../config";
 const useNotificationWebSocket = (userId) => { // Receive userId as prop
   const [notifications, setNotifications] = useState([]);
   const socketRef = useRef(null);
