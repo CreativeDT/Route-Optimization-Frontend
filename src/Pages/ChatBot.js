@@ -109,6 +109,7 @@ const ChatBot = () => {
     }
 
     const token = localStorage.getItem("token");
+    console.log("token:",token)
     try {
       const res = await axios.post(
         `${config.CHATBOT_API_BASE_URL}/api/send_message`, 

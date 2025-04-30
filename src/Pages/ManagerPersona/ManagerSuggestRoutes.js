@@ -957,9 +957,10 @@ const handleVehicleSelection = (selectedOptionOrEvent) => {
   } else {
     setLabel([]); // Reset label if no valid selection
   }
+};
 
   //  getRiskFactors();
-};
+// };
 // const uniqueVehicleOptions = Array.from(
 //   new Map(vehicleOptions.map(vehicle => [vehicle.value, vehicle])).values()
 // );
@@ -1460,7 +1461,7 @@ const isSubmitDisabled = useMemo(() => {
       // setSelectedStops(formattedStops);
 
       // Set other fields
-      // setStartDate(new Date(loadedRouteData.start_date));
+      setStartDate(new Date(loadedRouteData.start_date));
       setPreloadedDemand(loadedRouteData.preloaded_demand || 0);
       setSelectedVehicle(loadedRouteData.vehicle_id ? { 
         value: loadedRouteData.vehicle_id,
@@ -1945,7 +1946,7 @@ const isSubmitDisabled = useMemo(() => {
   <Select   key={vehicleOptions.length}
     options={uniqueVehicleOptions.map(vehicle => ({
       value: vehicle.value,
-      label: `${vehicle.label} → ID: ${vehicle.value.slice(-5)}`, // Include vehicle_id in label
+      label: `${vehicle.label} → ID: ${vehicle.value.slice(-5)}  → LicenseNo:${vehicle.LicenseNo}`, 
       vehicle_id: vehicle.vehicle_id, // Add vehicle_id for further use
     }))}
     value={selectedVehicle}

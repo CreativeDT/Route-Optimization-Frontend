@@ -52,12 +52,22 @@ const NavBar = () => {
         setShowNotifications(!showNotifications);
     };
     const markNotificationAsRead = async (notificationId) => {
+        const token = localStorage.getItem('token');
         try {
-            await axios.post(`${config.API_BASE_URL}/notifications/read`, null, {
-                params: {
+            await axios.post(`${config.API_BASE_URL}/notifications/read`,
+                {
+              
                     notification_id: notificationId
+                },
+                {
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                      'Content-Type': 'application/json',
+                    },
                 }
-            });
+                  
+            );
+           
     
             // Update read status locally
             setNotifications((prev) =>

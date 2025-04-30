@@ -133,7 +133,7 @@ const AdminAdministration = () => {
           exhaust_co2: vehicle.ExhaustCO2,
           mileage: vehicle.Mileage,
           capacity: vehicle.VehicleCapacity,
-          license_no: vehicle.license_no,
+          license_no: vehicle.LicenseNo,
           status: vehicle["Vehicle Status"]
         }));
       }
