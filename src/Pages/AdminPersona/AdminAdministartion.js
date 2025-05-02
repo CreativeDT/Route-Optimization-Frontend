@@ -110,11 +110,11 @@ const AdminAdministration = () => {
       : `${config.API_BASE_URL}/getVehicles`;
     
     const token = localStorage.getItem("token");
-    if (!token) {
-      setError("No token found. Please log in.");
-      setLoading(false);
-      return;
-    }
+    // if (!token) {
+    //   setError("No token found. Please log in.");
+    //   setLoading(false);
+    //   return;
+    // }
     
     try {
       const response = await axios.get(apiUrl, {
@@ -236,7 +236,7 @@ const AdminAdministration = () => {
   const confirmDeleteUser = () => {
     const { userId } = deleteDialog;
     const token = localStorage.getItem("token");
-    if (!token || !userId) return;
+    // if (!token || !userId) return;
 
     setDeleteDialog(prev => ({ ...prev, loading: true }));
 
@@ -289,10 +289,10 @@ const AdminAdministration = () => {
     }
 
     const token = localStorage.getItem("token");
-    if (!token) {
-      console.error("No token found, authorization failed");
-      return;
-    }
+    // if (!token) {
+    //   console.error("No token found, authorization failed");
+    //   return;
+    // }
 
     const headers = {
       Authorization: `Bearer ${token}`,
@@ -444,10 +444,10 @@ const handleEditVehicle = (vehicle) => {
 
 const handleDeleteVehicle = (vehicleId) => {
   const token = localStorage.getItem("token");
-  if (!token) {
-    console.error("No token found, authorization failed");
-    return;
-  }
+  // if (!token) {
+  //   console.error("No token found, authorization failed");
+  //   return;
+  // }
 
   axios.delete(`${config.API_BASE_URL}/vehicles/deleteVehicle?vehicle_id=${vehicleId}`, {
     headers: { Authorization: `Bearer ${token}` },

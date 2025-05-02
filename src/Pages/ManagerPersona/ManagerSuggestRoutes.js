@@ -428,24 +428,52 @@ const ManagerSuggestRoutes = () => {
   }, [selectedOrigin, selectedDestination, selectedStops]); // Recalculate duration when stops are added/removed
 
 
+  // const getDuration = () => {
+  //   if (
+  //     !selectedOrigin?.coordinates ||
+  //     selectedOrigin.coordinates.length !== 2 ||
+  //     selectedOrigin.coordinates.includes(null)
+  //   ) {
+  //     console.error("Invalid Origin Coordinates:", selectedOrigin.coordinates);
+  //     return;
+  //   }
+
+  //   if (
+  //     !selectedDestination?.coordinates ||
+  //     selectedDestination.coordinates.length !== 2 ||
+  //     selectedDestination.coordinates.includes(null)
+  //   ) {
+  //     console.error(
+  //       "Invalid Destination Coordinates:",
+  //       selectedDestination.coordinates
+  //     );
+  //     return;
+  //   }
   const getDuration = () => {
+    // Add null checks for selectedOrigin and selectedDestination
+    if (!selectedOrigin || !selectedDestination) {
+      console.error("Origin or destination not selected");
+      return;
+    }
+  
+    // Now check coordinates
     if (
-      !selectedOrigin?.coordinates ||
+      !selectedOrigin.coordinates ||
       selectedOrigin.coordinates.length !== 2 ||
       selectedOrigin.coordinates.includes(null)
     ) {
-      console.error("Invalid Origin Coordinates:", selectedOrigin.coordinates);
+      console.error("Invalid Origin Coordinates:", selectedOrigin?.coordinates);
       return;
     }
-
+  
     if (
-      !selectedDestination?.coordinates ||
+      !selectedDestination.coordinates ||
       selectedDestination.coordinates.length !== 2 ||
       selectedDestination.coordinates.includes(null)
     ) {
       console.error(
         "Invalid Destination Coordinates:",
-        selectedDestination.coordinates
+        selectedDestination?.coordinates
       );
       return;
     }
@@ -900,7 +928,7 @@ useEffect(() => {
   if (!vehicles.length) return;
   const options = vehicles.map((vehicle) => ({
     value: vehicle.VehicleID,
-    label: `${vehicle.VehicleType} → ${vehicle.FuelType} → ${vehicle.Quantity}tones → LicenceNo:${vehicle.LicenseNo}`,
+    label: `${vehicle.VehicleType} → ${vehicle.FuelType} → ${vehicle.Quantity} → LicenceNo:${vehicle.LicenseNo}`,
     // vehicle_id: vehicle.VehicleID,
   }));
   setVehicleOptions(options);
@@ -1187,15 +1215,15 @@ console.log("Vehicle Options:", vehicleOptions);
     const token = localStorage.getItem("token");
     console.log("token:", token);
 
-    if (!token) {
-      setSnackbar({
-        open: true,
-        message: "You must be logged in to submit the route selection.",
-        severity: "error",
-      });
-      setIsLoading(false);
-      return;
-    }
+    // if (!token) {
+    //   setSnackbar({
+    //     open: true,
+    //     message: "You must be logged in to submit the route selection.",
+    //     severity: "error",
+    //   });
+    //   setIsLoading(false);
+    //   return;
+    // }
 
     setSnackbar({ open: true, message: "Submitting route selection..." });
 
@@ -1339,10 +1367,10 @@ const isSubmitDisabled = useMemo(() => {
 
   const saveRoute = async (routeID) => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      alert("You must be logged in to save a route.");
-      return;
-    }
+    // if (!token) {
+    //   alert("You must be logged in to save a route.");
+    //   return;
+    // }
 
     try {
       const response = await axios.post(
@@ -1406,75 +1434,203 @@ const isSubmitDisabled = useMemo(() => {
   }, [selectedTab]);
 
 
-   // Add this useEffect to handle when a route is loaded
-   useEffect(() => {
-    if (loadedRouteData) {
-      console.log("Loaded Route Data in ManagerSuggestRoutes:", loadedRouteData);
+  //  // Add this useEffect to handle when a route is loaded
+  //  useEffect(() => {
+  //   if (loadedRouteData) {
+  //     console.log("Loaded Route Data in ManagerSuggestRoutes:", loadedRouteData);
 
 
-        // Check if stop_demands exists and is an array
-    if (Array.isArray(loadedRouteData.stop_demands) && loadedRouteData.stop_demands.length > 0) {
-      console.log("Stop Demands Data:", loadedRouteData.stop_demands);
+  //       // Check if stop_demands exists and is an array
+  //   if (Array.isArray(loadedRouteData.stop_demands) && loadedRouteData.stop_demands.length > 0) {
+  //     console.log("Stop Demands Data:", loadedRouteData.stop_demands);
 
-      // Format stop demands
-      const formattedStops = loadedRouteData.stop_demands.map((stop, index) => {
-        console.log(`Stop ${index + 1}:`, stop);  // Log individual stop data
-         console.log("Priority for Stop:", stop.priority );
-        return {
-          label: stop.name,  // Using stop name as the label
-          coordinates: stop.coordinates || [],
-          drop_demand: stop.drop_demand || 0,
-          pickup_demand: stop.pickup_demand || 0,
-          priority: stop.priority !== undefined ? stop.priority : 3  // Only use 3 if priority is undefined
+  //     // Format stop demands
+  //     const formattedStops = loadedRouteData.stop_demands.map((stop, index) => {
+  //       console.log(`Stop ${index + 1}:`, stop);  // Log individual stop data
+  //        console.log("Priority for Stop:", stop.priority );
+  //       return {
+  //         label: stop.name,  // Using stop name as the label
+  //         coordinates: stop.coordinates || [],
+  //         drop_demand: stop.drop_demand || 0,
+  //         pickup_demand: stop.pickup_demand || 0,
+  //         priority: stop.priority !== undefined ? stop.priority : 3  // Only use 3 if priority is undefined
           
-        };
+  //       };
        
-      });
+  //     });
 
 
-      console.log("Formatted Stops:", formattedStops);  // Check the formatted stops
-      setSelectedStops(formattedStops);  // Setting formatted stops
-    } else {
-      console.log("No stop demands available or invalid data.");
-    }
-      // Set origin
-      setSelectedOrigin({
-        name: loadedRouteData.origin,
-        coordinates: loadedRouteData.origin_coordinates || []
-      });
+  //     console.log("Formatted Stops:", formattedStops);  // Check the formatted stops
+  //     setSelectedStops(formattedStops);  // Setting formatted stops
+  //   } else {
+  //     console.log("No stop demands available or invalid data.");
+  //   }
+  //     // Set origin
+  //     setSelectedOrigin({
+  //       name: loadedRouteData.origin,
+  //       coordinates: loadedRouteData.origin_coordinates || []
+  //     });
 
-      // Set destination
-      setSelectedDestination({
-        name: loadedRouteData.destination,
-        coordinates: loadedRouteData.destination_coordinates || []
-      });
+  //     // Set destination
+  //     setSelectedDestination({
+  //       name: loadedRouteData.destination,
+  //       coordinates: loadedRouteData.destination_coordinates || []
+  //     });
     
     
-      // Set stops
-      // const formattedStops = loadedRouteData.stops?.map(stop => ({
-      //   label: stop.name,
-      //   coordinates: stop.coordinates || [],
-      //   drop_demand: stop.drop_demand || 0,
-      //   pickup_demand: stop.pickup_demand || 0,
-      //   priority: stop.priority || 3
-      // })) || [];
-      // setSelectedStops(formattedStops);
+  //     // Set stops
+  //     // const formattedStops = loadedRouteData.stops?.map(stop => ({
+  //     //   label: stop.name,
+  //     //   coordinates: stop.coordinates || [],
+  //     //   drop_demand: stop.drop_demand || 0,
+  //     //   pickup_demand: stop.pickup_demand || 0,
+  //     //   priority: stop.priority || 3
+  //     // })) || [];
+  //     // setSelectedStops(formattedStops);
 
-      // Set other fields
-      setStartDate(new Date(loadedRouteData.start_date));
-      setPreloadedDemand(loadedRouteData.preloaded_demand || 0);
-      setSelectedVehicle(loadedRouteData.vehicle_id ? { 
-        value: loadedRouteData.vehicle_id,
-        label: `${loadedRouteData.vehicle_type} → ID: ${loadedRouteData.vehicle_id.slice(-5)}`
-      } : null);
+  //     // Set other fields
+  //     setStartDate(new Date(loadedRouteData.start_date));
+  //     setPreloadedDemand(loadedRouteData.preloaded_demand || 0);
+  //     setSelectedVehicle(loadedRouteData.vehicle_id ? { 
+  //       value: loadedRouteData.vehicle_id,
+  //       label: `${loadedRouteData.vehicle_type} → ID: ${loadedRouteData.vehicle_id.slice(-5)}`
+  //     } : null);
 
-      // Clear the loaded route after applying
-      setLoadedRouteData(null);
-    }
-  }, [loadedRouteData]);
+  //     // Clear the loaded route after applying
+  //     setLoadedRouteData(null);
+  //   }
+  // }, [loadedRouteData]);
 
- 
+  // useEffect(() => {
+  //   if (loadedRouteData) {
+  //     console.log("Loaded Route Data in ManagerSuggestRoutes:", loadedRouteData);
   
+  //     // Set origin
+  //     setSelectedOrigin({
+  //       name: loadedRouteData.origin,
+  //       coordinates: loadedRouteData.origin_coordinates || []
+  //     });
+  
+  //     // Set destination
+  //     setSelectedDestination({
+  //       name: loadedRouteData.destination,
+  //       coordinates: loadedRouteData.destination_coordinates || []
+  //     });
+  
+  //     // Set stops
+  //     const formattedStops = loadedRouteData.stop_demands?.map(stop => ({
+  //       label: stop.name,
+  //       coordinates: stop.coordinates || [],
+  //       drop_demand: stop.drop_demand || 0,
+  //       pickup_demand: stop.pickup_demand || 0,
+  //       priority: stop.priority || 3
+  //     })) || [];
+  //     setSelectedStops(formattedStops);
+  
+  //     // Set other fields
+  //     setStartDate(new Date(loadedRouteData.start_date));
+  //     setPreloadedDemand(loadedRouteData.preloaded_demand || 0);
+  
+  //     // Set vehicle (if available)
+  //     if (loadedRouteData.vehicle_id) {
+  //       const vehicleLabel = `${loadedRouteData.vehicle_type} → ${loadedRouteData.fuel_type} → ${loadedRouteData.vehicle_capacity}`;
+  //       setSelectedVehicle({
+  //         value: loadedRouteData.vehicle_id,
+  //         label: vehicleLabel
+  //       });
+  //       setLabel(vehicleLabel.split(" → ").map(item => item.trim()));
+  //     }
+  
+  //     // Clear the loaded route after applying
+  //     setLoadedRouteData(null);
+  //   }
+  // }, [loadedRouteData]);
+  // Add this geocoding function
+const geocodeLocation = async (locationName) => {
+  try {
+    const response = await axios.get(
+      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(locationName)}.json`,
+      {
+        params: {
+          access_token: config.MAPBOX_ACCESS_TOKEN,
+          limit: 1,
+          types: 'place,address'
+        }
+      }
+    );
+    
+    if (response.data.features.length > 0) {
+      return {
+        name: response.data.features[0].place_name,
+        coordinates: response.data.features[0].geometry.coordinates // [lng, lat]
+      };
+    }
+    return null;
+  } catch (error) {
+    console.error("Geocoding failed:", error);
+    return null;
+  }
+};
+
+// Modified useEffect for loading routes
+useEffect(() => {
+  const loadRoute = async () => {
+    if (!loadedRouteData) return;
+
+    // Geocode origin if coordinates missing
+    let origin = {
+      name: loadedRouteData.origin,
+      coordinates: loadedRouteData.origin_coordinates || []
+    };
+    
+    if (origin.coordinates.length !== 2) {
+      const geocoded = await geocodeLocation(origin.name);
+      if (geocoded) origin = geocoded;
+    }
+
+    // Geocode destination if coordinates missing
+    let destination = {
+      name: loadedRouteData.destination,
+      coordinates: loadedRouteData.destination_coordinates || []
+    };
+    
+    if (destination.coordinates.length !== 2) {
+      const geocoded = await geocodeLocation(destination.name);
+      if (geocoded) destination = geocoded;
+    }
+
+    // Update states
+    setSelectedOrigin(origin);
+    setSelectedDestination(destination);
+
+    // Process stops
+    const formattedStops = loadedRouteData.stop_demands?.map(stop => ({
+            label: stop.name,
+            coordinates: stop.coordinates || [],
+            drop_demand: stop.drop_demand || 0,
+            pickup_demand: stop.pickup_demand || 0,
+            priority: stop.priority || 3
+          })) || [];
+          setSelectedStops(formattedStops);
+      
+          // Set other fields
+          setStartDate(new Date(loadedRouteData.start_date));
+          setPreloadedDemand(loadedRouteData.preloaded_demand || 0);
+      
+
+  
+    // Trigger duration calculation after coordinates are set
+    setTimeout(() => {
+      if (origin.coordinates.length === 2 && destination.coordinates.length === 2) {
+        getDuration();
+      }
+    }, 500);
+    setSelectedTab("map"); 
+    setLoadedRouteData(null);
+  };
+
+  loadRoute();
+}, [loadedRouteData]);
   return (
     <div>
       <Box

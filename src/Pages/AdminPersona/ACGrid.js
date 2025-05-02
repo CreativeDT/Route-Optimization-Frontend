@@ -274,11 +274,11 @@ const ACGrid = () => {
     }
    
     const token = localStorage.getItem("token");
-    if (!token) {
-      setError("No token found. Please log in.");
-      setLoading(false);
-      return;
-    }
+    // if (!token) {
+    //   setError("No token found. Please log in.");
+    //   setLoading(false);
+    //   return;
+    // }
 
     try {
       console.log("Calling API:", apiUrl);
@@ -371,7 +371,7 @@ const ACGrid = () => {
 
   const handleDeleteUser = (id) => {
     const token = localStorage.getItem("token");
-    if (!token) return;
+    // if (!token) return;
 
     axios
       .delete(`${config.API_BASE_URL}/users/removeUser?user_id=${id}`, {
@@ -425,10 +425,10 @@ const ACGrid = () => {
         };
 
     const token = localStorage.getItem("token");
-    if (!token) {
-      console.error("No token found, authorization failed");
-      return;
-    }
+    // if (!token) {
+    //   console.error("No token found, authorization failed");
+    //   return;
+    // }
 
     const headers = { Authorization: `Bearer ${token}` };
 
@@ -508,10 +508,10 @@ const ACGrid = () => {
     }
 
     const token = localStorage.getItem("token");
-    if (!token) {
-      console.error("No token found, authorization failed");
-      return;
-    }
+    // if (!token) {
+    //   console.error("No token found, authorization failed");
+    //   return;
+    // }
 
     const headers = {
       Authorization: `Bearer ${token}`,
@@ -560,10 +560,10 @@ const ACGrid = () => {
 
   const handleDeleteVehicle = (vehicleId) => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      console.error("No token found, authorization failed");
-      return;
-    }
+    // if (!token) {
+    //   console.error("No token found, authorization failed");
+    //   return;
+    // }
 
     axios
       .delete(

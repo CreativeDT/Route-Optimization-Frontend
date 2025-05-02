@@ -65,11 +65,11 @@ const [snackbar, setSnackbar] = useState({
   };
   
   useEffect(() => {
-    if (!token) {
-      setError("No authentication token found.");
-      setLoading(false);
-      return;
-    }
+    // if (!token) {
+    //   setError("No authentication token found.");
+    //   setLoading(false);
+    //   return;
+    // }
 
     const fetchConsignments = async () => {
       try {
@@ -222,28 +222,28 @@ const [snackbar, setSnackbar] = useState({
   useEffect(() => {
     setPage(0);
   }, [searchTerm]);
-  const handleToggle = (event) => {
-    const newStatus = event.target.checked;
-    setIsInTransit(newStatus);
-    const token = localStorage.getItem('token');
-    // Send updated status to backend  
-    axios.post(
-      `${config.API_BASE_URL}/driver/restPeriod?rest=${newStatus}`, // sending boolean true/false
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    )
-      .then(() => {
-        setSnackbar({ open: true, message: 'Driver status updated', severity: 'success' });
-      })
-      .catch(() => {
-        setSnackbar({ open: true, message: 'Failed to update status', severity: 'error' });
-        setIsInTransit(!newStatus); // Revert toggle on failure
-      });
-  };
+  // const handleToggle = (event) => {
+  //   const newStatus = event.target.checked;
+  //   setIsInTransit(newStatus);
+  //   const token = localStorage.getItem('token');
+  //   // Send updated status to backend  
+  //   axios.post(
+  //     `${config.API_BASE_URL}/driver/restPeriod?rest=${newStatus}`, // sending boolean true/false
+  //     {},
+  //     {
+  //       headers: {
+  //         Authorization: `Bearer ${token}`,
+  //       },
+  //     }
+  //   )
+  //     .then(() => {
+  //       setSnackbar({ open: true, message: 'Driver status updated', severity: 'success' });
+  //     })
+  //     .catch(() => {
+  //       setSnackbar({ open: true, message: 'Failed to update status', severity: 'error' });
+  //       setIsInTransit(!newStatus); // Revert toggle on failure
+  //     });
+  // };
   return (
     <>
       <NavBar />
@@ -403,6 +403,7 @@ const [snackbar, setSnackbar] = useState({
           ) ||
           consignment.status === "completed"
         }
+        
         variant="standard"
         disableUnderline
         size="small"

@@ -54,10 +54,10 @@ const VehiclesList = () => {
      
     const fetchVehicles = () => {
         const token = localStorage.getItem("token");
-        if (!token) {
-            console.error("No token found, authorization failed");
-            return;
-        }
+        // if (!token) {
+        //     console.error("No token found, authorization failed");
+        //     return;
+        // }
 
         axios.get(`${config.API_BASE_URL}/getVehicles`, 
             {
@@ -136,10 +136,10 @@ const allCount = vehicles.length;
     
     
         const token = localStorage.getItem("token");
-        if (!token) {
-            console.error("No token found, authorization failed");
-            return;
-        }
+        // if (!token) {
+        //     console.error("No token found, authorization failed");
+        //     return;
+        // }
 
         const headers = {
             Authorization: `Bearer ${token}`,
@@ -174,10 +174,10 @@ console.log("vehiclePayload:",vehiclePayload)
 
     const handleDeleteVehicle = (vehicleId) => {
         const token = localStorage.getItem("token");
-        if (!token) {
-            console.error("No token found, authorization failed");
-            return;
-        }
+        // if (!token) {
+        //     console.error("No token found, authorization failed");
+        //     return;
+        // }
 
         axios.delete(`${config.API_BASE_URL}/vehicles/deleteVehicle?vehicle_id=${vehicleId}`, {
             headers: { Authorization: `Bearer ${token}` },

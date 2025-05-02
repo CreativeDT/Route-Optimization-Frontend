@@ -26,7 +26,8 @@ import SessionExpiryPage from './Pages/SessionExpiryPage';
 import SessionExpired from './Pages/SessionExpired';
 import UpdateProfile from './Components/UpdateProfile/UpdateProfile';
 import ACGrid from './Pages/AdminPersona/ACGrid';
-import useAutoLogout from './Components/AutoLogOut';
+
+import SessionExpiry from './Pages/SessionExpiry';
 
 
 
@@ -39,7 +40,8 @@ import useAutoLogout from './Components/AutoLogOut';
   
 
 const App = () => {
-  useAutoLogout();
+  // useAutoLogout();
+  SessionExpiry();
   return (
 
       <Routes>

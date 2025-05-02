@@ -1076,15 +1076,15 @@ console.log("Vehicle Options:", vehicleOptions);
     const token = localStorage.getItem("token");
     console.log("token:", token);
 
-    if (!token) {
-      setSnackbar({
-        open: true,
-        message: "You must be logged in to submit the route selection.",
-        severity: "error",
-      });
-      setIsLoading(false);
-      return;
-    }
+    // if (!token) {
+    //   setSnackbar({
+    //     open: true,
+    //     message: "You must be logged in to submit the route selection.",
+    //     severity: "error",
+    //   });
+    //   setIsLoading(false);
+    //   return;
+    // }
 
     setSnackbar({ open: true, message: "Submitting route selection..." });
 
@@ -1228,10 +1228,10 @@ const isSubmitDisabled = useMemo(() => {
 
   const saveRoute = async (routeID) => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      alert("You must be logged in to save a route.");
-      return;
-    }
+    // if (!token) {
+    //   alert("You must be logged in to save a route.");
+    //   return;
+    // }
 
     try {
       const response = await axios.post(
@@ -1295,11 +1295,11 @@ const isSubmitDisabled = useMemo(() => {
       setError("");
 
       const token = localStorage.getItem("token");
-      if (!token) {
-        setError("No token found. Please log in.");
-        setLoading(false);
-        return;
-      }
+      // if (!token) {
+      //   setError("No token found. Please log in.");
+      //   setLoading(false);
+      //   return;
+      // }
 
       const response = await axios.get(`${config.API_BASE_URL}/getDrivers`, {
         headers: { Authorization: `Bearer ${token}` },

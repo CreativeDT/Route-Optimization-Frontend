@@ -84,6 +84,7 @@ const Analytics = () => {
     width="100%" 
     height="100%" 
     src={`${config.POWER_BI_URL}${userId}`}  // Remove extra `'`
+    
     style={{ border: 'none', borderRadius: '8px' }}
   ></iframe>
 ) : (

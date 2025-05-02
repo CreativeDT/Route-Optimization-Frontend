@@ -175,11 +175,11 @@ useEffect(() => {
     console.log("Payload Sent:", payload);
 
     const token = localStorage.getItem("token");
-    if (!token) {
-      navigate("/sessionexpired");
-      setLoading(false);
-      return;
-    }
+    // if (!token) {
+    //   navigate("/sessionexpired");
+    //   setLoading(false);
+    //   return;
+    // }
   
     try {
       const response =
@@ -318,10 +318,7 @@ const handleAssignDriver = async (driverId, routeId) => {
     }
 try {
         const token = localStorage.getItem("token");
-        if (!token) {
-          navigate("/sessionexpired");
-            return;
-        }
+       
  const response = await axios.post(
             `${config.API_BASE_URL}/assignDriver`, 
             { driver_id: driverId, route_id: routeId },
@@ -432,10 +429,7 @@ const handleDriverSelectChange = async (event, newValue, routeId,item) => {
   const fetchDrivers = async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        navigate("/sessionexpired");
-        return;
-      }
+     
   
       const response = await axios.get(`${config.API_BASE_URL}/getDrivers`, {
         headers: { Authorization: `Bearer ${token}` },

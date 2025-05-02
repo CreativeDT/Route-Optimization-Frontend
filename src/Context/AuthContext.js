@@ -26,6 +26,19 @@ export const AuthProvider = ({ children }) => {
       }
     }
   }, []);
+// // Add this function to update user status
+// const updateDriverStatus = (newStatus) => {
+//   setUser(prev => ({
+//     ...prev,
+//     driver_status: newStatus ? 'rested' : 'in_transit'
+//   }));
+//   localStorage.setItem('user', JSON.stringify({
+//     ...user,
+//     driver_status: newStatus ? 'rested' : 'in_transit'
+//   }));
+// };
+
+
 
   const login = async (userData) => {
     try {
@@ -60,7 +73,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, login, logout}}>
       {children}
     </AuthContext.Provider>
   );
