@@ -5,21 +5,21 @@ const configurations = {
         API_BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:8000',
         WEBSOCKET_URL: process.env.REACT_APP_WEBSOCKET_URL || 'ws://localhost:8000/ws',
         // POWER_BI_URL: process.env.REACT_APP_POWER_BI_URL || 'https://app.powerbi.com/reportEmbed?reportId=3a844791-90c2-4130-bc48-5f7ed25e2214&autoAuth=true&ctid=a9c50c6c-2ecc-4653-99b2-58024af91866&navContentPaneEnabled=false&filterPaneEnabled=false',
-        POWER_BI_URL: process.env.REACT_APP_POWER_BI_URL || 'https://app.powerbi.com/reportEmbed?reportId=3a844791-90c2-4130-bc48-5f7ed25e2214&autoAuth=true&ctid=a9c50c6c-2ecc-4653-99b2-58024af91866&navContentPaneEnabled=false&filterPaneEnabled=false&filter=routes/user_id eq ',
+        POWER_BI_URL: process.env.REACT_APP_POWER_BI_URL || 'https://app.powerbi.com/reportEmbed?reportId=b7f220cc-f5b4-4532-95b4-bc6ad5eb8e2f&autoAuth=true&ctid=a9c50c6c-2ecc-4653-99b2-58024af91866&navContentPaneEnabled=false&filterPaneEnabled=false&filter=routes/user_id eq ',
         MAPBOX_ACCESS_TOKEN: process.env.REACT_APP_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoiYmhhbnVwbnIiLCJhIjoiY204aWIwY3QwMDNkeTJuc2dpM3d6eW1jNiJ9.nAd8bt-sGPZrR9VXrFHPTQ'
     },
     production: {
         CHATBOT_API_BASE_URL: "http://172.16.106.97:8001", // for chatbot endpoints
         API_BASE_URL: process.env.REACT_APP_API_URL || 'http://172.16.106.97:8000',
         WEBSOCKET_URL: process.env.REACT_APP_WEBSOCKET_URL || 'ws://172.16.106.97:8000/ws',
-        POWER_BI_URL: process.env.REACT_APP_POWER_BI_URL || 'https://app.powerbi.com/reportEmbed?reportId=3a844791-90c2-4130-bc48-5f7ed25e2214&autoAuth=true&ctid=a9c50c6c-2ecc-4653-99b2-58024af91866&navContentPaneEnabled=false&filterPaneEnabled=false',
-        POWER_BI_URL: process.env.REACT_APP_POWER_BI_URL || 'https://app.powerbi.com/reportEmbed?reportId=3a844791-90c2-4130-bc48-5f7ed25e2214&autoAuth=true&ctid=a9c50c6c-2ecc-4653-99b2-58024af91866&navContentPaneEnabled=false&filterPaneEnabled=false&filter=routes/user_id eq ',
+        POWER_BI_URL: process.env.REACT_APP_POWER_BI_URL || 'https://app.powerbi.com/reportEmbed?reportId=b7f220cc-f5b4-4532-95b4-bc6ad5eb8e2f&autoAuth=true&ctid=a9c50c6c-2ecc-4653-99b2-58024af91866&navContentPaneEnabled=false&filterPaneEnabled=false',
+        POWER_BI_URL: process.env.REACT_APP_POWER_BI_URL || 'https://app.powerbi.com/reportEmbed?reportId=b7f220cc-f5b4-4532-95b4-bc6ad5eb8e2f&autoAuth=true&ctid=a9c50c6c-2ecc-4653-99b2-58024af91866&navContentPaneEnabled=false&filterPaneEnabled=false&filter=routes/user_id eq ',
         MAPBOX_ACCESS_TOKEN: process.env.REACT_APP_MAPBOX_ACCESS_TOKEN || 'pk.eyJ1IjoiYmhhbnVwbnIiLCJhIjoiY204aWIwY3QwMDNkeTJuc2dpM3d6eW1jNiJ9.nAd8bt-sGPZrR9VXrFHPTQ'
     }
 };
 
 
-const env = 'development'; 
+const env = 'production'; 
 const config = configurations[env];
 
 // Fallback logic
