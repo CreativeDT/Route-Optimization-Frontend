@@ -77,7 +77,7 @@ const Dashboard = () => {
 
       {/* Background Image */}
       <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: -1 }}>
-        <img src={backgroundImage} alt="Background" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.2 }} />
+        <img src={backgroundImage} alt="Background" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.9 }} />
       </div>
 
       {/* Dashboard Cards */}

@@ -56,18 +56,18 @@ const ManagerDashboard = () => {
   ];
 
   return (
-    <div className="dashboard-container" style={{  minHeight: "100vh", position: "relative" }}>
+    <div id="dashboard-container" className="dashboard-container" style={{  minHeight: "100vh", position: "relative" }}>
        <NavBar />
        <Breadcrumbs1 />
 
       {/* Background Image */}
-      <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: -1 }}>
-        <img src={backgroundImage} alt="Background" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.2 }} />
+      <div id="background-image" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: -1 }}>
+        <img src={backgroundImage} alt="Background" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.7 }} />
       </div>
 
       {/* Dashboard Cards */}
      
-       <div style={{ 
+       <div id="cards" style={{ 
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
@@ -77,7 +77,7 @@ const ManagerDashboard = () => {
                 flexWrap: 'wrap'
             }}>
               {iconData.map((icon, index) => (
-            <Card  key={index}
+            <Card  key={index} id="card"
               
               sx={{
                 width: "180px",

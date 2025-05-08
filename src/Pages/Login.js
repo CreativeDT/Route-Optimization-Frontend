@@ -31,35 +31,35 @@ const handleTogglePassword = () => {
   setShowPassword(!showPassword);
 };
   let timeoutRef = useRef(null);
-  useEffect(() => {
-    const handleSessionTimeout = () => {
-      setSessionExpired(true);
-      logout(); // Clear authentication
-      navigate("/sessionexpired"); // Redirect to login page
-    };
-    const resetTimer = () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => {
-        handleSessionTimeout();
-      }, SESSION_TIMEOUT);
-    };
+  // useEffect(() => {
+  //   const handleSessionTimeout = () => {
+  //     setSessionExpired(true);
+  //     logout(); // Clear authentication
+  //     navigate("/sessionexpired"); // Redirect to login page
+  //   };
+    // const resetTimer = () => {
+    //   if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    //   timeoutRef.current = setTimeout(() => {
+    //     handleSessionTimeout();
+    //   }, SESSION_TIMEOUT);
+    // };
   
-    resetTimer(); // Start timer
+    // resetTimer(); // Start timer
 
   
     
 
-    resetTimer(); // Initialize timer on login
-     // Listen for user activity to reset the timer
-     window.addEventListener("mousemove", resetTimer);
-     window.addEventListener("keydown", resetTimer);
+  //   resetTimer(); // Initialize timer on login
+  //    // Listen for user activity to reset the timer
+  //    window.addEventListener("mousemove", resetTimer);
+  //    window.addEventListener("keydown", resetTimer);
  
-     return () => {
-      clearTimeout(timeoutRef.current);
-       window.removeEventListener("mousemove", resetTimer);
-       window.removeEventListener("keydown", resetTimer);
-     };
-   }, [navigate, logout]);
+  //    return () => {
+  //     clearTimeout(timeoutRef.current);
+  //      window.removeEventListener("mousemove", resetTimer);
+  //      window.removeEventListener("keydown", resetTimer);
+  //    };
+  //  }, [navigate, logout]);
 
 
   const handleLogin = async (e) => {

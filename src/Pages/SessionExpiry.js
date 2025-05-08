@@ -1,16 +1,21 @@
 import { useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-
+import config from "../config";
 const SessionExpiry = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
     const interval = setInterval(() => {
-      axios.get('/current_user')
+        
+      axios.get(`${config.API_BASE_URL}/current_user`,{
+        headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+      })
         .then(res => {
           // Optionally refresh user context or token
-          console.log('User still active');
+          console.log("USER still active:", 'active');
         })
         .catch(err => {
           if (err.response?.status === 401) {
@@ -20,7 +25,11 @@ const SessionExpiry = () => {
             navigate('/sessionexpired'); // redirect to session expiry page
           }
         });
-    }, 5 * 60 * 1000); // 5 minutes
+    }, 1 * 60 * 1000); // 5 minutes
+
+
+   
+
 
     return () => clearInterval(interval); // cleanup on unmount
   }, [navigate]);

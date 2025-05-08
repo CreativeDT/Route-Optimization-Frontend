@@ -26,17 +26,6 @@ export const AuthProvider = ({ children }) => {
       }
     }
   }, []);
-// Add this function to update user status
-  const updateDriverStatus = (newStatus) => {
-    setUser(prev => ({
-      ...prev,
-      driver_status: newStatus ? 'rested' : 'in_transit'
-    }));
-    localStorage.setItem('user', JSON.stringify({
-      ...user,
-      driver_status: newStatus ? 'rested' : 'in_transit'
-    }));
-  };
 
   const login = async (userData) => {
     try {

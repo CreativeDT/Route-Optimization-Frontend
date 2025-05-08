@@ -94,6 +94,7 @@ const ManagerSuggestRoutes = () => {
   const [stopsError, setStopsError] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [selectedTab, setSelectedTab] = useState("map");
+  const [selectedConsignment, setSelectedConsignment] = useState(null);
   const [mapContainer, setMapContainer] = useState(null);
   const [vehicleOptions, setVehicleOptions] = useState([]);
   const [loadedRouteData, setLoadedRouteData] = useState(null);
@@ -428,52 +429,24 @@ const ManagerSuggestRoutes = () => {
   }, [selectedOrigin, selectedDestination, selectedStops]); // Recalculate duration when stops are added/removed
 
 
-  // const getDuration = () => {
-  //   if (
-  //     !selectedOrigin?.coordinates ||
-  //     selectedOrigin.coordinates.length !== 2 ||
-  //     selectedOrigin.coordinates.includes(null)
-  //   ) {
-  //     console.error("Invalid Origin Coordinates:", selectedOrigin.coordinates);
-  //     return;
-  //   }
-
-  //   if (
-  //     !selectedDestination?.coordinates ||
-  //     selectedDestination.coordinates.length !== 2 ||
-  //     selectedDestination.coordinates.includes(null)
-  //   ) {
-  //     console.error(
-  //       "Invalid Destination Coordinates:",
-  //       selectedDestination.coordinates
-  //     );
-  //     return;
-  //   }
   const getDuration = () => {
-    // Add null checks for selectedOrigin and selectedDestination
-    if (!selectedOrigin || !selectedDestination) {
-      console.error("Origin or destination not selected");
-      return;
-    }
-  
-    // Now check coordinates
     if (
-      !selectedOrigin.coordinates ||
+      !selectedOrigin?.coordinates ||
       selectedOrigin.coordinates.length !== 2 ||
       selectedOrigin.coordinates.includes(null)
     ) {
-      console.error("Invalid Origin Coordinates:", selectedOrigin?.coordinates);
+      console.error("Invalid Origin Coordinates:", selectedOrigin.coordinates);
       return;
     }
-  
+
     if (
-      !selectedDestination.coordinates ||
+      !selectedDestination?.coordinates ||
       selectedDestination.coordinates.length !== 2 ||
       selectedDestination.coordinates.includes(null)
     ) {
       console.error(
         "Invalid Destination Coordinates:",
-        selectedDestination?.coordinates
+        selectedDestination.coordinates
       );
       return;
     }
@@ -928,8 +901,8 @@ useEffect(() => {
   if (!vehicles.length) return;
   const options = vehicles.map((vehicle) => ({
     value: vehicle.VehicleID,
-    label: `${vehicle.VehicleType} → ${vehicle.FuelType} → ${vehicle.Quantity} → LicenceNo:${vehicle.LicenseNo}`,
-    // vehicle_id: vehicle.VehicleID,
+    label: `${vehicle.VehicleType} → ${vehicle.FuelType} → ${vehicle.Quantity}`,
+    vehicle_id: vehicle.VehicleID,
   }));
   setVehicleOptions(options);
   console.log("Vehicle Options Set:", options); // Debug
@@ -985,10 +958,9 @@ const handleVehicleSelection = (selectedOptionOrEvent) => {
   } else {
     setLabel([]); // Reset label if no valid selection
   }
-};
 
   //  getRiskFactors();
-// };
+};
 // const uniqueVehicleOptions = Array.from(
 //   new Map(vehicleOptions.map(vehicle => [vehicle.value, vehicle])).values()
 // );
@@ -1215,15 +1187,15 @@ console.log("Vehicle Options:", vehicleOptions);
     const token = localStorage.getItem("token");
     console.log("token:", token);
 
-    // if (!token) {
-    //   setSnackbar({
-    //     open: true,
-    //     message: "You must be logged in to submit the route selection.",
-    //     severity: "error",
-    //   });
-    //   setIsLoading(false);
-    //   return;
-    // }
+    if (!token) {
+      setSnackbar({
+        open: true,
+        message: "You must be logged in to submit the route selection.",
+        severity: "error",
+      });
+      setIsLoading(false);
+      return;
+    }
 
     setSnackbar({ open: true, message: "Submitting route selection..." });
 
@@ -1367,10 +1339,10 @@ const isSubmitDisabled = useMemo(() => {
 
   const saveRoute = async (routeID) => {
     const token = localStorage.getItem("token");
-    // if (!token) {
-    //   alert("You must be logged in to save a route.");
-    //   return;
-    // }
+    if (!token) {
+      alert("You must be logged in to save a route.");
+      return;
+    }
 
     try {
       const response = await axios.post(
@@ -1434,7 +1406,7 @@ const isSubmitDisabled = useMemo(() => {
   }, [selectedTab]);
 
 
-  //  // Add this useEffect to handle when a route is loaded
+   // Add this useEffect to handle when a route is loaded
   //  useEffect(() => {
   //   if (loadedRouteData) {
   //     console.log("Loaded Route Data in ManagerSuggestRoutes:", loadedRouteData);
@@ -1489,7 +1461,7 @@ const isSubmitDisabled = useMemo(() => {
   //     // setSelectedStops(formattedStops);
 
   //     // Set other fields
-  //     setStartDate(new Date(loadedRouteData.start_date));
+  //     // setStartDate(new Date(loadedRouteData.start_date));
   //     setPreloadedDemand(loadedRouteData.preloaded_demand || 0);
   //     setSelectedVehicle(loadedRouteData.vehicle_id ? { 
   //       value: loadedRouteData.vehicle_id,
@@ -1501,136 +1473,41 @@ const isSubmitDisabled = useMemo(() => {
   //   }
   // }, [loadedRouteData]);
 
-  // useEffect(() => {
-  //   if (loadedRouteData) {
-  //     console.log("Loaded Route Data in ManagerSuggestRoutes:", loadedRouteData);
+  const handleLoadRoute = useCallback((route) => {
+    // Set basic route information
+    setSelectedOrigin(route.origin);
+    setSelectedDestination(route.destination);
+    setPreloadedDemand(route.preloaded_demand);
+    setStartDate(new Date(route.start_date));
+    setEndDate(new Date(route.end_date));
   
-  //     // Set origin
-  //     setSelectedOrigin({
-  //       name: loadedRouteData.origin,
-  //       coordinates: loadedRouteData.origin_coordinates || []
-  //     });
-  
-  //     // Set destination
-  //     setSelectedDestination({
-  //       name: loadedRouteData.destination,
-  //       coordinates: loadedRouteData.destination_coordinates || []
-  //     });
-  
-  //     // Set stops
-  //     const formattedStops = loadedRouteData.stop_demands?.map(stop => ({
-  //       label: stop.name,
-  //       coordinates: stop.coordinates || [],
-  //       drop_demand: stop.drop_demand || 0,
-  //       pickup_demand: stop.pickup_demand || 0,
-  //       priority: stop.priority || 3
-  //     })) || [];
-  //     setSelectedStops(formattedStops);
-  
-  //     // Set other fields
-  //     setStartDate(new Date(loadedRouteData.start_date));
-  //     setPreloadedDemand(loadedRouteData.preloaded_demand || 0);
-  
-  //     // Set vehicle (if available)
-  //     if (loadedRouteData.vehicle_id) {
-  //       const vehicleLabel = `${loadedRouteData.vehicle_type} → ${loadedRouteData.fuel_type} → ${loadedRouteData.vehicle_capacity}`;
-  //       setSelectedVehicle({
-  //         value: loadedRouteData.vehicle_id,
-  //         label: vehicleLabel
-  //       });
-  //       setLabel(vehicleLabel.split(" → ").map(item => item.trim()));
-  //     }
-  
-  //     // Clear the loaded route after applying
-  //     setLoadedRouteData(null);
-  //   }
-  // }, [loadedRouteData]);
-  // Add this geocoding function
-const geocodeLocation = async (locationName) => {
-  try {
-    const response = await axios.get(
-      `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(locationName)}.json`,
-      {
-        params: {
-          access_token: config.MAPBOX_ACCESS_TOKEN,
-          limit: 1,
-          types: 'place,address'
-        }
-      }
-    );
-    
-    if (response.data.features.length > 0) {
-      return {
-        name: response.data.features[0].place_name,
-        coordinates: response.data.features[0].geometry.coordinates // [lng, lat]
-      };
-    }
-    return null;
-  } catch (error) {
-    console.error("Geocoding failed:", error);
-    return null;
-  }
-};
-
-// Modified useEffect for loading routes
-useEffect(() => {
-  const loadRoute = async () => {
-    if (!loadedRouteData) return;
-
-    // Geocode origin if coordinates missing
-    let origin = {
-      name: loadedRouteData.origin,
-      coordinates: loadedRouteData.origin_coordinates || []
-    };
-    
-    if (origin.coordinates.length !== 2) {
-      const geocoded = await geocodeLocation(origin.name);
-      if (geocoded) origin = geocoded;
-    }
-
-    // Geocode destination if coordinates missing
-    let destination = {
-      name: loadedRouteData.destination,
-      coordinates: loadedRouteData.destination_coordinates || []
-    };
-    
-    if (destination.coordinates.length !== 2) {
-      const geocoded = await geocodeLocation(destination.name);
-      if (geocoded) destination = geocoded;
-    }
-
-    // Update states
-    setSelectedOrigin(origin);
-    setSelectedDestination(destination);
-
     // Process stops
-    const formattedStops = loadedRouteData.stop_demands?.map(stop => ({
-            label: stop.name,
-            coordinates: stop.coordinates || [],
-            drop_demand: stop.drop_demand || 0,
-            pickup_demand: stop.pickup_demand || 0,
-            priority: stop.priority || 3
-          })) || [];
-          setSelectedStops(formattedStops);
-      
-          // Set other fields
-          setStartDate(new Date(loadedRouteData.start_date));
-          setPreloadedDemand(loadedRouteData.preloaded_demand || 0);
-      
-
+    const formattedStops = route.stop_demands.map(stop => ({
+      label: stop.name,
+      coordinates: stop.coordinates,
+      drop_demand: stop.drop_demand,
+      pickup_demand: stop.pickup_demand,
+      priority: stop.priority
+    }));
+    setSelectedStops(formattedStops);
   
-    // Trigger duration calculation after coordinates are set
-    setTimeout(() => {
-      if (origin.coordinates.length === 2 && destination.coordinates.length === 2) {
-        getDuration();
+    // Set vehicle after vehicles load
+    setSelectedConsignment(route.vehicle_id);
+  }, []);
+  useEffect(() => {
+    if (vehicles.length > 0 && selectedConsignment) {
+      const vehicle = vehicles.find(v => v.VehicleID === selectedConsignment);
+      if (vehicle) {
+        setSelectedVehicle({
+          value: vehicle.VehicleID,
+          label: `${vehicle.VehicleType} → ${vehicle.FuelType} → ${vehicle.Quantity}`,
+          vehicleData: vehicle
+        });
+        setLabel([vehicle.VehicleType, vehicle.FuelType, vehicle.Quantity]);
       }
-    }, 500);
-    setSelectedTab("map"); 
-    setLoadedRouteData(null);
-  };
-
-  loadRoute();
-}, [loadedRouteData]);
+    }
+  }, [vehicles, selectedConsignment]);
+  
   return (
     <div>
       <Box
@@ -2102,9 +1979,8 @@ useEffect(() => {
   <Select   key={vehicleOptions.length}
     options={uniqueVehicleOptions.map(vehicle => ({
       value: vehicle.value,
-      label: `${vehicle.label}`
-      // label: `${vehicle.label} → ID: ${vehicle.value.slice(-5)}`, 
-      // vehicle_id: vehicle.vehicle_id, // Add vehicle_id for further use
+      label: `${vehicle.label} → ID: ${vehicle.value.slice(-5)}`, // Include vehicle_id in label
+      vehicle_id: vehicle.vehicle_id, // Add vehicle_id for further use
     }))}
     value={selectedVehicle}
     onChange={handleVehicleSelection}
@@ -2338,7 +2214,13 @@ useEffect(() => {
 
 {selectedTab === "history" && (
     <Box sx={{ flex: 1, overflowY: "auto", p: 2 }}>
-      <RouteHistory onLoadRoute={(route) => setLoadedRouteData(route)} />
+      {/* <RouteHistory onLoadRoute={(route) => setLoadedRouteData(route)} /> */}
+      <RouteHistory 
+  onLoadRoute={(route) => {
+    handleLoadRoute(route);
+    setSelectedTab("map");
+  }} 
+/>
     </Box>
   )}
           </Box>

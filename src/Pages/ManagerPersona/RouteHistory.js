@@ -99,13 +99,14 @@ const RouteHistory = ({ onLoadRoute }) => {
                 </Box>
                 
                 <Typography variant="subtitle2" sx={{ ml: 2, mb: 1 }}>
-                  {route.origin} → {route.destination}
+                  {/* {route.origin} → {route.destination} */}
+                    {route.origin?.name} → {route.destination?.name}
                 </Typography>
 
                 <Box sx={{ ml: 2, width: '95%' }}>
                   {route.stop_demands?.map((stop, index) => (
                     <Stack 
-                      key={index}
+                    key={`${stop.name}-${index}`}
                       direction="row" 
                       spacing={1}
                       alignItems="center"

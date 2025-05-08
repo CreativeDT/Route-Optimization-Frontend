@@ -100,10 +100,10 @@ const [sortField, setSortField] = useState("name"); // Default sorting field
   // Fetch users from API
   const fetchUsers = () => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      console.error("No token found, authorization failed");
-      return;
-    }
+    // if (!token) {
+    //   console.error("No token found, authorization failed");
+    //   return;
+    // }
     console.log("Token stored in localStorage:", localStorage.getItem("token"));
  
     console.log("Request headers:", { Authorization: `Bearer ${token}` });
@@ -197,10 +197,10 @@ const [sortField, setSortField] = useState("name"); // Default sorting field
     };
     
     const token = localStorage.getItem("token");
-    if (!token) {
-      console.error("No token found, authorization failed");
-      return;
-    }
+    // if (!token) {
+    //   console.error("No token found, authorization failed");
+    //   return;
+    // }
  
     const headers = { Authorization: `Bearer ${token}` };
  
@@ -260,7 +260,7 @@ const [sortField, setSortField] = useState("name"); // Default sorting field
   };
   const handleDeleteUser = (id) => {
     const token = localStorage.getItem("token");
-    if (!token) return;
+    // if (!token) return;
  
     axios
       .delete(`${config.API_BASE_URL}/users/removeUser?user_id=${id}`, {
