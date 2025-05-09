@@ -530,7 +530,12 @@ const handleStopChange = (index, key, value) => {
   console.log(`Updated stop ${index} - ${key}:`, value);
   setEditedRoute({ ...editedRoute, stop_demands: updatedStops });
 };
-
+const handleEditChange = (name, value) => {
+  setEditedRoute(prevRoute => ({
+    ...prevRoute,
+    [name]: value,
+  }));
+};
 const handleUpdateRoute = async () => {
   const token = localStorage.getItem("token");
   // console.log("editedRoute1:", editedRoute);
@@ -1186,7 +1191,7 @@ onChange={(event, newValue) => {
     </IconButton>
   </DialogTitle>
 
-  <DialogContent  id="dialog-content3" sx={{ py: 1, px: 2 }}>
+  {/* <DialogContent  id="dialog-content3" sx={{ py: 1, px: 2 }}>
     {editedRoute?.stop_demands?.length > 0 ? (
       <Box>
         <Typography variant="subtitle2" fontWeight={500} mb={1} color="text.secondary">
@@ -1324,8 +1329,228 @@ onChange={(event, newValue) => {
         </Button>
       </Box>
     )}
-  </DialogContent>
+  </DialogContent> */}
+<DialogContent sx={{ py: 1, px: 2 }}>
+    {editedRoute && (
+      <Box display="flex" flexDirection="column" gap={2}>
+        {/* Preloaded Demand */}
+        <TextField
+          label="Preloaded Demand (tons)"
+          type="number"
+          value={editedRoute.preloaded_demand || ''}
+          onChange={(e) => handleEditChange('preloaded_demand', e.target.value)}
+          variant="outlined"
+          size="small"
+          fullWidth
+        />
 
+        {/* Vehicle Type */}
+        <TextField
+          label="Vehicle Type"
+          value={editedRoute.vehicle_type || ''}
+          onChange={(e) => handleEditChange('vehicle_type', e.target.value)}
+          variant="outlined"
+          size="small"
+          fullWidth
+        />
+
+        {/* Vehicle Capacity */}
+        <TextField
+          label="Vehicle Capacity"
+          type="number"
+          value={editedRoute.vehicle_capacity || ''}
+          onChange={(e) => handleEditChange('vehicle_capacity', e.target.value)}
+          variant="outlined"
+          size="small"
+          fullWidth
+        />
+
+        {/* Vehicle ID */}
+        <TextField
+          label="Vehicle ID"
+          value={editedRoute.vehicle_id || ''}
+          onChange={(e) => handleEditChange('vehicle_id', e.target.value)}
+          variant="outlined"
+          size="small"
+          fullWidth
+        />
+
+        {/* Fuel Type */}
+        <TextField
+          label="Fuel Type"
+          value={editedRoute.fuel_type || ''}
+          onChange={(e) => handleEditChange('fuel_type', e.target.value)}
+          variant="outlined"
+          size="small"
+          fullWidth
+        />
+
+        {/* Start Date */}
+        <TextField
+          label="Start Date"
+          type="date"
+          value={editedRoute.start_date ? editedRoute.start_date.split('T')[0] : ''}
+          onChange={(e) => handleEditChange('start_date', e.target.value)}
+          variant="outlined"
+          size="small"
+          fullWidth
+          InputLabelProps={{ shrink: true }}
+        />
+
+        {/* End Date */}
+        <TextField
+          label="End Date"
+          type="date"
+          value={editedRoute.end_date ? editedRoute.end_date.split('T')[0] : ''}
+          onChange={(e) => handleEditChange('end_date', e.target.value)}
+          variant="outlined"
+          size="small"
+          fullWidth
+          InputLabelProps={{ shrink: true }}
+        />
+
+        {/* Stop Points Configuration (Your existing component) */}
+        {editedRoute.stop_demands?.length > 0 ? (
+          <Box>
+            <Typography variant="subtitle2" fontWeight={500} mb={1} color="text.secondary">
+              <LocationOnIcon color="primary" sx={{ fontSize: '1rem', mr: 0.5 }} />
+              Stop Points Configuration
+            </Typography>
+            <Box sx={{ maxHeight: '400px', overflowY: 'auto', pr: 0.5 }}>
+              {editedRoute.stop_demands.map((stop, index) => (
+                <Paper
+                  key={index}
+                  elevation={0}
+                  sx={{
+                    p: 1,
+                    mb: 1,
+                    borderRadius: 1,
+                    borderLeft: '3px solid',
+                    borderColor: 'primary.main',
+                    bgcolor: 'background.paper'
+                  }}
+                >
+                  <Box display="flex" gap={1} alignItems="center" flexWrap="wrap">
+                    <TextField
+                      label="Stop Name"
+                      value={stop.name}
+                      onChange={(e) => handleStopChange(index, "name", e.target.value)}
+                      variant="outlined"
+                      size="small"
+                      fullWidth
+                      sx={{ minWidth: 150 }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PlaceIcon sx={{ fontSize: '1rem' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                    <TextField
+                      label="Drop Demand"
+                      type="number"
+                      value={stop.drop_demand}
+                      onChange={(e) => handleStopChange(index, "drop_demand", e.target.value)}
+                      variant="outlined"
+                      size="small"
+                      sx={{ width: 120 }}
+                      InputProps={{
+                        endAdornment: <InputAdornment position="end">tones</InputAdornment>,
+                      }}
+                    />
+                    <TextField
+                      label="Pickup Demand"
+                      type="number"
+                      value={stop.pickup_demand}
+                      onChange={(e) => handleStopChange(index, "pickup_demand", e.target.value)}
+                      variant="outlined"
+                      size="small"
+                      sx={{ width: 120 }}
+                      InputProps={{
+                        endAdornment: <InputAdornment position="end">tones</InputAdornment>,
+                      }}
+                    />
+                    <TextField
+                      label="Priority"
+                      type="number"
+                      value={stop.priority}
+                      onChange={(e) => handleStopChange(index, "priority", e.target.value)}
+                      variant="outlined"
+                      size="small"
+                      sx={{ width: 90 }}
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <PriorityHighIcon sx={{ fontSize: '1rem' }} />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                    <IconButton
+                      id="deletestop"
+                      color="error"
+                      onClick={() => handleDeleteClick(index, stop)}
+                      size="small"
+                      sx={{
+                        ml: 'auto',
+                        '&:hover': { bgcolor: 'error.light' }
+                      }}
+                    >
+                      <DeleteOutlineIcon sx={{ fontSize: '1.1rem' }} />
+                    </IconButton>
+                  </Box>
+                </Paper>
+              ))}
+            </Box>
+            <Box mt={1} display="flex" justifyContent="flex-end" id="handlestop">
+              <Button
+                id="addstop"
+                variant="outlined"
+                startIcon={<AddLocationIcon sx={{ fontSize: '1rem' }} />}
+                onClick={handleAddStop}
+                size="small"
+                sx={{ textTransform: 'none', borderRadius: 0.5, fontSize: '0.8125rem' }}
+              >
+                Add Stop
+              </Button>
+            </Box>
+          </Box>
+        ) : (
+          <Box
+            textAlign="center"
+            py={2}
+            sx={{
+              border: '1px dashed',
+              borderColor: 'divider',
+              borderRadius: 1
+            }}
+          >
+            <Box sx={{ fontSize: '2rem', color: 'text.disabled', mb: 0.5 }}>
+              <LocationOffIcon fontSize="inherit" />
+            </Box>
+            <Typography variant="body2" color="text.secondary" mb={1}>
+              No stop points configured
+            </Typography>
+            <Button
+              variant="contained"
+              startIcon={<AddLocationIcon sx={{ fontSize: '1rem' }} />}
+              onClick={handleAddStop}
+              size="small"
+              sx={{
+                textTransform: 'none',
+                borderRadius: 0.5,
+                fontSize: '0.8125rem'
+              }}
+            >
+              Add First Stop
+            </Button>
+          </Box>
+        )}
+      </Box>
+    )}
+  </DialogContent>
+  
   <DialogActions  id="dialogactions4" sx={{ px: 2, py: 1, borderTop: '1px solid', borderColor: 'divider' }}>
     <Button id="open4"
       onClick={() => setEditDialogOpen(false)}

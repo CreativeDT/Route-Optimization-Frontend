@@ -79,7 +79,7 @@ const AdminAdministration = () => {
   });
   const [deleteDialog, setDeleteDialog] = useState({
     open: false,
-    userId: null,
+    user: null,
     loading: false
   });
  // Reset filter to "All" when switching to Vehicles tab
@@ -129,6 +129,7 @@ const AdminAdministration = () => {
           email: user.email,
           role: user.role.toLowerCase(),
           status: user.status,
+          fleet_status:user.fleet_status === "active" ? "active" : "inactive"
         }));
       } else if (tabIndex === 1 && Array.isArray(response.data.vehicles)) {
         responseData = response.data.vehicles.map(vehicle => ({
@@ -225,23 +226,41 @@ const AdminAdministration = () => {
   };
 
   // Delete user handlers
-  const handleDeleteUser = (id) => {
+  const handleDeleteUser = (user) => {
     setDeleteDialog({
       open: true,
-      userId: id,
+      // userId: id,
+      user:user,
       loading: false
     });
   };
 
   const confirmDeleteUser = () => {
-    const { userId } = deleteDialog;
+    // const { userId } = deleteDialog;
+    const {user} = deleteDialog;
     const token = localStorage.getItem("token");
     // if (!token || !userId) return;
 
+    //  if (!user || !user.user_id) {
+    //   console.error("No user selected");
+    //   return;
+    // }
+    if (!user || !user.id) return;
+
+    //  Check fleet_status before deletion
+  if (user.fleet_status === "active") {
+    setSnackbar({
+      open: true,
+      message: "Cannot delete a user with active fleet status.",
+      severity: "warning",
+    });
+    setDeleteDialog({ open: false, user: null, loading: false });
+    return;
+  }
     setDeleteDialog(prev => ({ ...prev, loading: true }));
 
     axios
-      .delete(`${config.API_BASE_URL}/users/removeUser?user_id=${userId}`, {
+      .delete(`${config.API_BASE_URL}/users/removeUser?user_id=${user.id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(() => {
@@ -991,15 +1010,39 @@ useEffect(() => {
                             </Box>
                           </TableCell>
                           <TableCell>{user.email}</TableCell>
-                          <TableCell id={`user-status-${index}`}>{user.status}</TableCell>
-                          <TableCell>
+                          {/* <TableCell id={`user-status-${index}`}>{user.status}</TableCell> */}
+                         
+                          <TableCell >{user.fleet_status}
+
+                          </TableCell>
+                         
+
+                          {/* <TableCell>
                             <IconButton
-                              onClick={() => handleDeleteUser(user.id)}
+                              onClick={() => handleDeleteUser(user)}
                               color="error"
                             >
                               <Delete />
                             </IconButton>
-                          </TableCell>
+                          </TableCell> */}
+                          <TableCell>
+  {user.fleet_status === "inactive" ? (
+    <IconButton
+      onClick={() => handleDeleteUser(user)}
+      color="error"
+    >
+      <Delete />
+    </IconButton>
+  ) : (
+    <Tooltip title="Active users cannot be deleted">
+      <span>
+        <IconButton disabled>
+          <Delete />
+        </IconButton>
+      </span>
+    </Tooltip>
+  )}
+</TableCell>
                         </TableRow>
                       ))}
                   </TableBody>
