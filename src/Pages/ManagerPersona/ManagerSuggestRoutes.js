@@ -525,20 +525,37 @@ const ManagerSuggestRoutes = () => {
 
   const validateStops = () => {
     const invalidStops = selectedStops.filter(
-      (stop) => (!stop.drop_demand || stop.drop_demand === 0) &&
-                (!stop.pickup_demand || stop.pickup_demand === 0)
+      // (stop) => (!stop.drop_demand || stop.drop_demand === 0) &&
+      //           (!stop.pickup_demand || stop.pickup_demand === 0)
+      (stop) =>
+        (stop.drop_demand && Number(stop.drop_demand) > 40) ||
+        (stop.pickup_demand && Number(stop.pickup_demand) > 40)
     );
+    if (invalidStops.length > 0) {
+      setStopsError("Stop demand (Drop or Pickup) cannot exceed 40 tons.");
+      return false; // Validation failed
+    }
+  
   
     if (invalidStops.length > 0) {
       setStopsError("Each selected stop must have at least one demand (Drop or Pickup).");
       return false; // Validation failed
     }
-  
+    const noDemandStops = selectedStops.filter(
+      (stop) =>
+        (!stop.drop_demand || Number(stop.drop_demand) === 0) &&
+        (!stop.pickup_demand || Number(stop.pickup_demand) === 0)
+    );
+
+    if (noDemandStops.length > 0) {
+      setStopsError("Each selected stop must have at least one demand (Drop or Pickup).");
+      return false; // Validation failed due to no demand
+    }
     setStopsError(""); // Clear error if validation passes
     return true; // Validation passed
   };
   
-
+ 
   // Function to get expected end date
   const getExpectedEndDate = async (startDate, duration) => {
     if (!startDate || !duration) return;

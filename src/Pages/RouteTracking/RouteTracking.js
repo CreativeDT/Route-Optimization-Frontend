@@ -830,7 +830,7 @@ const RouteTracking = () => {
                               sx={{ fontSize: "10px" }}
                             >
                               Predicted CO₂ Emission:{" "}
-                              {consignment.carbon_emission || "N/A"} Kg
+                              {consignment.carbon_emission || "N/A"} lbs
                             </Typography>
                           </React.Fragment>
                         }

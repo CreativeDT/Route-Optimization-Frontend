@@ -1371,7 +1371,7 @@ useEffect(() => {
             </FormControl>
 
             <TextField
-              fullWidth size="small" label="Exhaust CO₂ Emissions (g/mile)" variant="outlined" sx={{ mb: 2.5 }}
+              fullWidth size="small" label="Exhaust CO₂ Emissions (lbs)" variant="outlined" sx={{ mb: 2.5 }}
               type="number" value={newVehicle.ExhaustCO2}
               onChange={(e) => setNewVehicle(prev => ({ ...prev, ExhaustCO2: e.target.value }))}
               InputProps={{
