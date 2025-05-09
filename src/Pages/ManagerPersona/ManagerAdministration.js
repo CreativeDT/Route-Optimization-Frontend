@@ -456,34 +456,37 @@ const handleDriverSelectChange = async (event, newValue, routeId,item) => {
     const handleSearchChange = (event) => {
       setSearchQuery(event.target.value);
     };
-// const filteredData = data.filter((item) => {
-//   const searchValue = searchQuery.toLowerCase();
-//   return Object.values(item).some(
-//     (value) => value && value.toString().toLowerCase().includes(searchValue)
-//   );
-// });
-
 const filteredData = data.filter((item) => {
-  const searchValue = searchQuery.trim().toLowerCase();
-
-  const driverAvailability =
-    item.route_status === "Not Assigned" && item["Vehicle Status"] === "Not Assigned"
-      ? "available"
-      : "unavailable";
-
-  const assignedDriver =
-    item["Vehicle Status"] === "In Transit" ? "Assigned" : "Not Assigned";
-
-  const combinedValues = [
-    ...Object.values(item).map((val) =>
-      val != null ? val.toString().toLowerCase() : ""
-    ),
-    driverAvailability.toLowerCase(),
-    assignedDriver.toLowerCase(),
-  ];
-
-  return combinedValues.some((val) => val.startsWith(searchValue));
+  const searchValue = searchQuery.toLowerCase();
+  return Object.values(item).some(
+    (value) => value && value.toString().toLowerCase().includes(searchValue)
+  );
 });
+// Reset pagination when search query changes
+useEffect(() => {
+  setPage(0);
+}, [searchQuery]);  // Add this effect
+// const filteredData = data.filter((item) => {
+//   const searchValue = searchQuery.trim().toLowerCase();
+
+//   const driverAvailability =
+//     item.route_status === "Not Assigned" && item["Vehicle Status"] === "Not Assigned"
+//       ? "available"
+//       : "unavailable";
+
+//   const assignedDriver =
+//     item["Vehicle Status"] === "In Transit" ? "Assigned" : "Not Assigned";
+
+//   const combinedValues = [
+//     ...Object.values(item).map((val) =>
+//       val != null ? val.toString().toLowerCase() : ""
+//     ),
+//     driverAvailability.toLowerCase(),
+//     assignedDriver.toLowerCase(),
+//   ];
+
+//   return combinedValues.some((val) => val.startsWith(searchValue));
+// });
 //Edit/Update Planned Route
 const handleEditRoute = async (item) => {
   console.log("Edit button clicked for item:", item);
@@ -1055,7 +1058,7 @@ onChange={(event, newValue) => {
       <TablePagination id="pagination"
         rowsPerPageOptions={[5, 10, 25]}
         component="div"
-        count={data.length}
+        count={filteredData.length}
         rowsPerPage={rowsPerPage}
         page={page}
         onPageChange={handleChangePage}
