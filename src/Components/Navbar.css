@@ -391,8 +391,35 @@
   border-radius: 4px;
 }
 
+/* .status {
+  display: flex;
+  align-items: center;
+  margin-right: 20px;
+} */
+/* Navbar.css */
 .status {
   display: flex;
   align-items: center;
   margin-right: 20px;
+  padding: 2px 12px;
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+}
+
+.driver-status-toggle .MuiTypography-body2 {
+  font-weight: 500;
+  min-width: 80px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .status {
+    margin-right: 10px;
+    padding: 6px 8px;
+  }
+  
+  .driver-status-toggle .MuiTypography-body2 {
+    font-size: 0.8rem;
+    min-width: 70px;
+  }
 }

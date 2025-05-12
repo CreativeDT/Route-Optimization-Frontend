@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState ,useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { FaUser, FaBell, FaCog, FaHome, FaTruckMoving, FaUserShield,FaUserTie,FaUserCog } from 'react-icons/fa';
@@ -6,12 +6,13 @@ import {
     Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,Alert ,DialogContentText,
     Typography, CircularProgress, Box, Tabs, Tab, Tooltip, Button, Dialog,TablePagination,Snackbar,
     DialogTitle, DialogContent, DialogActions, InputLabel, Select, MenuItem,TextField, Autocomplete, IconButton,
-    InputAdornment
+    InputAdornment,Grid, styled
 } from "@mui/material";
 import { FormControl } from "@mui/material";
 import { faMapMarkerAlt, faFlagCheckered } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-
+import TripOriginIcon from '@mui/icons-material/TripOrigin';
+import WhereToVoteIcon from '@mui/icons-material/WhereToVote';
 import { NavLink } from "react-router-dom";
 import NavBar from "../../Components/NavBar";
 import SearchIcon from "@mui/icons-material/Search";
@@ -27,7 +28,40 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import AddLocationIcon from '@mui/icons-material/AddLocation';
 import LocationOffIcon from '@mui/icons-material/LocationOff';
 import SaveIcon from '@mui/icons-material/Save';
-const Dashboard = () => {
+import { useManagerEditRoutes } from "./ManagerEditRoutes";
+// Add this import at the top of ManagerAdministration.js
+import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
+import DatePicker from "react-datepicker";
+const Dashboard = ({ initialRoute }) => {
+  const {
+    routeData,
+  duration,
+  startDate,
+  expectedEndDate,
+  vehicles,setVehicles,
+  preloadedDemand,
+  stopsError,
+  inputRefs,
+  preloadedDemandRef,
+  changesMade,  setChangesMade,
+  confirmEditOpen,setConfirmEditOpen,
+  vehicleOptions,setVehicleOptions,
+  selectedVehicle,
+  durationChanged,
+  vehicleChanged,
+  stopsChanged,operations,
+  operations: {
+    fetchDuration,
+    validateStops,
+    calculateEndDate,
+    getAvailableVehicles,
+    handleStartDateChange,
+    handleDemandChange,
+    filterVehicles,
+    setSelectedVehicle,
+    
+  }
+  } = useManagerEditRoutes(initialRoute);
     const [page, setPage] = useState(0);
     const [rowsPerPage, setRowsPerPage] = useState(10);
   const [tabIndex, setTabIndex] = useState(0);
@@ -35,7 +69,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [open, setOpen] = useState(false);
-
+ 
 const [availableDrivers, setAvailableDrivers] = useState([]);
  const [selectedDriver, setSelectedDriver] = useState("");
 const [selectedDrivers, setSelectedDrivers] = useState(() => {
@@ -47,7 +81,7 @@ const [isManager, setIsManager] = useState(false);
 const [consignments, setConsignments] = useState([]);
 const [searchQuery, setSearchQuery] = useState("");
 const [isReassigning, setIsReassigning] = useState(false); // Track if it's a reassignment
-
+const [vehicleLoading, setVehicleLoading] = useState(false);
 const [confirmReassign, setConfirmReassign] = useState(false);
 const [snackbar, setSnackbar] = useState({ open: false, message: "", severity: "success" });
 const [openDialog, setOpenDialog] = React.useState(false);
@@ -61,6 +95,30 @@ const [confirmOpen, setConfirmOpen] = useState(false);
 const [deleteIndex, setDeleteIndex] = useState(null);
 
 const [stopToDelete, setStopToDelete] = useState({ index: null, name: '' });
+const StyledTextField = styled(TextField)(({ theme }) => ({
+  "& .MuiOutlinedInput-root": {
+    "& fieldset": {
+      borderColor: "#318CE7",
+      borderWidth: "1px",
+    },
+    "&:hover fieldset": {
+      borderColor: "#318CE7",
+      borderWidth: "1px",
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: "#318CE7",
+      borderWidth: "1px",
+    },
+  },
+  "& > .MuiInputLabel-root": {
+    // > selects direct child
+    color: "black", // Or your preferred black color
+  },
+  "& .MuiInputLabel-shrink": {
+    // style for shrink label
+    color: "black",
+  },
+}));
 
 const token = localStorage.getItem("token");
 const navigate = useNavigate();
@@ -504,10 +562,13 @@ const handleEditRoute = async (item) => {
     // Extract the full route details from the API response
     const fullRouteData = response.data.route[0]; // if route is an array
     
-    // Set edited route with full data, ensuring stop_demands is defined.
+    // Set edited route with full data
     setEditedRoute({
       ...fullRouteData,
       stop_demands: fullRouteData.stop_demands || [],
+      origin:fullRouteData.origin || [],
+      start_date: new Date(fullRouteData.start_date),
+      preload_demand: fullRouteData.preloaded_demand || 0
     });
     setEditDialogOpen(true);
   } catch (error) {
@@ -523,20 +584,38 @@ useEffect(() => {
 
 
 
+// const handleStopChange = (index, key, value) => {
+//   const updatedStops = [...editedRoute.stop_demands];
+//   console.log("editedRoute:", editedRoute);
+//   updatedStops[index][key] = value;
+//   console.log(`Updated stop ${index} - ${key}:`, value);
+//   setEditedRoute(prev => ({
+//     ...prev,
+//     stop_demands: updatedStops
+//   }));
+// };
+
 const handleStopChange = (index, key, value) => {
-  const updatedStops = [...editedRoute.stop_demands];
-  console.log("editedRoute:", editedRoute);
-  updatedStops[index][key] = value;
-  console.log(`Updated stop ${index} - ${key}:`, value);
-  setEditedRoute({ ...editedRoute, stop_demands: updatedStops });
+  setEditedRoute(prev => {
+    const updatedStops = [...prev.stop_demands];
+    updatedStops[index][key] = value;
+    
+    // Calculate duration immediately with updated stops
+    operations.fetchDuration(
+      prev.origin,
+      prev.destination,
+      updatedStops
+    );
+
+    return { ...prev, stop_demands: updatedStops };
+  });
 };
-const handleEditChange = (name, value) => {
-  setEditedRoute(prevRoute => ({
-    ...prevRoute,
-    [name]: value,
-  }));
-};
+
 const handleUpdateRoute = async () => {
+  if (changesMade) {
+    setConfirmEditOpen(true);
+    return;
+  }
   const token = localStorage.getItem("token");
   // console.log("editedRoute1:", editedRoute);
   if (!editedRoute?.routeID || !Array.isArray(editedRoute?.stop_demands)) {
@@ -549,6 +628,11 @@ const handleUpdateRoute = async () => {
   try {
     const payload = {
       routeID: editedRoute.routeID,
+      vehicle_type: editedRoute.vehicle_type,
+    vehicle_capacity: editedRoute.vehicle_capacity,
+      preloaded_demand: editedRoute.preload_demand || 0,
+      start_date: editedRoute.start_date, 
+      duration: editedRoute.duration,
       stop_demands: editedRoute.stop_demands.map((stop) => ({
         name: stop.name,
         coordinates: stop.coordinates,
@@ -571,40 +655,57 @@ const handleUpdateRoute = async () => {
     console.log("updatePlannedRoute response:", response);
 
     if (response.data.detail === "Route details updated successfully") {
-      alert("Route updated successfully!");
+      // alert("Route updated successfully!");
+      setSnackbar({
+        open: true,
+        message: "Route details updated successfully!",
+        severity: "success"
+      });
       setEditDialogOpen(false);
+      setChangesMade(false);
       fetchData(); // Optionally refresh the route list
     } else {
       alert("Unexpected response: " + response.data.detail);
     }
   } catch (err) {
     console.error("Error updating route:", err);
-    alert("Failed to update the route.");
+    setSnackbar({
+      open: true,
+      message: "Failed to update route details",
+      severity: "error"
+    });
   }
 };
 
 const handleRemoveStop = (index) => {
   // Your logic to remove a stop at the given index
-  const updatedStops = [...editedRoute.stop_demands];
-  updatedStops.splice(index, 1);
-  setEditedRoute({
-    ...editedRoute,
+  const updatedStops = editedRoute.stop_demands.filter((_, i) => i !== index);
+  
+  setEditedRoute(prev => ({
+    ...prev,
     stop_demands: updatedStops
-  });
+  }));
+
+  // Trigger duration recalculation
+  operations.fetchDuration(
+    editedRoute.origin,
+    editedRoute.destination,
+    updatedStops
+  );
 };
 
 const handleAddStop = () => {
-  // Your logic to add a new stop
-  const newStop = {
-    name: '',
-    drop_demand: 0,
-    pickup_demand: 0,
-    priority: 1
-  };
-  
-  setEditedRoute({
-    ...editedRoute,
-    stop_demands: [...(editedRoute.stop_demands || []), newStop]
+  setEditedRoute(prev => {
+    const newStop = { name: '', drop_demand: 0, pickup_demand: 0, priority: 1 };
+    const updatedStops = [...prev.stop_demands, newStop];
+    
+    operations.fetchDuration(
+      prev.origin,
+      prev.destination,
+      updatedStops
+    );
+
+    return { ...prev, stop_demands: updatedStops };
   });
 };
 
@@ -618,6 +719,126 @@ const handleConfirmDelete = () => {
     handleRemoveStop(stopToDelete.index);
   }
   setConfirmOpen(false);
+};
+useEffect(() => {
+  if (editedRoute?.start_date && editedRoute?.duration) {
+    const calculatedEndDate = new Date(
+      new Date(editedRoute.start_date) + 
+      editedRoute.duration * 60 * 60 * 1000 // Convert hours to milliseconds
+    );
+    
+    setEditedRoute(prev => ({
+      ...prev,
+      end_date : calculatedEndDate.toISOString()
+    }));
+  }
+}, [editedRoute?.start_date, editedRoute?.duration]);
+useEffect(() => {
+  const fetchVehicles = async () => {
+    if (editDialogOpen && editedRoute?.start_date ) {
+      console.log("Initiating vehicle fetch...");
+      try {
+    
+         const token = localStorage.getItem("token");
+         const formattedDate = new Date(editedRoute.start_date)
+         .toISOString()
+         .split("T")[0];
+        const response = await axios.post(
+          `${config.API_BASE_URL}/getAvailableVehicles`,
+          {
+            start_date: formattedDate,
+            preloaded_demand: editedRoute.preload_demand
+          },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        
+        const uniqueVehicles = response.data.vehicles?.reduce((acc, vehicle) => {
+          if (!acc.some(v => v.LicenseNo === vehicle.LicenseNo)) {
+            acc.push(vehicle);
+          }
+          return acc;
+        }, []) || [];
+
+        setVehicles(uniqueVehicles);
+      } catch (error) {
+        console.error("Vehicle fetch failed:", error);
+        setVehicles([]);
+      }
+    }
+  };
+
+  fetchVehicles();
+}, [editDialogOpen, editedRoute?.start_date, editedRoute?.preload_demand]);
+
+
+ 
+useEffect(() => {
+  setVehicleOptions(filterAvailableVehicles());
+}, [vehicles, editedRoute?.preload_demand, editedRoute?.stop_demands]);
+useEffect(() => {
+  if (editDialogOpen && editedRoute) {
+    getAvailableVehicles();
+    
+    setVehicles([]); 
+  }
+}, [editDialogOpen, editedRoute]);
+// const filterAvailableVehicles = () => {
+//   if ( !vehicles?.length) return [];
+
+//   // Create a map using LicenseNo as unique key
+//   const uniqueMap = new Map();
+  
+//   vehicles.forEach(vehicle => {
+//     if (!uniqueMap.has(vehicle.LicenseNo)) {
+//       uniqueMap.set(vehicle.LicenseNo, vehicle);
+//     }
+//   });
+
+//   // Convert back to array
+//   const uniqueVehicles = Array.from(uniqueMap.values());
+
+//   // Rest of your filtering logic
+//   const totalDemand = editedRoute.preload_demand + 
+//     editedRoute.stop_demands.reduce((sum, stop) => sum + (stop.pickup_demand || 0), 0);
+
+//   return uniqueVehicles
+//     .filter(vehicle => vehicle.VehicleType === (totalDemand <= 15 ? 
+//       "Light-duty trucks" : "Heavy-duty trucks"))
+//     .map(vehicle => ({
+//       id: vehicle.LicenseNo, // Use license number as ID
+//       label: `${vehicle.VehicleType} (${vehicle.Quantity} tons) - ${vehicle.LicenseNo}`,
+//       capacity: vehicle.Quantity,
+//       type: vehicle.VehicleType
+//     }));
+// };
+const filterAvailableVehicles = () => {
+  if (!vehicles?.length) return [];
+
+  // Double-check deduplication using Map
+  const licenseMap = new Map();
+  vehicles.forEach(vehicle => {
+    if (!licenseMap.has(vehicle.LicenseNo)) {
+      licenseMap.set(vehicle.LicenseNo, vehicle);
+    }
+  });
+
+  const uniqueVehicles = Array.from(licenseMap.values());
+  
+  // Calculate total demand
+  const totalDemand = (editedRoute?.preload_demand || 0) + 
+    (editedRoute?.stop_demands?.reduce((sum, stop) => sum + (stop.pickup_demand || 0), 0) || 0);
+
+  return uniqueVehicles
+    .filter(vehicle => 
+      vehicle.VehicleType === (totalDemand <= 15 ? 
+        "Light-duty trucks" : "Heavy-duty trucks")
+    )
+    .map(vehicle => ({
+      id: vehicle.LicenseNo,
+      label: `${vehicle.VehicleType} (${vehicle.Quantity} tons) - ${vehicle.LicenseNo}`,
+      capacity: vehicle.Quantity,
+      type: vehicle.VehicleType
+    }));
 };
   return (
     <>
@@ -859,7 +1080,7 @@ const handleConfirmDelete = () => {
         onClick={() => handleEditRoute(item)}
         disabled={item.status !== "not started"} // Disable for started or completed routes
       >
-        Edit
+       {item.isEdited ? "Edited" : "Edit"}
       </Button>
     </span>
   </Tooltip>
@@ -1145,438 +1366,355 @@ onChange={(event, newValue) => {
     { <Button onClick={handleSubmit} color="primary">Save</Button>}
   </DialogActions>
     </Dialog>
-
-    {/* pop up Edit/Update Planned Route */}
-   <Dialog id="dialog3"
-  open={editDialogOpen}
-  onClose={() => setEditDialogOpen(false)}
-  maxWidth="md"
+    <Dialog 
+  open={editDialogOpen} 
+  onClose={() => setEditDialogOpen(false)} 
+  maxWidth="md" 
   fullWidth
   PaperProps={{
     sx: {
-      borderRadius: 1,
-      boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.1)',
-      maxHeight: '98vh',
+      borderRadius: 2,
+      boxShadow: '0px 4px 20px rgba(0, 0, 0, 0.1)'
     }
   }}
 >
-  <DialogTitle id="dialogtitle3"
-    sx={{
-      bgcolor: '#5e87b0;',
-      color: 'white',
-      fontWeight: 600,
-      py: 1,
-      px: 2,
-      fontSize: '1rem',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between'
-    }}
-  >
-    <Box display="flex" alignItems="center">
-      <DirectionsCarIcon sx={{ mr: 1, fontSize: '1.1rem' }} />
-      Update Route Details
-    </Box>
-    <IconButton
-      edge="end"
-      color="inherit"
-      onClick={() => setEditDialogOpen(false)}
-      aria-label="close"
-      size="small"
-      sx={{
-        '&:hover': { bgcolor: 'primary.dark' }
+  <DialogTitle sx={{ 
+    bgcolor: '#5e87b0', 
+    color: 'white', 
+    py: 1,
+    display: 'flex',
+    alignItems: 'center',
+    fontSize: '1.1rem'
+  }}>
+    <DirectionsCarIcon sx={{ mr: 1, fontSize: '1.3rem' }} />
+    Update Route Details
+    <IconButton 
+      sx={{ 
+        color: 'white',
+        ml: 'auto',
+        p: 0.5,
+        '&:hover': { bgcolor: 'rgba(255,255,255,0.1)' }
       }}
+      onClick={() => setEditDialogOpen(false)}
     >
       <CloseIcon fontSize="small" />
     </IconButton>
   </DialogTitle>
 
-  {/* <DialogContent  id="dialog-content3" sx={{ py: 1, px: 2 }}>
-    {editedRoute?.stop_demands?.length > 0 ? (
-      <Box>
-        <Typography variant="subtitle2" fontWeight={500} mb={1} color="text.secondary">
-          <LocationOnIcon color="primary" sx={{ fontSize: '1rem', mr: 0.5 }} />
-          Stop Points Configuration
+  <DialogContent sx={{ px: 2, py: 1 }}>
+    {/* Origin & Destination */}
+    <Grid container spacing={2} sx={{ mb: 2 }}>
+      <Grid item xs={6}>
+        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+          Origin
         </Typography>
-        
-        <Box sx={{ maxHeight: '400px', overflowY: 'auto', pr: 0.5 }}>
-          {editedRoute.stop_demands.map((stop, index) => (
-            <Paper
-              key={index}
-              elevation={0}
-              sx={{
-                p: 1,
-                mb: 1,
-                borderRadius: 1,
-                borderLeft: '3px solid',
-                borderColor: 'primary.main',
-                bgcolor: 'background.paper'
-              }}
-            >
-              <Box display="flex" gap={1} alignItems="center" flexWrap="wrap">
+        <TextField
+          fullWidth
+          size="small"
+          value={editedRoute?.origin?.name || ''}
+          InputProps={{
+            readOnly: true,
+            startAdornment: <TripOriginIcon fontSize="small" color="primary" sx={{ mr: 0.5 }} />
+          }}
+          sx={{ 
+            '& .MuiOutlinedInput-root': {
+              bgcolor: '#f5f5f5',
+              borderRadius: 1,
+              padding: 0.5
+            }
+          }}
+        />
+      </Grid>
+      <Grid item xs={6}>
+        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+          Destination
+        </Typography>
+        <TextField
+          fullWidth
+          size="small"
+          value={editedRoute?.destination?.name || ''}
+          InputProps={{
+            readOnly: true,
+            startAdornment: <WhereToVoteIcon fontSize="small" color="secondary" sx={{ mr: 0.5 }} />
+          }}
+          sx={{ 
+            '& .MuiOutlinedInput-root': {
+              bgcolor: '#f5f5f5',
+              borderRadius: 1,
+              padding: 0.5
+            }
+          }}
+        />
+      </Grid>
+    </Grid>
+
+    {/* Stops Table */}
+    <TableContainer component={Paper} sx={{ border: '1px solid #e0e0e0', mb: 1 }}>
+      <Table size="small">
+        <TableHead sx={{ bgcolor: '#f8f9fa' }}>
+          <TableRow>
+            <TableCell sx={{ fontWeight: 600, p: 1, width: '5%' }}>S.no</TableCell>
+            <TableCell sx={{ fontWeight: 600, p: 1 }}>Stop Name</TableCell>
+            <TableCell sx={{ fontWeight: 600, p: 1, width: '15%' }}>Drop Demand</TableCell>
+            <TableCell sx={{ fontWeight: 600, p: 1, width: '15%' }}>Pickup Demand</TableCell>
+            <TableCell sx={{ fontWeight: 600, p: 1, width: '10%' }}>Priority</TableCell>
+            <TableCell sx={{ fontWeight: 600, p: 1, width: '8%' }}>Actions</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {editedRoute?.stop_demands?.map((stop, index) => (
+            <TableRow key={index} hover>
+              <TableCell sx={{ p: 1 }}>{index + 1}</TableCell>
+              <TableCell sx={{ p: 1 }}>
                 <TextField
-                  label="Stop Name"
                   value={stop.name}
-                  onChange={(e) => handleStopChange(index, "name", e.target.value)}
-                  variant="outlined"
                   size="small"
                   fullWidth
-                  sx={{ minWidth: 150 }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PlaceIcon sx={{ fontSize: '1rem' }} />
-                      </InputAdornment>
-                    ),
-                  }}
+                  onChange={(e) => handleStopChange(index, 'name', e.target.value)}
+                  sx={{ '& .MuiInputBase-input': { py: 0.5 } }}
                 />
+              </TableCell>
+              <TableCell sx={{ p: 1 }}>
                 <TextField
-                  label="Drop Demand"
-                  type="number"
                   value={stop.drop_demand}
-                  onChange={(e) => handleStopChange(index, "drop_demand", e.target.value)}
-                  variant="outlined"
-                  size="small"
-                  sx={{ width: 120 }}
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">tones</InputAdornment>,
-                  }}
-                />
-                <TextField
-                  label="Pickup Demand"
                   type="number"
+                  size="small"
+                  onChange={(e) => handleStopChange(index, 'drop_demand', e.target.value)}
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">tons</InputAdornment>,
+                  }}
+                  sx={{ '& .MuiInputBase-input': { py: 0.5 } }}
+                />
+              </TableCell>
+              <TableCell sx={{ p: 1 }}>
+                <TextField
                   value={stop.pickup_demand}
-                  onChange={(e) => handleStopChange(index, "pickup_demand", e.target.value)}
-                  variant="outlined"
-                  size="small"
-                  sx={{ width: 120 }}
-                  InputProps={{
-                    endAdornment: <InputAdornment position="end">tones</InputAdornment>,
-                  }}
-                />
-                <TextField
-                  label="Priority"
                   type="number"
-                  value={stop.priority}
-                  onChange={(e) => handleStopChange(index, "priority", e.target.value)}
-                  variant="outlined"
                   size="small"
-                  sx={{ width: 90 }}
+                  onChange={(e) => handleStopChange(index, 'pickup_demand', e.target.value)}
                   InputProps={{
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <PriorityHighIcon sx={{ fontSize: '1rem' }} />
-                      </InputAdornment>
-                    ),
+                    endAdornment: <InputAdornment position="end">tons</InputAdornment>,
                   }}
+                  sx={{ '& .MuiInputBase-input': { py: 0.5 } }}
                 />
-                <IconButton id="deletestop"
-  color="error"
-  onClick={() => handleDeleteClick(index, stop)}
-  size="small"
-  sx={{
-    ml: 'auto',
-    '&:hover': { bgcolor: 'error.light' }
-  }}
->
-  <DeleteOutlineIcon sx={{ fontSize: '1.1rem' }} />
-</IconButton>
-              </Box>
-            </Paper>
+              </TableCell>
+              <TableCell sx={{ p: 1 }}>
+                <TextField
+                  value={stop.priority}
+                  type="number"
+                  size="small"
+                  onChange={(e) => handleStopChange(index, 'priority', e.target.value)}
+                  sx={{ '& .MuiInputBase-input': { py: 0.5 } }}
+                />
+              </TableCell>
+              <TableCell sx={{ p: 1 }}>
+                <IconButton size="small" onClick={() => handleDeleteClick(index, stop)} sx={{ p: 0.5 }}>
+                  <DeleteOutlineIcon fontSize="small" />
+                </IconButton>
+              </TableCell>
+            </TableRow>
           ))}
-        </Box>
+        </TableBody>
+      </Table>
+    </TableContainer>
 
-        <Box mt={1} display="flex" justifyContent="flex-end" id="handlestop">
-          <Button id="addstop"
-            variant="outlined"
-            startIcon={<AddLocationIcon sx={{ fontSize: '1rem' }} />}
-            onClick={handleAddStop}
-            size="small"
-            sx={{ textTransform: 'none', borderRadius: 0.5, fontSize: '0.8125rem' }}
-          >
-            Add Stop
-          </Button>
-        </Box>
-      </Box>
-    ) : (
-      <Box id="center"
-        textAlign="center"
-        py={2}
-        sx={{
-          border: '1px dashed',
-          borderColor: 'divider',
-          borderRadius: 1
-        }}
+    {/* Add Stop Button */}
+    {/* <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1, mb: 2 }}>
+      <Button
+        variant="outlined"
+        size="small"
+        startIcon={<AddLocationIcon fontSize="small" />}
+        onClick={handleAddStop}
+        sx={{ textTransform: 'none', py: 0.5 }}
       >
-        <Box sx={{ fontSize: '2rem', color: 'text.disabled', mb: 0.5 }} id="points">
-          <LocationOffIcon fontSize="inherit" />
-        </Box>
-        <Typography variant="body2" color="text.secondary" mb={1}>
-          No stop points configured
+        Add Stop
+      </Button>
+    </Box> */}
+
+    {/* Date & Demand Section */}
+    <Box >
+    <Grid container spacing={2} sx={{ mb: 1 }}>
+      <Grid item xs={6}>
+        {/* <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+          Start Date
+        </Typography> */}
+        <DatePicker
+  selected={editedRoute?.start_date ? new Date(editedRoute.start_date) : null}
+  onChange={(date) => {
+    if (date) {
+      setEditedRoute(prev => ({
+        ...prev,
+        start_date: date.toISOString()
+      }));
+      operations.fetchDuration(
+        editedRoute.origin,
+        editedRoute.destination,
+        editedRoute.stop_demands
+      );
+    }
+  }}
+      minDate={new Date()}
+      
+       dateFormat="dd/MM/YYYY"
+      customInput={
+        <TextField
+          size="small"
+          label="start date"
+          fullWidth
+          sx={{ '& .MuiOutlinedInput-root': { py: 0.5 } }}
+        />
+      }
+      
+    />
+  </Grid>
+      <Grid item xs={6}>
+        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+          Estimated End Date
         </Typography>
-        <Button id="add"
-          variant="contained"
-          startIcon={<AddLocationIcon sx={{ fontSize: '1rem' }} />}
-          onClick={handleAddStop}
-          size="small"
-          sx={{
-            textTransform: 'none',
-            borderRadius: 0.5,
-            fontSize: '0.8125rem'
-          }}
-        >
-          Add First Stop
-        </Button>
-      </Box>
-    )}
-  </DialogContent> */}
-<DialogContent sx={{ py: 1, px: 2 }}>
-    {editedRoute && (
-      <Box display="flex" flexDirection="column" gap={2}>
-        {/* Preloaded Demand */}
         <TextField
-          label="Preloaded Demand (tons)"
-          type="number"
-          value={editedRoute.preloaded_demand || ''}
-          onChange={(e) => handleEditChange('preloaded_demand', e.target.value)}
-          variant="outlined"
-          size="small"
-          fullWidth
-        />
-
-        {/* Vehicle Type */}
-        <TextField
-          label="Vehicle Type"
-          value={editedRoute.vehicle_type || ''}
-          onChange={(e) => handleEditChange('vehicle_type', e.target.value)}
-          variant="outlined"
-          size="small"
-          fullWidth
-        />
-
-        {/* Vehicle Capacity */}
-        <TextField
-          label="Vehicle Capacity"
-          type="number"
-          value={editedRoute.vehicle_capacity || ''}
-          onChange={(e) => handleEditChange('vehicle_capacity', e.target.value)}
-          variant="outlined"
-          size="small"
-          fullWidth
-        />
-
-        {/* Vehicle ID */}
-        <TextField
-          label="Vehicle ID"
-          value={editedRoute.vehicle_id || ''}
-          onChange={(e) => handleEditChange('vehicle_id', e.target.value)}
-          variant="outlined"
-          size="small"
-          fullWidth
-        />
-
-        {/* Fuel Type */}
-        <TextField
-          label="Fuel Type"
-          value={editedRoute.fuel_type || ''}
-          onChange={(e) => handleEditChange('fuel_type', e.target.value)}
-          variant="outlined"
-          size="small"
-          fullWidth
-        />
-
-        {/* Start Date */}
-        <TextField
-          label="Start Date"
-          type="date"
-          value={editedRoute.start_date ? editedRoute.start_date.split('T')[0] : ''}
-          onChange={(e) => handleEditChange('start_date', e.target.value)}
-          variant="outlined"
-          size="small"
-          fullWidth
-          InputLabelProps={{ shrink: true }}
-        />
-
-        {/* End Date */}
-        <TextField
-          label="End Date"
-          type="date"
-          value={editedRoute.end_date ? editedRoute.end_date.split('T')[0] : ''}
-          onChange={(e) => handleEditChange('end_date', e.target.value)}
-          variant="outlined"
-          size="small"
-          fullWidth
-          InputLabelProps={{ shrink: true }}
-        />
-
-        {/* Stop Points Configuration (Your existing component) */}
-        {editedRoute.stop_demands?.length > 0 ? (
-          <Box>
-            <Typography variant="subtitle2" fontWeight={500} mb={1} color="text.secondary">
-              <LocationOnIcon color="primary" sx={{ fontSize: '1rem', mr: 0.5 }} />
-              Stop Points Configuration
-            </Typography>
-            <Box sx={{ maxHeight: '400px', overflowY: 'auto', pr: 0.5 }}>
-              {editedRoute.stop_demands.map((stop, index) => (
-                <Paper
-                  key={index}
-                  elevation={0}
-                  sx={{
-                    p: 1,
-                    mb: 1,
-                    borderRadius: 1,
-                    borderLeft: '3px solid',
-                    borderColor: 'primary.main',
-                    bgcolor: 'background.paper'
-                  }}
-                >
-                  <Box display="flex" gap={1} alignItems="center" flexWrap="wrap">
-                    <TextField
-                      label="Stop Name"
-                      value={stop.name}
-                      onChange={(e) => handleStopChange(index, "name", e.target.value)}
-                      variant="outlined"
-                      size="small"
-                      fullWidth
-                      sx={{ minWidth: 150 }}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <PlaceIcon sx={{ fontSize: '1rem' }} />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                    <TextField
-                      label="Drop Demand"
-                      type="number"
-                      value={stop.drop_demand}
-                      onChange={(e) => handleStopChange(index, "drop_demand", e.target.value)}
-                      variant="outlined"
-                      size="small"
-                      sx={{ width: 120 }}
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">tones</InputAdornment>,
-                      }}
-                    />
-                    <TextField
-                      label="Pickup Demand"
-                      type="number"
-                      value={stop.pickup_demand}
-                      onChange={(e) => handleStopChange(index, "pickup_demand", e.target.value)}
-                      variant="outlined"
-                      size="small"
-                      sx={{ width: 120 }}
-                      InputProps={{
-                        endAdornment: <InputAdornment position="end">tones</InputAdornment>,
-                      }}
-                    />
-                    <TextField
-                      label="Priority"
-                      type="number"
-                      value={stop.priority}
-                      onChange={(e) => handleStopChange(index, "priority", e.target.value)}
-                      variant="outlined"
-                      size="small"
-                      sx={{ width: 90 }}
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position="start">
-                            <PriorityHighIcon sx={{ fontSize: '1rem' }} />
-                          </InputAdornment>
-                        ),
-                      }}
-                    />
-                    <IconButton
-                      id="deletestop"
-                      color="error"
-                      onClick={() => handleDeleteClick(index, stop)}
-                      size="small"
-                      sx={{
-                        ml: 'auto',
-                        '&:hover': { bgcolor: 'error.light' }
-                      }}
-                    >
-                      <DeleteOutlineIcon sx={{ fontSize: '1.1rem' }} />
-                    </IconButton>
-                  </Box>
-                </Paper>
-              ))}
-            </Box>
-            <Box mt={1} display="flex" justifyContent="flex-end" id="handlestop">
-              <Button
-                id="addstop"
-                variant="outlined"
-                startIcon={<AddLocationIcon sx={{ fontSize: '1rem' }} />}
-                onClick={handleAddStop}
-                size="small"
-                sx={{ textTransform: 'none', borderRadius: 0.5, fontSize: '0.8125rem' }}
-              >
-                Add Stop
-              </Button>
-            </Box>
-          </Box>
-        ) : (
-          <Box
-            textAlign="center"
-            py={2}
-            sx={{
-              border: '1px dashed',
-              borderColor: 'divider',
-              borderRadius: 1
-            }}
-          >
-            <Box sx={{ fontSize: '2rem', color: 'text.disabled', mb: 0.5 }}>
-              <LocationOffIcon fontSize="inherit" />
-            </Box>
-            <Typography variant="body2" color="text.secondary" mb={1}>
-              No stop points configured
-            </Typography>
-            <Button
-              variant="contained"
-              startIcon={<AddLocationIcon sx={{ fontSize: '1rem' }} />}
-              onClick={handleAddStop}
-              size="small"
-              sx={{
-                textTransform: 'none',
-                borderRadius: 0.5,
-                fontSize: '0.8125rem'
-              }}
-            >
-              Add First Stop
-            </Button>
-          </Box>
-        )}
-      </Box>
-    )}
-  </DialogContent>
-  
-  <DialogActions  id="dialogactions4" sx={{ px: 2, py: 1, borderTop: '1px solid', borderColor: 'divider' }}>
-    <Button id="open4"
-      onClick={() => setEditDialogOpen(false)}
-      variant="outlined"
+      value={editedRoute?.end_date 
+        ? new Date(editedRoute.end_date ).toLocaleString() 
+        : 'Calculating...'}
+       dateFormat="dd/MM/YYYY"
       size="small"
-      sx={{
-        textTransform: 'none',
-        px: 1.5,
-        borderRadius: 0.5,
-        fontSize: '0.8125rem'
+      InputProps={{ readOnly: true }}
+      fullWidth
+    />
+      </Grid>
+    </Grid></Box>
+
+    {/* Preload Demand */}
+    <Box sx={{ mb: 2 }}>
+      <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+        Preload Demand
+      </Typography>
+      <TextField
+        value={editedRoute?.preload_demand || 0}
+        size="small"
+        type="number"
+        onChange={(e) => setEditedRoute({...editedRoute, preload_demand: e.target.value})}
+        InputProps={{
+          endAdornment: <InputAdornment position="end">tons</InputAdornment>,
+        }}
+        sx={{ width: 120 }}
+      />
+   
+
+    {/* Vehicle Selection */}
+    <Grid sx={{ mb: 2 }}>
+  <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+    Available Vehicles
+  </Typography>
+  <Autocomplete
+    options={vehicleOptions}
+    loading={vehicleLoading}
+    value={selectedVehicle}
+    onChange={(event, newValue) => {
+      setSelectedVehicle(newValue);
+      setEditedRoute(prev => ({
+        ...prev,
+        vehicle_id: newValue?.id || null
+      }));
+    }}
+    getOptionLabel={(option) => option.label}
+    renderInput={(params) => (
+      <TextField
+        {...params}
+        placeholder="Search vehicles..."
+        variant="outlined"
+        size="small"
+        InputProps={{
+          ...params.InputProps,
+          startAdornment: (
+            <>
+              <SearchIcon fontSize="small" sx={{ mr: 1 }} />
+              {params.InputProps.startAdornment}
+            </>
+          )
+        }}
+      />
+    )}
+    renderOption={(props, option) => (
+      <li {...props}>
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {/* <DirectionsCarIcon fontSize="small" sx={{ mr: 1.5 }} /> */}
+          <div>
+            <Typography variant="body2">{option.label}</Typography>
+            {/* <Typography variant="caption" color="text.secondary">
+              Available Capacity: {option.capacity} tons
+            </Typography> */}
+          </div>
+        </Box>
+      </li>
+    )}
+    sx={{ maxWidth: 400 }}
+    isOptionEqualToValue={(option, value) => option.id === value.id}
+  />
+  </Grid>
+
+<Grid item xs={6}>
+        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+          Selected Vehicle
+        </Typography>
+        <TextField
+          value={editedRoute?.vehicle_type || 'Not selected'}
+          size="small"
+          InputProps={{ readOnly: true }}
+          fullWidth
+        />
+      </Grid>
+</Box>
+
+    {/* Duration & Selected Vehicle */}
+    <Grid container spacing={2}>
+      <Grid item xs={6}>
+        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+          Estimated Duration
+        </Typography>
+        <TextField
+        label="Estimated Duration"
+          value={editedRoute?.duration ? `${editedRoute.duration} hours` : 'Calculating...'}
+          size="small"
+          InputProps={{ readOnly: true }}
+          fullWidth
+        />
+        {/* <TextField
+         label="Estimated Duration"
+         value={editedRoute?.duration ? 
+          `${editedRoute.duration} hours` : 
+          (operations.durationLoading ? "Calculating..." : "N/A")}
+        InputProps={{
+          endAdornment: operations.durationLoading && (
+            <CircularProgress size={20} />
+          ),
+        }}
+  
+/> */}
+      </Grid>
+      
+    </Grid>
+  </DialogContent>
+
+  <DialogActions sx={{ px: 2, py: 1, borderTop: '1px solid #e0e0e0' }}>
+    <Button 
+      size="small"
+      onClick={() => setEditDialogOpen(false)}
+      sx={{ 
+        color: 'text.secondary',
+        px: 2,
+        '&:hover': { bgcolor: 'rgba(0,0,0,0.05)' }
       }}
     >
       Cancel
     </Button>
-    <Button id="update4"
+    <Button
       variant="contained"
-      onClick={handleUpdateRoute}
-      startIcon={<SaveIcon sx={{ fontSize: '1rem' }} />}
       size="small"
-      sx={{
-        textTransform: 'none',
-        px: 1.5,
-        borderRadius: 0.5,
-        fontSize: '0.8125rem',
-        boxShadow: 'none',
-        '&:hover': { boxShadow: 'none', bgcolor: 'primary.dark' }
+      onClick={handleUpdateRoute}
+      sx={{ 
+        bgcolor: '#5e87b0',
+        px: 2,
+        '&:hover': { bgcolor: '#476885' }
       }}
     >
       Save

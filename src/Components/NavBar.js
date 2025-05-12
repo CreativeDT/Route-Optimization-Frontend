@@ -13,8 +13,9 @@ import useNotificationWebSocket from "../WebSockets/UseNotificationWebSockets";
 import { AuthContext } from '../Context/AuthContext';
 import ProfileDropdown from './ProfileDropdown';
 import { Switch, Snackbar, Alert } from '@mui/material';
-
+import { useRefresh } from '../Pages/RefreshContext';
 const NavBar = () => {
+    const { refresh } = useRefresh();
     const { user, logout } = useContext(AuthContext);
     const navigate = useNavigate();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -22,6 +23,9 @@ const NavBar = () => {
     const [showNotifications, setShowNotifications] = useState(false);
     const [readNotifications, setReadNotifications] = useState([]); // Track read notifications
     const [isInTransit, setIsInTransit] = useState(false);
+    const [loadingStatus, setLoadingStatus] = useState(true);
+
+    const [isResting, setIsResting] = useState(false); 
     const [snackbar, setSnackbar] = useState({ open: false, message: '', severity: 'info' });
     const userId = user?.user?.user_id;
     const userRole = user?.user_role;
@@ -165,28 +169,70 @@ const NavBar = () => {
     return firstInitial + secondInitial;
 };
 
-const handleToggle = (event) => {
+// Fetch initial rest status on mount
+// useEffect(() => {
+//     if (userRole === "driver") {
+//       const token = localStorage.getItem('token');
+//       axios.get(`${config.API_BASE_URL}/driver/restStatus`, {
+//         headers: { Authorization: `Bearer ${token}` }
+//       })
+//       .then(response => {
+//         setIsResting(response.data.resting);
+//       })
+//       .catch(error => console.error('Error fetching status:', error));
+//     }
+//   }, [userRole]);
+// Fetch initial status from current_user API
+// NavBar.js
+useEffect(() => {
+    const fetchDriverStatus = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            const response = await axios.get(`${config.API_BASE_URL}/current_user`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            const driverStatus = response.data.user.driver_status;
+            console.log("driverstatus:",driverStatus)
+            // Set toggle state based on driver's current status
+            setIsInTransit(driverStatus === 'in_transit');
+            console.log("driverstatus:",isInTransit)
+        } catch (error) {
+            console.error("Error fetching driver status:", error);
+        }
+        finally {
+            setLoadingStatus(false);
+          }
+    };
+
+    if (userRole === "driver") {
+        fetchDriverStatus();
+    }
+}, [userRole]);
+// NavBar.js
+const handleToggle = async (event) => {
     const newStatus = event.target.checked;
-    setIsInTransit(newStatus);
-    const token = localStorage.getItem('token');
-    // Send updated status to backend  
-    axios.post(
-      `${config.API_BASE_URL}/driver/restPeriod?rest=${newStatus}`, // sending boolean true/false
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    )
-      .then(() => {
-        setSnackbar({ open: true, message: 'Driver status updated', severity: 'success' });
-      })
-      .catch(() => {
-        setSnackbar({ open: true, message: 'Failed to update status', severity: 'error' });
-        setIsInTransit(!newStatus); // Revert toggle on failure
-      });
-  };
+    try {
+        const token = localStorage.getItem('token');
+        const rest = !newStatus; // Invert the toggle state for the API
+        const response = await axios.post(
+            `${config.API_BASE_URL}/driver/restPeriod?rest=${rest}`,
+            {},
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        
+        if (response.data.success) {
+            setIsInTransit(newStatus);
+            refresh();
+            setSnackbar({ open: true, message: response.data.detail, severity: 'success' });
+        } else {
+            throw new Error(response.data.detail || 'Failed to update status');
+        }
+    } catch (error) {
+        const message = error.response?.data?.detail || error.message;
+        setSnackbar({ open: true, message, severity: 'error' });
+        setIsInTransit(!newStatus); // Revert on error
+    }
+};
     return (
         <div className="navbar">
             <Menu />
@@ -266,11 +312,13 @@ const handleToggle = (event) => {
                     <FaCog className="icon" />
                     <span className="tooltip">Settings</span>
                 </div> */}
-                {/* <div className='status'>
+                 <div className='status'>
                 {userRole === "driver" && (
                     <Box display="flex" alignItems="center" className="driver-status-toggle" sx={{ marginRight: 2 }}>
                         <Typography variant="body2" sx={{ marginRight: 1 }}>
-                        {isInTransit ? "In Transit" : "Rested"}
+                        {/* {isResting ? "Rested 🛌" : "In Transit 🚛"} */}
+                        {isInTransit ? "🚛In Transit" : "🛌Rested"}
+                        
                         </Typography>
                         <Switch
                         checked={isInTransit}
@@ -295,7 +343,7 @@ const handleToggle = (event) => {
   </Alert>
 </Snackbar>
 
-                </div> */}
+                </div> 
                 <div className="profile" ref={profileRef}>
                     <div className="profile-wrapper" onClick={toggleProfile}>
                         <div className="role-badge" style={{

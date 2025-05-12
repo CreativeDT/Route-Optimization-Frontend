@@ -384,11 +384,13 @@ const RouteTracking = () => {
               return {
                 ...consignment,
                 statusText: 
-                    consignment.status === 'started'
-                        ? 'Started'
-                        : consignment.status === 'completed'
-                        ? 'Completed'
-                        : 'Not Started',
+                consignment.status === 'started'
+                ? 'Started'
+                : consignment.status === 'completed'
+                ? 'Completed'
+                : consignment.status === 'rested'
+                ? 'Rested'
+                : 'Not Started',
                 assignedText: isAssigned ? 'Assigned' : 'Not Assigned',
                 assignedColor: isAssigned ? 'green' : 'red', // Set color based on assignment
                 driverName: consignment.driver || 'Not Assigned', // Use the driver field from the API

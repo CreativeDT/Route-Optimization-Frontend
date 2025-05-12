@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext ,useMemo} from "react";
+import React, { useEffect, useState, useContext ,useMemo,createContext} from "react";
 import {
   Container,
   Typography,
@@ -13,6 +13,7 @@ import {
   Alert,Select, MenuItem ,
   Switch,
 } from "@mui/material";
+import { useRefresh } from "../RefreshContext";
 import axios from "axios";
 import { AuthContext } from "../../Context/AuthContext";
 import "./Table.css"; 
@@ -24,6 +25,7 @@ import { faMapMarkerAlt, faFlagCheckered } from "@fortawesome/free-solid-svg-ico
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const DriverFleetDetails = () => {
+  const { refreshKey } = useRefresh();
   const [consignments, setConsignments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -101,7 +103,7 @@ const [snackbar, setSnackbar] = useState({
     };
 
     fetchConsignments();
-  }, [token]);
+  }, [token,refreshKey]);
 
   // Handler to toggle route status.
   // For example, toggling between "started" and "not started".
@@ -414,6 +416,8 @@ const [snackbar, setSnackbar] = useState({
               ? "#ff980073"
               : consignment.status === "not started"
               ? "#ff00005e" 
+              : consignment.status === "rested"
+              ? "#ff00005e" 
               
               : consignment.status === "completed"
               ? "#4caf50ab"
@@ -428,7 +432,7 @@ const [snackbar, setSnackbar] = useState({
       >
         <MenuItem value="started">Started</MenuItem>
         <MenuItem value="not started">Not Started</MenuItem>
-        {/* <MenuItem value="rested">Rested</MenuItem> */}
+        <MenuItem value="rested">Rested</MenuItem>
         <MenuItem value="completed">Completed</MenuItem>
       </Select>
     </span>

@@ -389,6 +389,8 @@ const RouteTracking = () => {
                         ? 'Started'
                         : consignment.status === 'completed'
                         ? 'Completed'
+                        : consignment.status === 'rested'
+                        ? 'Rested'
                         : 'Not Started',
                 assignedText: isAssigned ? 'Assigned' : 'Not Assigned',
                 assignedColor: isAssigned ? 'green' : 'red', // Set color based on assignment
