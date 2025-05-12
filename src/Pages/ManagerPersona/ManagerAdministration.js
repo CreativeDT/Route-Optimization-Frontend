@@ -1449,16 +1449,16 @@ onChange={(event, newValue) => {
     </Grid>
 
     {/* Stops Table */}
-    <TableContainer component={Paper} sx={{ border: '1px solid #e0e0e0', mb: 1 }}>
+    <TableContainer component={Paper} sx={{ border: '1px solid #e0e0e0', mb: 2 }}>
       <Table size="small">
         <TableHead sx={{ bgcolor: '#f8f9fa' }}>
           <TableRow>
             <TableCell sx={{ fontWeight: 600, p: 1, width: '5%' }}>S.no</TableCell>
-            <TableCell sx={{ fontWeight: 600, p: 1 }}>Stop Name</TableCell>
+            <TableCell sx={{ fontWeight: 600, p: 1, width: '35%' }}>Stop Name</TableCell>
             <TableCell sx={{ fontWeight: 600, p: 1, width: '15%' }}>Drop Demand</TableCell>
             <TableCell sx={{ fontWeight: 600, p: 1, width: '15%' }}>Pickup Demand</TableCell>
             <TableCell sx={{ fontWeight: 600, p: 1, width: '10%' }}>Priority</TableCell>
-            <TableCell sx={{ fontWeight: 600, p: 1, width: '8%' }}>Actions</TableCell>
+            <TableCell sx={{ fontWeight: 600, p: 1, width: '10%' }}>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -1471,7 +1471,6 @@ onChange={(event, newValue) => {
                   size="small"
                   fullWidth
                   onChange={(e) => handleStopChange(index, 'name', e.target.value)}
-                  sx={{ '& .MuiInputBase-input': { py: 0.5 } }}
                 />
               </TableCell>
               <TableCell sx={{ p: 1 }}>
@@ -1483,7 +1482,6 @@ onChange={(event, newValue) => {
                   InputProps={{
                     endAdornment: <InputAdornment position="end">tons</InputAdornment>,
                   }}
-                  sx={{ '& .MuiInputBase-input': { py: 0.5 } }}
                 />
               </TableCell>
               <TableCell sx={{ p: 1 }}>
@@ -1495,7 +1493,6 @@ onChange={(event, newValue) => {
                   InputProps={{
                     endAdornment: <InputAdornment position="end">tons</InputAdornment>,
                   }}
-                  sx={{ '& .MuiInputBase-input': { py: 0.5 } }}
                 />
               </TableCell>
               <TableCell sx={{ p: 1 }}>
@@ -1504,11 +1501,10 @@ onChange={(event, newValue) => {
                   type="number"
                   size="small"
                   onChange={(e) => handleStopChange(index, 'priority', e.target.value)}
-                  sx={{ '& .MuiInputBase-input': { py: 0.5 } }}
                 />
               </TableCell>
-              <TableCell sx={{ p: 1 }}>
-                <IconButton size="small" onClick={() => handleDeleteClick(index, stop)} sx={{ p: 0.5 }}>
+              <TableCell sx={{ p: 1, textAlign: 'center' }}>
+                <IconButton size="small" onClick={() => handleDeleteClick(index, stop)}>
                   <DeleteOutlineIcon fontSize="small" />
                 </IconButton>
               </TableCell>
@@ -1518,181 +1514,126 @@ onChange={(event, newValue) => {
       </Table>
     </TableContainer>
 
-    {/* Add Stop Button */}
-    {/* <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 1, mb: 2 }}>
-      <Button
-        variant="outlined"
-        size="small"
-        startIcon={<AddLocationIcon fontSize="small" />}
-        onClick={handleAddStop}
-        sx={{ textTransform: 'none', py: 0.5 }}
-      >
-        Add Stop
-      </Button>
-    </Box> */}
-
-    {/* Date & Demand Section */}
-    <Box >
-    <Grid container spacing={2} sx={{ mb: 1 }}>
+    {/* Date Section */}
+    <Grid container spacing={2} sx={{ mb: 2 }}>
       <Grid item xs={6}>
-        {/* <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
           Start Date
-        </Typography> */}
+        </Typography>
         <DatePicker
-  selected={editedRoute?.start_date ? new Date(editedRoute.start_date) : null}
-  onChange={(date) => {
-    if (date) {
-      setEditedRoute(prev => ({
-        ...prev,
-        start_date: date.toISOString()
-      }));
-      operations.fetchDuration(
-        editedRoute.origin,
-        editedRoute.destination,
-        editedRoute.stop_demands
-      );
-    }
-  }}
-      minDate={new Date()}
-      
-       dateFormat="dd/MM/YYYY"
-      customInput={
-        <TextField
-          size="small"
-          label="start date"
-          fullWidth
-          sx={{ '& .MuiOutlinedInput-root': { py: 0.5 } }}
+          selected={editedRoute?.start_date ? new Date(editedRoute.start_date) : null}
+          onChange={(date) => {
+            if (date) {
+              setEditedRoute(prev => ({
+                ...prev,
+                start_date: date.toISOString()
+              }));
+            }
+          }}
+          minDate={new Date()}
+          dateFormat="dd/MM/yyyy"
+          customInput={
+            <TextField
+              size="small"
+              fullWidth
+              sx={{ 
+                '& .MuiOutlinedInput-root': {
+                  bgcolor: '#f5f5f5',
+                  borderRadius: 1,
+                  padding: 0.5
+                }
+              }}
+            />
+          }
         />
-      }
-      
-    />
-  </Grid>
+      </Grid>
       <Grid item xs={6}>
         <Typography variant="subtitle2" fontWeight={600} gutterBottom>
           Estimated End Date
         </Typography>
         <TextField
-      value={editedRoute?.end_date 
-        ? new Date(editedRoute.end_date ).toLocaleString() 
-        : 'Calculating...'}
-       dateFormat="dd/MM/YYYY"
-      size="small"
-      InputProps={{ readOnly: true }}
-      fullWidth
-    />
+          value={editedRoute?.end_date 
+            ? new Date(editedRoute.end_date).toLocaleString() 
+            : 'Calculating...'}
+          size="small"
+          fullWidth
+          InputProps={{ readOnly: true }}
+          sx={{ 
+            '& .MuiOutlinedInput-root': {
+              bgcolor: '#f5f5f5',
+              borderRadius: 1,
+              padding: 0.5
+            }
+          }}
+        />
       </Grid>
-    </Grid></Box>
+    </Grid>
 
-    {/* Preload Demand */}
-    <Box sx={{ mb: 2 }}>
-      <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-        Preload Demand
-      </Typography>
-      <TextField
-        value={editedRoute?.preload_demand || 0}
-        size="small"
-        type="number"
-        onChange={(e) => setEditedRoute({...editedRoute, preload_demand: e.target.value})}
-        InputProps={{
-          endAdornment: <InputAdornment position="end">tons</InputAdornment>,
-        }}
-        sx={{ width: 120 }}
-      />
-   
-
-    {/* Vehicle Selection */}
-    <Grid sx={{ mb: 2 }}>
-  <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-    Available Vehicles
-  </Typography>
-  <Autocomplete
-    options={vehicleOptions}
-    loading={vehicleLoading}
-    value={selectedVehicle}
-    onChange={(event, newValue) => {
-      setSelectedVehicle(newValue);
-      setEditedRoute(prev => ({
-        ...prev,
-        vehicle_id: newValue?.id || null
-      }));
-    }}
-    getOptionLabel={(option) => option.label}
-    renderInput={(params) => (
-      <TextField
-        {...params}
-        placeholder="Search vehicles..."
-        variant="outlined"
-        size="small"
-        InputProps={{
-          ...params.InputProps,
-          startAdornment: (
-            <>
-              <SearchIcon fontSize="small" sx={{ mr: 1 }} />
-              {params.InputProps.startAdornment}
-            </>
-          )
-        }}
-      />
-    )}
-    renderOption={(props, option) => (
-      <li {...props}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {/* <DirectionsCarIcon fontSize="small" sx={{ mr: 1.5 }} /> */}
-          <div>
-            <Typography variant="body2">{option.label}</Typography>
-            {/* <Typography variant="caption" color="text.secondary">
-              Available Capacity: {option.capacity} tons
-            </Typography> */}
-          </div>
-        </Box>
-      </li>
-    )}
-    sx={{ maxWidth: 400 }}
-    isOptionEqualToValue={(option, value) => option.id === value.id}
-  />
-  </Grid>
-
-<Grid item xs={6}>
+    {/* Demand and Vehicle Section */}
+    <Grid container spacing={2}>
+      <Grid item xs={6}>
+        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+          Preload Demand
+        </Typography>
+        <TextField
+          value={editedRoute?.preload_demand || 0}
+          size="small"
+          type="number"
+          fullWidth
+          onChange={(e) => setEditedRoute({...editedRoute, preload_demand: e.target.value})}
+          InputProps={{
+            endAdornment: <InputAdornment position="end">tons</InputAdornment>,
+            sx: { 
+              bgcolor: '#f5f5f5',
+              borderRadius: 1,
+              padding: 0.5
+            }
+          }}
+        />
+      </Grid>
+      <Grid item xs={6}>
         <Typography variant="subtitle2" fontWeight={600} gutterBottom>
           Selected Vehicle
         </Typography>
         <TextField
           value={editedRoute?.vehicle_type || 'Not selected'}
           size="small"
-          InputProps={{ readOnly: true }}
           fullWidth
+          InputProps={{ readOnly: true }}
+          sx={{ 
+            '& .MuiOutlinedInput-root': {
+              bgcolor: '#f5f5f5',
+              borderRadius: 1,
+              padding: 0.5
+            }
+          }}
         />
       </Grid>
-</Box>
-
-    {/* Duration & Selected Vehicle */}
-    <Grid container spacing={2}>
-      <Grid item xs={6}>
-        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-          Estimated Duration
-        </Typography>
-        <TextField
-        label="Estimated Duration"
-          value={editedRoute?.duration ? `${editedRoute.duration} hours` : 'Calculating...'}
-          size="small"
-          InputProps={{ readOnly: true }}
-          fullWidth
-        />
-        {/* <TextField
-         label="Estimated Duration"
-         value={editedRoute?.duration ? 
-          `${editedRoute.duration} hours` : 
-          (operations.durationLoading ? "Calculating..." : "N/A")}
-        InputProps={{
-          endAdornment: operations.durationLoading && (
-            <CircularProgress size={20} />
-          ),
-        }}
-  
-/> */}
-      </Grid>
-      
     </Grid>
+
+    {/* Vehicle Selection */}
+    <Box sx={{ mt: 2 }}>
+      <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+        Available Vehicles
+      </Typography>
+      <Autocomplete
+        options={vehicleOptions}
+        size="small"
+        renderInput={(params) => (
+          <TextField
+            {...params}
+            placeholder="Search vehicles..."
+            sx={{ 
+              '& .MuiOutlinedInput-root': {
+                bgcolor: '#f5f5f5',
+                borderRadius: 1,
+                padding: 0.5
+              }
+            }}
+          />
+        )}
+      />
+    </Box>
   </DialogContent>
 
   <DialogActions sx={{ px: 2, py: 1, borderTop: '1px solid #e0e0e0' }}>
