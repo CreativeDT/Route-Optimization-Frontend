@@ -165,25 +165,62 @@ const fetchDuration = async (origin, destination, stops) => {
     setVehicleOptions(filtered);
   };
   // Validation Logic
-  const validateStops = (stops) => {
+//   const validateStops = (stops) => {
+//     const invalidStops = stops.filter(stop => 
+//       (stop.drop_demand > 40) || (stop.pickup_demand > 40)
+//     );
+
+//     if (invalidStops.length > 0) {
+//       setStopsError("Demand cannot exceed 40 tons");
+//       return false;
+//     }
+
+//     const noDemandStops = stops.filter(stop => 
+//       stop.drop_demand <= 0 && stop.pickup_demand <= 0
+//     );
+
+//     if (noDemandStops.length > 0) {
+//       setStopsError("Each stop needs at least one demand");
+//       return false;
+//     }
+
+//     setStopsError('');
+//     return true;
+//   };
+
+  const validateStops = (stops,  preload_demand) => {
+ // Validate preload demand first
+    if (    preload_demand> 40) {
+        setStopsError("Preload demand cannot exceed 40 tons");
+        return false;
+    }
     const invalidStops = stops.filter(stop => 
       (stop.drop_demand > 40) || (stop.pickup_demand > 40)
     );
-
+  
     if (invalidStops.length > 0) {
       setStopsError("Demand cannot exceed 40 tons");
       return false;
     }
-
+  
     const noDemandStops = stops.filter(stop => 
       stop.drop_demand <= 0 && stop.pickup_demand <= 0
     );
-
+  
     if (noDemandStops.length > 0) {
       setStopsError("Each stop needs at least one demand");
       return false;
     }
-
+  
+    const invalidPriority = stops.some(stop => 
+      ![1, 2, 3].includes(Number(stop.priority))
+    );
+  
+    if (invalidPriority) {
+      setStopsError("Priority must be 1, 2, or 3");
+      return false;
+    }
+  
     setStopsError('');
     return true;
   };
@@ -280,7 +317,7 @@ const fetchDuration = async (origin, destination, stops) => {
     expectedEndDate,
     vehicles,setVehicles,
     preloadedDemand,
-    stopsError,
+    stopsError,setStopsError,
     inputRefs,
     preloadedDemandRef,
     vehicleOptions,

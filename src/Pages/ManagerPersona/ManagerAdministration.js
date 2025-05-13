@@ -40,7 +40,7 @@ const Dashboard = ({ initialRoute }) => {
   expectedEndDate,
   vehicles,setVehicles,
   preloadedDemand,
-  stopsError,
+  stopsError,setStopsError,
   inputRefs,
   preloadedDemandRef,
   changesMade,  setChangesMade,
@@ -616,6 +616,15 @@ const handleUpdateRoute = async () => {
     setConfirmEditOpen(true);
     return;
   }
+  // Validate stops before proceeding
+  if (!operations.validateStops(editedRoute.stop_demands,editedRoute.preload_demand)) {
+    setSnackbar({
+      open: true,
+      message: stopsError,
+      severity: "error"
+    });
+    return;
+  }
   const token = localStorage.getItem("token");
   // console.log("editedRoute1:", editedRoute);
   if (!editedRoute?.routeID || !Array.isArray(editedRoute?.stop_demands)) {
@@ -840,6 +849,7 @@ const filterAvailableVehicles = () => {
       type: vehicle.VehicleType
     }));
 };
+
   return (
     <>
       <NavBar />
@@ -1381,7 +1391,7 @@ onChange={(event, newValue) => {
   <DialogTitle sx={{ 
     bgcolor: '#5e87b0', 
     color: 'white', 
-    py: 1,
+  
     display: 'flex',
     alignItems: 'center',
     fontSize: '1.1rem'
@@ -1401,47 +1411,45 @@ onChange={(event, newValue) => {
     </IconButton>
   </DialogTitle>
 
-  <DialogContent sx={{ px: 2, py: 1 }}>
+  <DialogContent sx={{ m:2.5}}>
     {/* Origin & Destination */}
-    <Grid container spacing={2} sx={{ mb: 2 }}>
+    <Grid container spacing={2} sx={{ mb: 2,mt:2 }}>
       <Grid item xs={6}>
-        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-          Origin
-        </Typography>
+       
         <TextField
           fullWidth
+          label="Origin"
           size="small"
           value={editedRoute?.origin?.name || ''}
           InputProps={{
             readOnly: true,
-            startAdornment: <TripOriginIcon fontSize="small" color="primary" sx={{ mr: 0.5 }} />
+            // startAdornment: <TripOriginIcon fontSize="small" color="primary" sx={{ mr: 0.5 }} />
           }}
           sx={{ 
             '& .MuiOutlinedInput-root': {
               bgcolor: '#f5f5f5',
               borderRadius: 1,
-              padding: 0.5
+              color:'#8c8787',
             }
           }}
         />
       </Grid>
       <Grid item xs={6}>
-        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-          Destination
-        </Typography>
+       
         <TextField
           fullWidth
+          label="Destination"
           size="small"
           value={editedRoute?.destination?.name || ''}
           InputProps={{
             readOnly: true,
-            startAdornment: <WhereToVoteIcon fontSize="small" color="secondary" sx={{ mr: 0.5 }} />
+            // startAdornment: <WhereToVoteIcon fontSize="small" color="secondary" sx={{ mr: 0.5 }} />
           }}
           sx={{ 
             '& .MuiOutlinedInput-root': {
               bgcolor: '#f5f5f5',
               borderRadius: 1,
-              padding: 0.5
+              color:'#8c8787',
             }
           }}
         />
@@ -1453,19 +1461,19 @@ onChange={(event, newValue) => {
       <Table size="small">
         <TableHead sx={{ bgcolor: '#f8f9fa' }}>
           <TableRow>
-            <TableCell sx={{ fontWeight: 600, p: 1, width: '5%' }}>S.no</TableCell>
-            <TableCell sx={{ fontWeight: 600, p: 1, width: '35%' }}>Stop Name</TableCell>
-            <TableCell sx={{ fontWeight: 600, p: 1, width: '15%' }}>Drop Demand</TableCell>
-            <TableCell sx={{ fontWeight: 600, p: 1, width: '15%' }}>Pickup Demand</TableCell>
-            <TableCell sx={{ fontWeight: 600, p: 1, width: '10%' }}>Priority</TableCell>
-            <TableCell sx={{ fontWeight: 600, p: 1, width: '10%' }}>Actions</TableCell>
+            <TableCell sx={{ fontWeight: 600,  width: '5%' }}>S.no</TableCell>
+            <TableCell sx={{ fontWeight: 600, width: '35%' }}>Stop Name</TableCell>
+            <TableCell sx={{ fontWeight: 600, width: '15%' }}>Drop Demand</TableCell>
+            <TableCell sx={{ fontWeight: 600, width: '15%' }}>Pickup Demand</TableCell>
+            <TableCell sx={{ fontWeight: 600, width: '10%' }}>Priority</TableCell>
+            {/* <TableCell sx={{ fontWeight: 600, width: '10%' }}>Actions</TableCell> */}
           </TableRow>
         </TableHead>
         <TableBody>
           {editedRoute?.stop_demands?.map((stop, index) => (
             <TableRow key={index} hover>
-              <TableCell sx={{ p: 1 }}>{index + 1}</TableCell>
-              <TableCell sx={{ p: 1 }}>
+              <TableCell >{index + 1}</TableCell>
+              <TableCell >
                 <TextField
                   value={stop.name}
                   size="small"
@@ -1473,7 +1481,7 @@ onChange={(event, newValue) => {
                   onChange={(e) => handleStopChange(index, 'name', e.target.value)}
                 />
               </TableCell>
-              <TableCell sx={{ p: 1 }}>
+              <TableCell >
                 <TextField
                   value={stop.drop_demand}
                   type="number"
@@ -1484,7 +1492,7 @@ onChange={(event, newValue) => {
                   }}
                 />
               </TableCell>
-              <TableCell sx={{ p: 1 }}>
+              <TableCell >
                 <TextField
                   value={stop.pickup_demand}
                   type="number"
@@ -1495,7 +1503,7 @@ onChange={(event, newValue) => {
                   }}
                 />
               </TableCell>
-              <TableCell sx={{ p: 1 }}>
+              <TableCell>
                 <TextField
                   value={stop.priority}
                   type="number"
@@ -1503,23 +1511,21 @@ onChange={(event, newValue) => {
                   onChange={(e) => handleStopChange(index, 'priority', e.target.value)}
                 />
               </TableCell>
-              <TableCell sx={{ p: 1, textAlign: 'center' }}>
+              {/* <TableCell sx={{ textAlign: 'center' }}>
                 <IconButton size="small" onClick={() => handleDeleteClick(index, stop)}>
                   <DeleteOutlineIcon fontSize="small" />
                 </IconButton>
-              </TableCell>
+              </TableCell> */}
             </TableRow>
           ))}
         </TableBody>
       </Table>
     </TableContainer>
-
+ 
     {/* Date Section */}
-    <Grid container spacing={2} sx={{ mb: 2 }}>
+    <Grid container spacing={2} sx={{ mb: 2,mt:2.5 ,ml:1}}>
       <Grid item xs={6}>
-        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-          Start Date
-        </Typography>
+       
         <DatePicker
           selected={editedRoute?.start_date ? new Date(editedRoute.start_date) : null}
           onChange={(date) => {
@@ -1535,12 +1541,13 @@ onChange={(event, newValue) => {
           customInput={
             <TextField
               size="small"
-              fullWidth
+              label="Start Date"
+             
               sx={{ 
                 '& .MuiOutlinedInput-root': {
                   bgcolor: '#f5f5f5',
                   borderRadius: 1,
-                  padding: 0.5
+                  
                 }
               }}
             />
@@ -1548,21 +1555,20 @@ onChange={(event, newValue) => {
         />
       </Grid>
       <Grid item xs={6}>
-        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-          Estimated End Date
-        </Typography>
+        
         <TextField
           value={editedRoute?.end_date 
             ? new Date(editedRoute.end_date).toLocaleString() 
             : 'Calculating...'}
           size="small"
-          fullWidth
+       
+          label="End Date"
           InputProps={{ readOnly: true }}
           sx={{ 
             '& .MuiOutlinedInput-root': {
-              bgcolor: '#f5f5f5',
+              bgcolor: '#f5f5f5',color:'#8c8787',
               borderRadius: 1,
-              padding: 0.5
+           
             }
           }}
         />
@@ -1570,41 +1576,47 @@ onChange={(event, newValue) => {
     </Grid>
 
     {/* Demand and Vehicle Section */}
-    <Grid container spacing={2}>
+    <Grid container spacing={2} sx={{mt:2.5,ml:1}}>
       <Grid item xs={6}>
-        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-          Preload Demand
-        </Typography>
+        
         <TextField
           value={editedRoute?.preload_demand || 0}
           size="small"
+          
           type="number"
-          fullWidth
-          onChange={(e) => setEditedRoute({...editedRoute, preload_demand: e.target.value})}
+        
+          label="Preload Demand"
+          onChange={(e) => {setEditedRoute({...editedRoute, preload_demand: e.target.value});
+          setStopsError('');
+        }}
           InputProps={{
             endAdornment: <InputAdornment position="end">tons</InputAdornment>,
             sx: { 
               bgcolor: '#f5f5f5',
               borderRadius: 1,
-              padding: 0.5
+             
             }
           }}
         />
+         {stopsError && (
+  <Alert severity="error" sx={{ mt: 2,width:"small" }}>
+    {stopsError}
+  </Alert>
+)}
       </Grid>
       <Grid item xs={6}>
-        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-          Selected Vehicle
-        </Typography>
+       
         <TextField
           value={editedRoute?.vehicle_type || 'Not selected'}
           size="small"
-          fullWidth
+          
+          label="Selected Vehicle"
           InputProps={{ readOnly: true }}
           sx={{ 
             '& .MuiOutlinedInput-root': {
               bgcolor: '#f5f5f5',
               borderRadius: 1,
-              padding: 0.5
+             color:"#8e8787"
             }
           }}
         />
@@ -1613,21 +1625,21 @@ onChange={(event, newValue) => {
 
     {/* Vehicle Selection */}
     <Box sx={{ mt: 2 }}>
-      <Typography variant="subtitle2" fontWeight={600} gutterBottom>
-        Available Vehicles
-      </Typography>
+      
       <Autocomplete
         options={vehicleOptions}
         size="small"
+        fullWidth
         renderInput={(params) => (
           <TextField
             {...params}
             placeholder="Search vehicles..."
+  label="Search Available Vehicles"
             sx={{ 
               '& .MuiOutlinedInput-root': {
                 bgcolor: '#f5f5f5',
                 borderRadius: 1,
-                padding: 0.5
+              color:"#8e8787"
               }
             }}
           />
