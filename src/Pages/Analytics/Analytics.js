@@ -20,7 +20,7 @@ const Analytics = () => {
       try {
         const token = localStorage.getItem("token"); // Ensure correct key
         
-        const response = await axios.get("http://127.0.0.1:8000/current_user", {
+        const response = await axios.get(`${config.API_BASE_URL}/current_user`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -30,6 +30,7 @@ const Analytics = () => {
     
         if (response.data?.user?.user_id) {
           setUserId(response.data.user.user_id);
+          console.log("Constructed Power BI URL:", `${config.POWER_BI_URL}'${response.data.user.user_id}'`); 
         } else {
           throw new Error("User ID not found in response");
         }
@@ -83,8 +84,7 @@ const Analytics = () => {
     title="FleetDashboard" 
     width="100%" 
     height="100%" 
-    src={`${config.POWER_BI_URL}${userId}`}  // Remove extra `'`
-    
+    src={`${config.POWER_BI_URL}'${userId}'`}  
     style={{ border: 'none', borderRadius: '8px' }}
   ></iframe>
 ) : (
