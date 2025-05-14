@@ -226,8 +226,10 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
                   <Tooltip direction="top" offset={[0, -10]} opacity={1}>
                       <Typography variant="body2">
                           <strong>Planned Route</strong><br />
-                          Origin: {route?.origin}<br />
-                          Destination: {route?.destination}<br />
+                          {/* Origin: {route?.origin}<br />
+                          Destination: {route?.destination}<br /> */}
+                            Origin: {typeof route?.origin === 'object' ? route.origin.name : route?.origin || "Origin"}<br />
+                            Destination: {typeof route?.destination === 'object' ? route.destination.name : route?.destination || "Destination"}<br />
                           Distance: {route?.distance} miles<br />
                           Duration: {route?.duration} hrs<br />
                           Fuel: {route?.fuel_type || "N/A"}<br />

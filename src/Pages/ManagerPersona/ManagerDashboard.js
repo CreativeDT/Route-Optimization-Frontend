@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Grid, Card, CardContent, Typography } from "@mui/material";
 
 import Breadcrumbs from "../Breadcrumbs/Breadcrumbs";
-import backgroundImage from "../../Assets/images/61758.jpg";
+import backgroundImage from "../../Assets/images/optimization image.jpg";
 import adminIcon from '../../Assets/images/admin.png';
 import '.././Dashboard.css';
 // Import icons
@@ -61,10 +61,21 @@ const ManagerDashboard = () => {
        <Breadcrumbs1 />
 
       {/* Background Image */}
-      <div id="background-image" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: -1 }}>
-        <img src={backgroundImage} alt="Background" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.7 }} />
+      <div id="background-image" className="relative bg-overlay-container"  style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: -1 }}>
+        <img src={backgroundImage} alt="Background" style={{ width: "100%",backgroundColor: "black", height: "100%", objectFit: "cover", opacity: 0.2 }} />
       </div>
-
+      {/* <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          height: "100%",
+          backgroundColor: "black",
+          opacity: 0.2,
+          zIndex: 0,
+        }}
+      ></div> */}
       {/* Dashboard Cards */}
      
        <div id="cards" style={{ 

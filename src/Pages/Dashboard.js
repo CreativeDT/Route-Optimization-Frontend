@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Grid, Card, CardContent, Typography } from "@mui/material";
 import Navbar from "../Components/NavBar";
 import Breadcrumbs from "./Breadcrumbs/Breadcrumbs";
-import backgroundImage from "../Assets/images/61758.jpg";
+import backgroundImage from "../Assets/images/optimization image.jpg";
 import adminIcon from '../Assets/images/admin.png';
 import './Dashboard.css';
 // Import icons
