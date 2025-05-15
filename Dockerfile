@@ -6,13 +6,13 @@ WORKDIR /app
 
 # Copy package files and install dependencies
 COPY package.json package-lock.json ./
-RUN npm install --force
+#RUN npm install --force
 
 # Copy the rest of the application source code
 COPY . .
 
 # Build the Angular application
-RUN npm run build
+#RUN npm run build
 
 FROM nginx:latest
 
