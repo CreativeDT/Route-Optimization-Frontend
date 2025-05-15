@@ -35,7 +35,8 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    sh 'docker run -d --name ${IMAGE_NAME} --restart=always -p 3000:3000 ${IMAGE_NAME}'
+                    sh 'docker run -d --name ${IMAGE_NAME} --restart=always  -p 3000:3000 -v /opt/jenkins_home/workspace/ssl/global-csg.com.pem:/etc/ssl/global-csg.com.pem 
+  -v /opt/jenkins_home/workspace/ssl:/etc/ssl/global-csg.com.key ${IMAGE_NAME}'
                 }
             }
         }
