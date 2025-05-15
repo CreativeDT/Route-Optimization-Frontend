@@ -27,7 +27,7 @@ COPY ssl/global-csg.com.key /etc/ssl/global-csg.com.key
 COPY --from=build /app/ /usr/share/nginx/html
 
 # Expose HTTP (80) and HTTPS (443) ports
-EXPOSE 3000
+EXPOSE 80 443 3000
 
 # Start NGINX in the foreground
 CMD ["nginx", "-g", "daemon off;"]
