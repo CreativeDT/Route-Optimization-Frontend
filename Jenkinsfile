@@ -35,7 +35,7 @@ pipeline {
         stage('Run Docker Container') {
             steps {
                 script {
-                    sh 'docker run -d --name ${IMAGE_NAME} --restart=always -p 80:80 -p 3000:3000 ${IMAGE_NAME}'
+                    sh 'docker run -d --name ${IMAGE_NAME} --restart=always -p 3000:3000 ${IMAGE_NAME}'
                 }
             }
         }
