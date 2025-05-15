@@ -25,7 +25,7 @@ COPY ssl/global-csg.com.pem /etc/ssl/global-csg.com.pem
 COPY ssl/global-csg.com.key /etc/ssl/global-csg.com.key
 
 # Copy the built Angular application from the build stage
-COPY --from=build /usr/share/nginx/html
+COPY --from=build /app/ /usr/share/nginx/html
 
 # Expose HTTP and HTTPS ports
 EXPOSE 80 3000
