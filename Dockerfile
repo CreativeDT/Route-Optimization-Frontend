@@ -1,34 +1,26 @@
-# Stage 1: Build Angular Application
+# Stage 1: Build React App
 FROM node:18.19.0 AS build
 
-# Set working directory
 WORKDIR /app
 
-# Copy package files and install dependencies
 COPY package.json package-lock.json ./
-#RUN npm install --force
+RUN npm install --force
 
-# Copy the rest of the application source code
 COPY . .
+RUN npm run build
 
-# Build the Angular application
-#RUN npm run build
-
+# Stage 2: Serve with NGINX
 FROM nginx:latest
 
 # Copy custom NGINX configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy SSL certificates to the proper location
+# Copy SSL certificates
 COPY ssl/global-csg.com.pem /etc/ssl/global-csg.com.pem
 COPY ssl/global-csg.com.key /etc/ssl/global-csg.com.key
 
-# Copy the built Angular application from the build stage
-COPY --from=build /app/ /usr/share/nginx/html
+# Copy the React build output to the NGINX html directory
+COPY --from=build /app/build /usr/share/nginx/html
 
-# Expose HTTP (80) and HTTPS (443) ports
-EXPOSE 80 443 3000
-
-# Start NGINX in the foreground
+EXPOSE 3000
 CMD ["nginx", "-g", "daemon off;"]
-
