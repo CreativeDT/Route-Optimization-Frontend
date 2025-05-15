@@ -20,9 +20,8 @@ FROM nginx:latest
 # Copy custom NGINX configuration
 COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy SSL certificates
-COPY ssl/global-csg.com.pem /etc/ssl/global-csg.com.pem
-COPY ssl/global-csg.com.key /etc/ssl/global-csg.com.key
+COPY ../ssl/global-csg.com.pem ssl/global-csg.com.pem
+COPY ../ssl/global-csg.com.key ssl/global-csg.com.key
 
 # Copy the built Angular application from the build stage
 COPY --from=build /app/ /usr/share/nginx/html
