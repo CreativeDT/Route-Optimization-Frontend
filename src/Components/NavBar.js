@@ -129,9 +129,9 @@ const NavBar = () => {
               return {
                   icon: <FaUserShield className="role-icon" />,
                   label: "Administrator",
-                  color: "#e74c3c",
+                  color: "rgb(0 179 157)",
                   bgColor: "rgba(231, 76, 60, 0.1)",
-                  borderColor: "#c0392b"
+                  borderColor: "rgb(0 179 157)"
               };
           case 'manager':
               return {

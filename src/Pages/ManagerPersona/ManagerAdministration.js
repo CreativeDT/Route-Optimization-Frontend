@@ -371,7 +371,12 @@ useEffect(() => {
 //   };
 const handleAssignDriver = async (driverId, routeId) => {
     if (!driverId || !routeId) {
-        alert("Please select a driver.");
+      setSnackbar({
+        open: true,
+        message: "Please select a driver.!",
+        severity: "success"
+      });
+        // alert("Please select a driver.");
         return;
     }
 try {
@@ -573,7 +578,12 @@ const handleEditRoute = async (item) => {
     setEditDialogOpen(true);
   } catch (error) {
     console.error("Error fetching full route data:", error);
-    alert("Failed to fetch full route details.");
+    // alert("Failed to fetch full route details.");
+    setSnackbar({
+      open: true,
+      message: "Failed to fetch full route details.!",
+      severity: "success"
+    });
   }
 };
 
@@ -628,7 +638,12 @@ const handleUpdateRoute = async () => {
   const token = localStorage.getItem("token");
   // console.log("editedRoute1:", editedRoute);
   if (!editedRoute?.routeID || !Array.isArray(editedRoute?.stop_demands)) {
-    alert("Missing route data.");
+    setSnackbar({
+      open: true,
+      message: "Missing route data.!",
+      severity: "success"
+    });
+    // alert("Missing route data.");
     // console.log("editedRoute2:", editedRoute);
 
     return;
@@ -674,7 +689,7 @@ const handleUpdateRoute = async () => {
       setChangesMade(false);
       fetchData(); // Optionally refresh the route list
     } else {
-      alert("Unexpected response: " + response.data.detail);
+      // alert("Unexpected response: " + response.data.detail);
     }
   } catch (err) {
     console.error("Error updating route:", err);

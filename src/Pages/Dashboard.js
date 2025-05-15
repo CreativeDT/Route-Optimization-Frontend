@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Grid, Card, CardContent, Typography } from "@mui/material";
 import Navbar from "../Components/NavBar";
 import Breadcrumbs from "./Breadcrumbs/Breadcrumbs";
-import backgroundImage from "../Assets/images/optimization image.jpg";
+import backgroundImage from "../Assets/images/truck3.jpeg";
 import adminIcon from '../Assets/images/admin.png';
 import './Dashboard.css';
 // Import icons
@@ -76,10 +76,18 @@ const Dashboard = () => {
       <Breadcrumbs />
 
       {/* Background Image */}
-      <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: -1 }}>
-        <img src={backgroundImage} alt="Background" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.9 }} />
+      <div style={{ position: "absolute", top: 70, left: 0, width: "100%", height: "100%", zIndex: -1 }}>
+        <img src={backgroundImage} alt="Background" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.5 }} />
       </div>
-
+ 
+<div style={{
+position: "absolute",
+top: 70,
+left: 0,
+width: "100%",
+height: "100%",
+backgroundColor:  "rgba(0, 0, 0, 0.5)"}}>
+</div>
       {/* Dashboard Cards */}
      
        <div style={{ 
@@ -89,7 +97,7 @@ const Dashboard = () => {
                 maxWidth: "95%",
                 margin: "auto",
                 padding: "20px 0",
-                flexWrap: 'wrap'
+                flexWrap: 'wrap',position:"relative"
             }}>
               {iconData.map((icon, index) => (
             <Card  key={index}
@@ -120,7 +128,7 @@ const Dashboard = () => {
                 "&:hover": {
                     transform: "scale(1.05)",
                     boxShadow: 6,
-                    cursor: "pointer",
+                    cursor: "pointer",backgroundColor: 'rgba(255, 255, 255, 0.8)'
                 },
             }}
               onClick={() => navigate(icon.path)}

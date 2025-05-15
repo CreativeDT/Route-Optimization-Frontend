@@ -1,8 +1,9 @@
 import React ,{useEffect ,useState} from 'react';
 import Navbar from '../../Components/NavBar';
-import Breadcrumbs from '../Breadcrumbs/Breadcrumbs';
+
 import config from '../../config';
 import axios from 'axios';
+import Breadcrumbs1 from './Breadcrumbs1';
 
 const Analytics = () => {
   const [userId, setUserId] = useState(null);
@@ -56,7 +57,7 @@ const Analytics = () => {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '95vh', overflow: 'hidden' }}>
       <Navbar />
-      <Breadcrumbs />
+      <Breadcrumbs1 />
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
         {/* Sidebar (optional) */}
         {/* <div style={{ width: '200px', backgroundColor: '#f4f4f4', padding: '20px', overflowY: 'auto' }}>
