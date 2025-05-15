@@ -251,15 +251,18 @@ const MapView = React.memo(({ coordinates, routeWaypoints = [], route, multipleR
                 <Tooltip direction="top" offset={[0, -10]} opacity={1}>
                     <Typography variant="body2">
                         <strong>Route Details:</strong><br />
-                        Origin: {route?.origin}<br />
-                        Destination: {route?.destination}<br />
-                        Distance: {route?.distance} km<br />
+                        {/* Origin: {route?.origin}<br />
+                        Destination: {route?.destination}<br /> */}
+                          Origin: {typeof route?.origin === 'object' ? route.origin.name : route?.origin || "Origin"}<br />
+                            Destination: {typeof route?.destination === 'object' ? route.destination.name : route?.destination || "Destination"}<br />
+                        
+                        Distance: {route?.distance} miles<br />
                         Duration: {route?.duration} hrs<br />
                         {/* <br /> */}
                         <strong>Vehicle Information:</strong><br />
                         Fuel Type: {route?.fuel_type || "N/A"}<br />
                         Vehicle Type: {route?.vehicle_type || "N/A"}<br />
-                        CO₂ Emission: {route?.carbon_emission ? `${route.carbon_emission} kg` : "N/A"}
+                        CO₂ Emission: {route?.carbon_emission ? `${route.carbon_emission} lbs` : "N/A"}
 
 
                     </Typography>

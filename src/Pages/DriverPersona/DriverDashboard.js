@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Grid, Card, CardContent, Typography } from "@mui/material";
 
 
-import backgroundImage from "../../Assets/images/61758.jpg";
+import backgroundImage from "../../Assets/images/truck3.jpeg";
 import adminIcon from '../../Assets/images/admin.png';
 import '.././Dashboard.css';
 // Import icons
@@ -73,9 +73,16 @@ const DriverDashboard = () => {
 
       {/* Background Image */}
       <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: -1 }}>
-        <img src={backgroundImage} alt="Background" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.2 }} />
+        <img src={backgroundImage} alt="Background" style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.5}} />
       </div>
-
+      <div style={{
+position: "absolute",
+top: 78,
+left: 0,
+width: "100%",
+height: "100%",
+backgroundColor:  "rgba(0, 0, 0, 0.5)"}}>
+</div>
       {/* Dashboard Cards */}
      
        <div style={{ 
@@ -85,7 +92,7 @@ const DriverDashboard = () => {
                 maxWidth: "95%",
                 margin: "auto",
                 padding: "20px 0",
-                flexWrap: 'wrap'
+                flexWrap: 'wrap',position:"relative"
             }}>
               {iconData.map((icon, index) => (
             <Card  key={index}
@@ -111,7 +118,7 @@ const DriverDashboard = () => {
                 textAlign: "center",
                 borderRadius: "10px",
                 boxShadow: 3,
-                transition: "transform 0.3s ease-in-out",
+                transition: "transform 0.3s ease-in-out",backgroundColor: 'rgba(255, 255, 255, 0.8)',
                 margin: '10px',
                 "&:hover": {
                     transform: "scale(1.05)",
